@@ -1,0 +1,38 @@
+[
+    {
+        "meetingId": "bf3a3cd4-f00d-47d9-a0dc-98500c4e03b4",
+        "title": "Los Angeles City Council - Regular Session",
+        "date": "April 22, 2024",
+        "duration": 3656, 
+        "status": "Recorded",
+        "tags": [
+            "Councilmember Smith",
+            "Councilmember Johnson",
+            "Ordinance 22-104"
+        ]
+    },
+    {
+        "meetingId": "bf3a3cd4-a00d-47d9-a0dc-98500c4e04b4",
+        "title": "Santa Monica City Council - Budget Workshop",
+        "date": "June 22, 2024",
+        "duration": 3656, 
+        "status": "Recorded",
+        "tags": [
+            "Councilmember Smith",
+            "Councilmember Johnson",
+            "Ordinance 15-6"
+        ]
+    },
+    {
+        "meetingId": "bf3a3cd4-f00d-47d9-a0dc-98500c4e03b4",
+        "title": "Beverly Hills Planning Commission",
+        "date": "February 12, 2025",
+        "duration": 3656, 
+        "status": "Recorded",
+        "tags": [
+            "Councilmember Smith",
+            "Councilmember Johnson",
+            "Ordinance 21-88"
+        ]
+    }
+]
