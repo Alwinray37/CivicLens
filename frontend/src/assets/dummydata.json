@@ -1,0 +1,38 @@
+[
+    {
+        "id": 1,
+        "title": "City Council Meeting - May 2024",
+        "description": "Full recording of the May 2024 City Council meeting.",
+        "url": "https://example.com/videos/city-council-may-2024",
+        "thumbnail": "https://example.com/thumbnails/city-council-may-2024.jpg",
+        "duration": "2:34:12",
+        "views": 1540,
+        "uploadedAt": "2024-05-01T10:00:00Z",
+        "author": "City Clerk",
+        "tags": ["City Council", "Meeting", "Civic"]
+    },
+    {
+        "id": 2,
+        "title": "Planning Commission Hearing - May 2024",
+        "description": "Watch the Planning Commission's May 2024 public hearing.",
+        "url": "https://example.com/videos/planning-commission-may-2024",
+        "thumbnail": "https://example.com/thumbnails/planning-commission-may-2024.jpg",
+        "duration": "1:48:20",
+        "views": 2310,
+        "uploadedAt": "2024-05-10T14:30:00Z",
+        "author": "Planning Department",
+        "tags": ["Planning Commission", "Hearing", "Civic"]
+    },
+    {
+        "id": 3,
+        "title": "Parks & Recreation Board Meeting - June 2024",
+        "description": "June 2024 Parks & Recreation Board meeting with community updates.",
+        "url": "https://example.com/videos/parks-rec-june-2024",
+        "thumbnail": "https://example.com/thumbnails/parks-rec-june-2024.jpg",
+        "duration": "1:22:10",
+        "views": 980,
+        "uploadedAt": "2024-06-01T09:15:00Z",
+        "author": "Parks & Recreation Dept.",
+        "tags": ["Parks", "Recreation", "Board Meeting"]
+    }
+]

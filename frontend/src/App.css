@@ -1,8 +1,15 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
 #root {
   max-width: 1280px;
   margin: 0 auto;
   padding: 2rem;
   text-align: center;
+  
 }
 
 .logo {
@@ -39,4 +46,42 @@
 
 .read-the-docs {
   color: #888;
+}
+
+nav{
+  position: fixed;
+  top: 0;
+  left:0;
+  width: 100vw;
+  display: flex;
+  background-color: gray;
+  color: whitesmoke;
+  justify-content: space-between;
+  padding: 10px;
+  
+}
+nav li, nav ul, nav a{
+  list-style: none;
+  display: inline;
+  color: whitesmoke;
+  padding: 0;
+  margin: 0;
+}
+
+.container{
+
+}
+
+.video-card-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  border: blue 1px solid; 
+  padding: 10px;
+}
+
+.video-card{
+  border-radius: 10px;
+  padding: 1rem;
+  background-color: rgb(211, 211, 211, .5);
 }
