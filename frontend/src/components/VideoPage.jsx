@@ -6,6 +6,7 @@ import styles from './VideoPage.module.css';
 import Chatbot from "./Chatbot";
 import TranscriptCard from "./TranscriptCard";
 import AgendaCard from "./AgendaCard";
+import BookmarkCard from "./BookmarkCard";
 
 export default function VideoPage() {
     const { id } = useParams();
@@ -28,7 +29,7 @@ export default function VideoPage() {
 
     return (
         <div className={"p-3 overflow-scroll " + styles.videoPage}>
-            <div className={"container " + styles.contentContainer}>
+            <div className="container">
                 <div className="row gap-3 row-cols-1 row-cols-md-2 mb-3 justify-content-between">
                     <div className="col col-md-8">
                             <ReactPlayer src={videoData.src} 
@@ -62,10 +63,22 @@ export default function VideoPage() {
                             {
                                 time: "2:57",
                                 content: "Lorem ipsum dolor sit amet, consectetur adipiscing elit",
+                            },
+                            {
+                                time: "2:57",
+                                content: "Lorem ipsum dolor sit amet, consectetur adipiscing elit",
+                            },
+                            {
+                                time: "2:57",
+                                content: "Lorem ipsum dolor sit amet, consectetur adipiscing elit",
+                            },
+                            {
+                                time: "2:57",
+                                content: "Lorem ipsum dolor sit amet, consectetur adipiscing elit",
                             }
                         ]}/>
                     </div>
-                    <div className="col col-md-3">
+                    <div className="col col-md-3 mb-3">
                         <AgendaCard events={[
                             {
                                 content: "Lorem ipsum dolor sit amet, consectetur adipiscing elit",
@@ -78,7 +91,55 @@ export default function VideoPage() {
                             {
                                 content: "Lorem ipsum dolor sit amet, consectetur adipiscing elit",
                                 timespan: "0:00-5:00",
-                            }
+                            },
+                            {
+                                content: "Lorem ipsum dolor sit amet, consectetur adipiscing elit",
+                                timespan: "0:00-5:00",
+                            },
+                            {
+                                content: "Lorem ipsum dolor sit amet, consectetur adipiscing elit",
+                                timespan: "0:00-5:00",
+                            },
+                            {
+                                content: "Lorem ipsum dolor sit amet, consectetur adipiscing elit",
+                                timespan: "0:00-5:00",
+                            },
+                        ]}/>
+                    </div>
+                </div>
+                <div className="row">
+                    <div className="col">
+                        <BookmarkCard bookmarks={[
+                            {
+                                title: "Smith Opposition Statement",
+                                description: "Key opposition points",
+                                time: "60:20",
+                            },
+                            {
+                                title: "Smith Opposition Statement",
+                                description: "Key opposition points",
+                                time: "60:20",
+                            },
+                            {
+                                title: "Smith Opposition Statement",
+                                description: "Key opposition points",
+                                time: "60:20",
+                            },
+                            {
+                                title: "Smith Opposition Statement",
+                                description: "Key opposition points",
+                                time: "60:20",
+                            },
+                            {
+                                title: "Smith Opposition Statement",
+                                description: "Key opposition points",
+                                time: "60:20",
+                            },
+                            {
+                                title: "Smith Opposition Statement",
+                                description: "Key opposition points",
+                                time: "60:20",
+                            },
                         ]}/>
                     </div>
                 </div>
