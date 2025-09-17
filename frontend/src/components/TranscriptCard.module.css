@@ -1,3 +1,7 @@
+.transcriptCard {
+    max-height: 400px;
+}
+
 .transcriptTime {
     width: 15%;
 }

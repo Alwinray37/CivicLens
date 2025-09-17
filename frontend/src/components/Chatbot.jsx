@@ -12,11 +12,35 @@ export default function Chatbot() {
         {
             type: "incoming",
             message: "The purpose of this meeting was to...",
-        }
+        },
+        {
+            type: "outgoing",
+            message: "What was the main purpose of this meeting?",
+        },
+        {
+            type: "incoming",
+            message: "The purpose of this meeting was to...",
+        },
+        {
+            type: "outgoing",
+            message: "What was the main purpose of this meeting?",
+        },
+        {
+            type: "incoming",
+            message: "The purpose of this meeting was to...",
+        },
+        {
+            type: "outgoing",
+            message: "What was the main purpose of this meeting?",
+        },
+        {
+            type: "incoming",
+            message: "The purpose of this meeting was to...",
+        },
     ]);
 
     return (
-        <div className={"border text-start p-2 h-100 d-flex flex-column justify-content-between "
+        <div className={"container border text-start p-2 h-100 d-flex flex-column justify-content-between "
                         + styles.chatbotWrapper}>
             <h4 className="border-bottom m-0 ps-1 pb-2">Chatbot</h4>
             <div className="d-flex flex-column flex-grow-1 overflow-scroll">
