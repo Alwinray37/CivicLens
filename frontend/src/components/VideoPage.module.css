@@ -1,0 +1,7 @@
+.videoPage {
+    position: absolute;
+    top: 44px;
+    left: 0;
+    max-height: calc(100vh - 44px);
+    width: 100vw;
+}
