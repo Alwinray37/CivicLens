@@ -4,7 +4,7 @@ export default function BookmarkCard({
     bookmarks
 }) {
     return (
-        <div className={"container border p-2 d-flex flex-column "
+        <div className={"container border p-2 d-flex flex-column bg-light "
                         + styles.bookmarkCard}>
             <h4 className="m-0 pb-2 ps-2 border-bottom text-start">Bookmarks</h4>
             <div className="overflow-scroll pt-2 d-flex flex-column gap-1 flex-grow-1">

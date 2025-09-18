@@ -2,7 +2,6 @@ import { useParams } from "react-router-dom";
 import ReactPlayer from 'react-player';
 import { useEffect, useState } from "react";
 
-import styles from './VideoPage.module.css';
 import Chatbot from "./Chatbot";
 import TranscriptCard from "./TranscriptCard";
 import AgendaCard from "./AgendaCard";
@@ -28,7 +27,6 @@ export default function VideoPage() {
     }, []);
 
     return (
-        <div className={"p-3 overflow-scroll " + styles.videoPage}>
             <div className="container">
                 <div className="row gap-3 row-cols-1 row-cols-md-2 mb-3 justify-content-between">
                     <div className="col col-md-8">
@@ -144,6 +142,5 @@ export default function VideoPage() {
                     </div>
                 </div>
             </div>
-        </div>
     )
 }

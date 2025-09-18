@@ -4,7 +4,7 @@ export default function TranscriptCard({
     snippets,
 }) {
     return (
-        <div className={"container border p-2 d-flex flex-column "
+        <div className={"container border p-2 d-flex flex-column bg-light "
                         + styles.transcriptCard}>
             <h4 className="m-0 pb-2 border-bottom ps-1 text-start">Transcript</h4>
             <div className="overflow-scroll pt-2 d-flex flex-column gap-1 flex-grow-1">
