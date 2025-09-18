@@ -3,13 +3,17 @@
   margin: 0;
   padding: 0;
 }
+a {
+  text-decoration: none !important;
+  color: inherit;
+}
 
 #root {
-  max-width: 1280px;
+ width: 100vw;
   margin: 0 auto;
-  padding: 2rem;
+  padding: 100px 2rem;
   text-align: center;
-  
+  background-color: rgb(230, 245, 255);
 }
 
 .logo {
@@ -52,18 +56,18 @@ nav{
   position: fixed;
   top: 0;
   left:0;
-  width: 100vw;
+  width: 100%;
   display: flex;
-  background-color: gray;
-  color: whitesmoke;
+  background-color: white;
+  color: black;
   justify-content: space-between;
   padding: 10px;
-  
+  box-shadow: 2px 2px 5px rgba(0,0,0,0.1);
 }
 nav li, nav ul, nav a{
   list-style: none;
   display: inline;
-  color: whitesmoke;
+  color: black;
   padding: 0;
   margin: 0;
 }
@@ -76,12 +80,12 @@ nav li, nav ul, nav a{
   display: flex;
   flex-direction: column;
   gap: 10px;
-  border: blue 1px solid; 
+  /* border: blue 1px solid;  */
   padding: 10px;
 }
 
 .video-card{
   border-radius: 10px;
   padding: 1rem;
-  background-color: rgb(211, 211, 211, .5);
+  background-color: rgb(255, 255, 255);
 }
