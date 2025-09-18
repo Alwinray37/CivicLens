@@ -63,6 +63,7 @@ nav{
   justify-content: space-between;
   padding: 10px;
   box-shadow: 2px 2px 5px rgba(0,0,0,0.1);
+  z-index: 5000;
 }
 nav li, nav ul, nav a{
   list-style: none;

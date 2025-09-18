@@ -1,0 +1,40 @@
+{
+    "videoUrl": "https://www.youtube.com/watch?v=BazoAgcwpH0",
+    "agenda": [
+        {
+            "start": 0,
+            "end": 300,
+            "name": "Call to Order and Roll Call",
+            "tags": ["discussion"]
+        },
+        {
+            "start": 1500,
+            "end": 3000,
+            "name": "Item 14 - Amendment to Zoning Code (District 3)",
+            "tags": ["failed"]
+        },
+        {
+            "start": 3065,
+            "end": 3405,
+            "name": "Budget Allocation for Parks Department",
+            "tags": ["passed"]
+        },
+    ],
+    "bookmarks": [
+        {
+            "name": "Smith Opposition Statement",
+            "description": "Key opposition points",
+            "time": 2335
+        },
+        {
+            "name": "Johnson Counter-argument",
+            "description": "Housing crisis response",
+            "time": 2662
+        },
+        {
+            "name": "Martinez Environmental Concerns",
+            "description": "Traffic study questions",
+            "time": 3028
+        }
+    ]
+}
