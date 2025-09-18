@@ -28,23 +28,16 @@ export default function VideoPage() {
 
     return (
             <div className="container">
-                <div className="row gap-3 row-cols-1 row-cols-md-2 mb-3 justify-content-between">
-                    <div className="col col-md-8">
-                            <ReactPlayer src={videoData.src} 
-                                style={{
-                                    minWidth: "300px",
-                                    width: "100%",
-                                    height: "auto",
-                                    aspectRatio: "16 / 9",
-                                }}
-                            />
-                    </div>
-                    <div className="col col-md-3">
-                        <Chatbot />
-                    </div>
-                </div>
-                <div className="row row-cols-1 row-cols-md-2 justify-content-between">
-                    <div className="col col-md-8 mb-3">
+                <div className="row gap-3 row-cols-1 row-cols-lg-2 justify-content-center">
+                    <div className="col col-lg-8 d-flex flex-column gap-3 flex-grow-1 ">
+                        <ReactPlayer src={videoData.src} 
+                            style={{
+                                minWidth: "300px",
+                                width: "100%",
+                                height: "auto",
+                                aspectRatio: "16 / 9",
+                            }}
+                        />
                         <TranscriptCard snippets={[
                             {
                                 time: "2:57",
@@ -76,7 +69,8 @@ export default function VideoPage() {
                             }
                         ]}/>
                     </div>
-                    <div className="col col-md-3 mb-3">
+                    <div className="col col-lg-3 d-flex flex-column gap-3 flex-grow-1 ">
+                        <Chatbot />
                         <AgendaCard events={[
                             {
                                 content: "Lorem ipsum dolor sit amet, consectetur adipiscing elit",
@@ -103,10 +97,6 @@ export default function VideoPage() {
                                 timespan: "0:00-5:00",
                             },
                         ]}/>
-                    </div>
-                </div>
-                <div className="row">
-                    <div className="col">
                         <BookmarkCard bookmarks={[
                             {
                                 title: "Smith Opposition Statement",
