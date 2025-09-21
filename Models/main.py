@@ -62,13 +62,81 @@ def set_raw_output(audio_filename, model_size = 'medium'):
 
     write_json_data(JSON_RAW_OUTPUT, word_info)   
 
+def combine_words(data, max_time = 300):
+    sentences = []
+
+    current_line = {
+        'text': "",
+        'start': None,
+        'end': None,
+        'duration': 0.0,
+        'words': []        
+    }
+    
+    for i, word_data in enumerate(data):         
+        word_text = word_data['word']    
+        word_start = word_data['start']
+        word_end = word_data['end']
+        word_duration = word_end - word_start
+
+        max_time_hit = current_line['duration'] >= max_time        
+
+        if max_time_hit:
+            sentences.append({
+                'start': current_line['start'], 
+                'end': current_line['end'], 
+                'line': current_line['text'].strip(),
+                'words': current_line['words']
+                })
+
+            current_line = {
+                'text': "",
+                'start': None,
+                'end': None,
+                'duration': 0.0,
+                'words': []        
+            }
+
+        if current_line['start'] is None:
+            current_line['start'] = word_start
+
+        current_line['text'] += word_text
+        current_line['end'] = word_end
+        current_line['duration'] += word_duration
+        current_line['words'].append({
+            'text': word_text,
+            'start': word_start,
+            'end': word_end
+        })            
+        
+        
+    if current_line['text']:
+        sentences.append({
+            'start': current_line['start'], 
+            'end': current_line['end'], 
+            'line': current_line['text'].strip(),
+            'words': current_line['words']
+        })
+      
+
+    
+    return sentences
+
 def main():
     info_data = load_json_data(JSON_INFO)
 
     if info_data is None:        
         return
     
-    set_raw_output(info_data['Filename'], model_size='small')    
+    ##UNCOMMENT to RUN ASR
+    #set_raw_output(info_data['Filename'], model_size='small')    
+
+
+    raw_output = load_json_data(JSON_RAW_OUTPUT)
+
+    processed_lines = combine_words(raw_output, info_data["MaxTime"])
+
+    write_json_data(JSON_MODIFIED_OUTPUT, processed_lines)
 
     pass
 
