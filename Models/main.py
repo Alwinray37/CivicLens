@@ -6,6 +6,7 @@ from faster_whisper import WhisperModel, BatchedInferencePipeline
 JSON_INFO = 'info.json'
 JSON_RAW_OUTPUT = 'output.json'
 JSON_MODIFIED_OUTPUT = 'modifiedOutput.json'
+JSON_SUMMARY_OUTPUT = 'summary.json'
 
 def load_json_data(json_filename):
     """
@@ -133,10 +134,10 @@ def main():
     """Uncomment to Run ASR"""
     #set_raw_output(info_data['Filename'], model_size='small')    
 
-
-    #raw_output = load_json_data(JSON_RAW_OUTPUT)
-    #processed_lines = combine_words(raw_output, info_data["MaxTime"])
-    #write_json_data(JSON_MODIFIED_OUTPUT, processed_lines)
+    """Combine words into time segmented phrases"""
+    raw_output = load_json_data(JSON_RAW_OUTPUT)
+    processed_lines = combine_words(raw_output, info_data["MaxTime"])
+    write_json_data(JSON_MODIFIED_OUTPUT, processed_lines)
 
     """BERT Name Entity"""
     """
@@ -153,13 +154,23 @@ def main():
     modified_output = load_json_data(JSON_MODIFIED_OUTPUT)
 
     summarizer = pipeline(task="summarization", model="sshleifer/distilbart-cnn-12-6")
-    text = modified_output[0]['line']
 
-    summarization_results = summarizer("PG&E stated it scheduled the blackouts in response to forecasts for high winds "
-    "amid dry conditions. The aim is to reduce the risk of wildfires. Nearly 800 thousand customers were "
-    "scheduled to be affected by the shutoffs which were expected to last through at least midday tomorrow.", max_length=28)
-    print(summarization_results[0]["summary_text"])
-    pass    
+    """summarization_results = summarizer("PG&E stated it scheduled the blackouts in response to forecasts for high winds "
+        "amid dry conditions. The aim is to reduce the risk of wildfires. Nearly 800 thousand customers were "
+        "scheduled to be affected by the shutoffs which were expected to last through at least midday tomorrow.", max_length=28)"""
+
+    summarizations = []
+    for phrase in modified_output:
+
+        text = phrase['line']
+
+        summarization_results = summarizer(text)
+
+        print(summarization_results[0]["summary_text"])
+        summarizations.append(summarization_results[0]["summary_text"])
+        print()
+    
+    write_json_data(JSON_SUMMARY_OUTPUT, summarizations)
 
 if __name__ == '__main__':
     main()
