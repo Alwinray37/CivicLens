@@ -1,4 +1,6 @@
 import json
+from transformers import AutoTokenizer, AutoModelForTokenClassification
+from transformers import pipeline
 from faster_whisper import WhisperModel, BatchedInferencePipeline
 
 JSON_INFO = 'info.json'
@@ -128,17 +130,36 @@ def main():
     if info_data is None:        
         return
     
-    ##UNCOMMENT to RUN ASR
+    """Uncomment to Run ASR"""
     #set_raw_output(info_data['Filename'], model_size='small')    
 
 
-    raw_output = load_json_data(JSON_RAW_OUTPUT)
+    #raw_output = load_json_data(JSON_RAW_OUTPUT)
+    #processed_lines = combine_words(raw_output, info_data["MaxTime"])
+    #write_json_data(JSON_MODIFIED_OUTPUT, processed_lines)
 
-    processed_lines = combine_words(raw_output, info_data["MaxTime"])
+    """BERT Name Entity"""
+    """
+    tokenizer = AutoTokenizer.from_pretrained("dslim/bert-base-NER")
+    model = AutoModelForTokenClassification.from_pretrained("dslim/bert-base-NER")
 
-    write_json_data(JSON_MODIFIED_OUTPUT, processed_lines)
+    nlp = pipeline("ner", model=model, tokenizer=tokenizer)
+    example = "My Alex is Wolfgang and I live in Berlin"
 
-    pass
+    ner_results = nlp(example)
+    print(ner_results)"""
+
+    """BART Summarizer"""    
+    modified_output = load_json_data(JSON_MODIFIED_OUTPUT)
+
+    summarizer = pipeline(task="summarization", model="sshleifer/distilbart-cnn-12-6")
+    text = modified_output[0]['line']
+
+    summarization_results = summarizer("PG&E stated it scheduled the blackouts in response to forecasts for high winds "
+    "amid dry conditions. The aim is to reduce the risk of wildfires. Nearly 800 thousand customers were "
+    "scheduled to be affected by the shutoffs which were expected to last through at least midday tomorrow.", max_length=28)
+    print(summarization_results[0]["summary_text"])
+    pass    
 
 if __name__ == '__main__':
     main()
