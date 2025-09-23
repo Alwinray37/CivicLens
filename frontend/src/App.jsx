@@ -5,7 +5,6 @@ import VideoListPage from './components/VideoListPage'
 import VideoPage from './components/VideoPage'
 import Navbar from './components/Navbar'
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import React from 'react';
 
 function App() {
   

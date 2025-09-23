@@ -3,6 +3,7 @@
 // when clicked, it will take the user to the video watch page
 import dummydata from '../assets/dummydata.json';
 import { useState } from 'react';
+import { useParams } from 'react-router-dom';
 
 export default function VideoListPage() {
     const [dateOrder, setDateOrder] = useState('desc');
@@ -12,9 +13,11 @@ export default function VideoListPage() {
     // Get all unique tags from the data
     const allTags = Array.from(new Set(dummydata.flatMap(video => video.tags || [])));
 
+    // filter the data from dummydata, retrieve only the videos that have a videoUrl
     let filteredList = dummydata.filter(video => {
         if (video.videoUrl === null) return false;
         const tagMatch = filterTag ? (video.tags || []).includes(filterTag) : true;
+        const videoId = video.id || video.videoId || video.videoID || null;
         // Search in title or tags
         const searchLower = search.toLowerCase();
         const titleMatch = video.title.toLowerCase().includes(searchLower);
@@ -32,6 +35,7 @@ export default function VideoListPage() {
             return new Date(b.date) - new Date(a.date);
         }
     });
+
     return (
         <div className="container" id="video-list-page">
             <div className="heading d-flex align-items-center justify-content-between">
@@ -51,11 +55,12 @@ export default function VideoListPage() {
                         onChange={e => setFilterTag(e.target.value)}
                         style={{ maxWidth: '140px' }}
                     >
-                        <option value="">All Tags</option>
+                        <option value="">All Tags</option> {/* need to add tags when available */}
                         {allTags.map(tag => (
                             <option key={tag} value={tag}>{tag}</option>
                         ))}
                     </select>
+                    {/* might change this to a toggle button */}
                     <select
                         className="form-select"
                         value={dateOrder}
