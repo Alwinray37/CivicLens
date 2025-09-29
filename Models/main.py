@@ -1,6 +1,15 @@
 import json
 import pymupdf
-import pathlib
+import torch
+import torchaudio
+
+from dotenv import load_dotenv
+import os
+
+from pyannote.audio import Pipeline, Audio
+from pyannote.core import Segment
+from pyannote.audio.pipelines.utils.hook import ProgressHook
+
 from transformers import AutoTokenizer, AutoModelForTokenClassification
 from transformers import pipeline
 from faster_whisper import WhisperModel, BatchedInferencePipeline
@@ -43,6 +52,20 @@ def write_json_data(json_filename, data):
     """
     with open(json_filename, 'w') as file:
         json.dump(data, file, indent=4)
+
+def extract_pdf_text(pdf_filname):
+    extracted_text = []
+
+    with pymupdf.open(pdf_filname) as doc:
+        for page_num, page in enumerate(doc):
+            text = page.get_text()
+           
+            extracted_text.append({
+                "page": page_num + 1,
+                "text": text.strip()
+            })
+
+    return extracted_text
 
 def set_raw_output(audio_filename, model_size = 'medium'):
     """
@@ -148,6 +171,10 @@ def summarize_lines(data):
     return summarizations
 
 def main():
+    load_dotenv()
+
+    pyannote_token = os.getenv("PYANNOTE_TOKEN")
+
     info_data = load_json_data(JSON_INFO)
 
     if info_data is None:        
@@ -178,17 +205,17 @@ def main():
     #summary_output = summarize_lines(modified_output)       
     #write_json_data(JSON_SUMMARY_OUTPUT, summary_output)
 
-    extracted_text = []
 
-    with pymupdf.open(info_data["Agenda"]) as doc:
-        for page_num, page in enumerate(doc):
-            text = page.get_text()
-            extracted_text.append({
-                "page": page_num + 1,
-                "text": text.strip()
-            })
+    pipeline = Pipeline.from_pretrained('pyannote/speaker-diarization-community-1', token=pyannote_token)
 
-    print(extracted_text)
+    if torch.cuda.is_available():
+        pipeline.to(torch.device("cuda"))    
+
+    with ProgressHook() as hook:
+        output = pipeline(info_data['Wav'], hook=hook)
+    
+    for turn, speaker in output.speaker_diarization:
+        print(f"{speaker} speaks between t={turn.start}s and t={turn.end}s")
 
 if __name__ == '__main__':
     main()
