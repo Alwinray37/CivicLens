@@ -1,7 +1,11 @@
 import json
+import pymupdf
+import pathlib
 from transformers import AutoTokenizer, AutoModelForTokenClassification
 from transformers import pipeline
 from faster_whisper import WhisperModel, BatchedInferencePipeline
+
+from tqdm import tqdm
 
 JSON_INFO = 'info.json'
 JSON_RAW_OUTPUT = 'output.json'
@@ -125,6 +129,24 @@ def combine_words(data, max_time = 300):
     
     return sentences
 
+def summarize_lines(data):
+    summarizer = pipeline(task="summarization", model="sshleifer/distilbart-cnn-12-6")
+
+    """summarization_results = summarizer("PG&E stated it scheduled the blackouts in response to forecasts for high winds "
+    "amid dry conditions. The aim is to reduce the risk of wildfires. Nearly 800 thousand customers were "
+    "scheduled to be affected by the shutoffs which were expected to last through at least midday tomorrow.", max_length=28)"""
+
+    summarizations = []
+    for phrase in tqdm(data, desc="Summary Loop"):
+
+        text = phrase['line']
+
+        summarization_results = summarizer(text)
+        
+        summarizations.append({"input": phrase['line'], "summary": summarization_results[0]["summary_text"]})        
+
+    return summarizations
+
 def main():
     info_data = load_json_data(JSON_INFO)
 
@@ -135,9 +157,9 @@ def main():
     #set_raw_output(info_data['Filename'], model_size='small')    
 
     """Combine words into time segmented phrases"""
-    raw_output = load_json_data(JSON_RAW_OUTPUT)
-    processed_lines = combine_words(raw_output, info_data["MaxTime"])
-    write_json_data(JSON_MODIFIED_OUTPUT, processed_lines)
+    #raw_output = load_json_data(JSON_RAW_OUTPUT)
+    #processed_lines = combine_words(raw_output, info_data["MaxTime"])
+    #write_json_data(JSON_MODIFIED_OUTPUT, processed_lines)
 
     """BERT Name Entity"""
     """
@@ -151,26 +173,22 @@ def main():
     print(ner_results)"""
 
     """BART Summarizer"""    
-    modified_output = load_json_data(JSON_MODIFIED_OUTPUT)
+    #modified_output = load_json_data(JSON_MODIFIED_OUTPUT)
 
-    summarizer = pipeline(task="summarization", model="sshleifer/distilbart-cnn-12-6")
+    #summary_output = summarize_lines(modified_output)       
+    #write_json_data(JSON_SUMMARY_OUTPUT, summary_output)
 
-    """summarization_results = summarizer("PG&E stated it scheduled the blackouts in response to forecasts for high winds "
-        "amid dry conditions. The aim is to reduce the risk of wildfires. Nearly 800 thousand customers were "
-        "scheduled to be affected by the shutoffs which were expected to last through at least midday tomorrow.", max_length=28)"""
+    extracted_text = []
 
-    summarizations = []
-    for phrase in modified_output:
+    with pymupdf.open(info_data["Agenda"]) as doc:
+        for page_num, page in enumerate(doc):
+            text = page.get_text()
+            extracted_text.append({
+                "page": page_num + 1,
+                "text": text.strip()
+            })
 
-        text = phrase['line']
-
-        summarization_results = summarizer(text)
-
-        print(summarization_results[0]["summary_text"])
-        summarizations.append(summarization_results[0]["summary_text"])
-        print()
-    
-    write_json_data(JSON_SUMMARY_OUTPUT, summarizations)
+    print(extracted_text)
 
 if __name__ == '__main__':
     main()
