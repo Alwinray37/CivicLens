@@ -1,5 +1,13 @@
 import styles from './ChatbotMessage.module.css';
 
+/*
+    * Message bubble for the chatbot
+    * props:
+        * message: string
+            * content of the chat
+        * type: "outgoing" | "incoming"
+                * outgoing messages appear on right, outgoing appear on left
+*/
 export default function ChatbotMessage({
     message,
     type="outgoing",

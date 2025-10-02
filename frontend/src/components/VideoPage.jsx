@@ -7,14 +7,22 @@ import TranscriptCard from "./TranscriptCard";
 import AgendaCard from "./AgendaCard";
 import BookmarkCard from "./BookmarkCard";
 
+/*
+    * Display of individual videos alongside 
+    * its transcript, agenda, bookmarks, and a chatbot
+*/
 export default function VideoPage() {
+    // id of the video being viewed
     const { id } = useParams();
+    // data associated with the video needed for ReactPlayer
     const [videoData, setVideoData] = useState({
         src: undefined,
     });
 
+    // fetch the video data on mount
     useEffect(() => {
         function fetchVideoData() {
+            // would call api here in real implementation
             setTimeout(() => {
                 setVideoData((curData) => ({
                     ...curData,

@@ -1,5 +1,15 @@
 import styles from './AgendaCard.module.css';
 
+/* 
+    * Card to display the agenda items of a meeting
+    * props:
+        * events: {
+            * content: string 
+                * Agenda description
+            * timespan: string
+                * Timespan at which this agenda item occurs
+            * }[]
+*/
 export default function AgendaCard({
     events,
 }) {

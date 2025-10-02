@@ -4,6 +4,13 @@ import styles from './Chatbot.module.css';
 import ChatbotMessage from './ChatbotMessage';
 
 export default function Chatbot() {
+    /* 
+        * messages: {
+            * type: "outgoing" | "incoming"
+                * outgoing messages appear on right, outgoing appear on left
+            * message: string
+        * }[]
+    */
     const [messages, setMessages] = useState([
         {
             type: "outgoing",
