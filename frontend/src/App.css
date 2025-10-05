@@ -9,11 +9,26 @@ a {
 }
 
 #root {
- width: 100vw;
+  --c-bg-1: rgb(230, 245, 255);
+  --nav-height: 3rem;
+
+  width: 100vw;
+  height: 100vh;
   margin: 0 auto;
-  padding: 100px 2rem;
   text-align: center;
-  background-color: rgb(230, 245, 255);
+
+  overflow: hidden;
+
+  background-color: var(--c-bg-1);
+}
+
+.main {
+    width: 100%;
+    height: calc(100% - var(--nav-height));
+    margin-top: var(--nav-height);
+
+    overflow: auto;
+    padding: 1rem;
 }
 
 .logo {
@@ -56,13 +71,20 @@ nav{
   position: fixed;
   top: 0;
   left:0;
+  
   width: 100%;
+  height: var(--nav-height);
+
   display: flex;
+  align-items: center;
+  justify-content: space-between;
+
   background-color: white;
   color: black;
-  justify-content: space-between;
-  padding: 10px;
   box-shadow: 2px 2px 5px rgba(0,0,0,0.1);
+
+  padding: 10px;
+
   z-index: 5000;
 }
 nav li, nav ul, nav a{
