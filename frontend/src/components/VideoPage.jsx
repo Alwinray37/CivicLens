@@ -1,6 +1,8 @@
 import { useParams } from "react-router-dom";
+
+import { useQuery } from "@tanstack/react-query";
+
 import ReactPlayer from 'react-player';
-import { useEffect, useState } from "react";
 
 import Chatbot from "./Chatbot";
 import TranscriptCard from "./TranscriptCard";
@@ -14,31 +16,36 @@ import BookmarkCard from "./BookmarkCard";
 export default function VideoPage() {
     // id of the video being viewed
     const { id } = useParams();
+
     // data associated with the video needed for ReactPlayer
-    const [videoData, setVideoData] = useState({
-        src: undefined,
-    });
+    const videoQuery = useQuery({ queryKey: ['videos', id], queryFn: fetchVideoData });
 
-    // fetch the video data on mount
-    useEffect(() => {
-        function fetchVideoData() {
-            // would call api here in real implementation
+    async function fetchVideoData() {
+        // would call api here in real implementation
+        return new Promise((resolve, reject) => {
             setTimeout(() => {
-                setVideoData((curData) => ({
-                    ...curData,
-                    src: "https://youtube.com/watch?v=BBm5RCvC0TU",
-                }));
+                resolve(
+                    {
+                        src: "https://youtube.com/watch?v=BBm5RCvC0TU",
+                    }
+                );
             }, 300)
-        }
-
-        fetchVideoData();
-    }, []);
+        })
+    }
 
     return (
             <div className="container">
                 <div className="row gap-3 row-cols-1 row-cols-lg-2 justify-content-center">
                     <div className="col col-lg-8 d-flex flex-column gap-3 flex-grow-1 ">
-                        <ReactPlayer src={videoData.src} 
+                        {
+                        videoQuery.isPending ?
+                        <div className="w-50 align-self-center">
+                            <div>loading</div>
+                        </div>
+                        : videoQuery.isError ?
+                            <div>an error occurred: {videoQuery.error}</div>
+                        :
+                        <ReactPlayer src={videoQuery.data.src} 
                             style={{
                                 minWidth: "300px",
                                 width: "100%",
@@ -46,6 +53,7 @@ export default function VideoPage() {
                                 aspectRatio: "16 / 9",
                             }}
                         />
+                        }
                         <TranscriptCard snippets={[
                             {
                                 time: "2:57",
