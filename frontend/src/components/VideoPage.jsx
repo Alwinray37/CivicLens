@@ -4,6 +4,8 @@ import { useQuery } from "@tanstack/react-query";
 
 import ReactPlayer from 'react-player';
 
+import LoadingSpinner from "./LoadingSpinner";
+
 import Chatbot from "./Chatbot";
 import TranscriptCard from "./TranscriptCard";
 import AgendaCard from "./AgendaCard";
@@ -40,7 +42,7 @@ export default function VideoPage() {
                         {
                         videoQuery.isPending ?
                         <div className="w-50 align-self-center">
-                            <div>loading</div>
+                            <LoadingSpinner />
                         </div>
                         : videoQuery.isError ?
                             <div>an error occurred: {videoQuery.error}</div>

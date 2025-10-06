@@ -1,0 +1,21 @@
+.spinner {
+    width: 100%;
+    animation: loading-spin 0.75s linear;
+    animation-iteration-count: infinite;
+}
+
+@keyframes loading-spin {
+    25% {
+        rotate: 90deg;
+    }
+    50% {
+        rotate: 220deg;
+    }
+    75% {
+        rotate: 300deg;
+    }
+
+    100% {
+        rotate: 360deg;
+    }
+}
