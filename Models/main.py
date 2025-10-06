@@ -3,6 +3,8 @@ import pymupdf
 import torch
 import torchaudio
 
+import numpy as np
+
 from dotenv import load_dotenv
 import os
 
@@ -14,12 +16,15 @@ from transformers import AutoTokenizer, AutoModelForTokenClassification
 from transformers import pipeline
 from faster_whisper import WhisperModel, BatchedInferencePipeline
 
+from huggingface_hub import login
+
 from tqdm import tqdm
 
 JSON_INFO = 'info.json'
 JSON_RAW_OUTPUT = 'output.json'
 JSON_MODIFIED_OUTPUT = 'modifiedOutput.json'
 JSON_SUMMARY_OUTPUT = 'summary.json'
+JSON_SPEAKER_TIME = 'speaker_time.json'
 
 def load_json_data(json_filename):
     """
@@ -174,6 +179,7 @@ def main():
     load_dotenv()
 
     pyannote_token = os.getenv("PYANNOTE_TOKEN")
+    login(token=pyannote_token)
 
     info_data = load_json_data(JSON_INFO)
 
@@ -205,17 +211,30 @@ def main():
     #summary_output = summarize_lines(modified_output)       
     #write_json_data(JSON_SUMMARY_OUTPUT, summary_output)
 
-
-    pipeline = Pipeline.from_pretrained('pyannote/speaker-diarization-community-1', token=pyannote_token)
-
+    try:
+        diarization_pipeline = Pipeline.from_pretrained('pyannote/speaker-diarization-3.1')
+        print("Pipeline loaded successfully")
+    except Exception as e:
+        print(f"Error loading pipeline: {e}")
+        return
+    
     if torch.cuda.is_available():
-        pipeline.to(torch.device("cuda"))    
+        diarization_pipeline.to(torch.device("cuda"))    
 
     with ProgressHook() as hook:
-        output = pipeline(info_data['Wav'], hook=hook)
+        output = diarization_pipeline(info_data["Wav"], hook=hook)
     
-    for turn, speaker in output.speaker_diarization:
+    speakers_dict = []
+    for turn, _, speaker in output.itertracks(yield_label=True):
+
         print(f"{speaker} speaks between t={turn.start}s and t={turn.end}s")
+        speakers_dict.append({
+            "speaker": speaker,
+            "start": turn.start,
+            "end": turn.end
+        })
+
+    write_json_data(JSON_SPEAKER_TIME, speakers_dict)
 
 if __name__ == '__main__':
-    main()
+    main() 
