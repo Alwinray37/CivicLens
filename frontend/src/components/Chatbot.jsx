@@ -27,9 +27,12 @@ export default function Chatbot() {
 
     // sends a message to the chatbot
     const sendMessage = (message) => {
+        const trimmedMessage = message.trim();
+        if(trimmedMessage.length === 0) return;
+
         setMessages((curMessages) => [...curMessages, {
             type: "outgoing",
-            message,
+            message: trimmedMessage,
         }]);
         setMessageInput("");
         scrollToBottom();
