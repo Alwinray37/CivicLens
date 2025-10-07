@@ -1,5 +1,15 @@
 import styles from './TranscriptCard.module.css';
 
+/*
+    * Card to display transcript words next to the time at which they were spoken
+    * props:
+        * snippets: {
+            * time: string
+                * formatted string of the time at which the words were said
+            * content: string
+                * the words that were said at a certain time
+        * }[]
+*/
 export default function TranscriptCard({
     snippets,
 }) {

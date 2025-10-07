@@ -1,62 +1,93 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import styles from './Chatbot.module.css';
 
 import ChatbotMessage from './ChatbotMessage';
 
 export default function Chatbot() {
-    const [messages, setMessages] = useState([
-        {
+    /* 
+        * messages: {
+            * type: "outgoing" | "incoming"
+                * outgoing messages appear on right, outgoing appear on left
+            * message: string
+        * }[]
+    */
+    const [messages, setMessages] = useState([]);
+    const [messageInput, setMessageInput] = useState("");
+
+    // ref of the div the contains the messages
+    const messageContainerRef = useRef(null);
+
+    // scrolls to bottom of messages
+    const scrollToBottom = () => {
+        messageContainerRef.current?.scroll({
+            behavior: "instant",
+            top: messageContainerRef.current.scrollHeight,
+        })
+    }
+
+    // sends a message to the chatbot
+    const sendMessage = (message) => {
+        setMessages((curMessages) => [...curMessages, {
             type: "outgoing",
-            message: "What was the main purpose of this meeting?",
-        },
-        {
-            type: "incoming",
-            message: "The purpose of this meeting was to...",
-        },
-        {
-            type: "outgoing",
-            message: "What was the main purpose of this meeting?",
-        },
-        {
-            type: "incoming",
-            message: "The purpose of this meeting was to...",
-        },
-        {
-            type: "outgoing",
-            message: "What was the main purpose of this meeting?",
-        },
-        {
-            type: "incoming",
-            message: "The purpose of this meeting was to...",
-        },
-        {
-            type: "outgoing",
-            message: "What was the main purpose of this meeting?",
-        },
-        {
-            type: "incoming",
-            message: "The purpose of this meeting was to...",
-        },
-    ]);
+            message,
+        }]);
+        setMessageInput("");
+        scrollToBottom();
+    }
+
+    // handles user keystrokes in the chatbot input field
+    const handleMessageKeyDown = (e) => {
+        if(e.key === "Enter") {
+            sendMessage(messageInput);
+        }
+    }
+
+    // updates state of user input
+    const handleMessageChange = (e) => {
+        setMessageInput(e.target.value);
+    }
+
+    // scrolls to bottom of chatbox whenever messages is updated
+    useEffect(() => {
+        scrollToBottom();
+    }, [messages]);
 
     return (
         <div className={"container border text-start p-2 h-100 d-flex flex-column justify-content-between bg-light "
                         + styles.chatbotWrapper}>
             <h4 className="border-bottom m-0 ps-1 pb-2">Chatbot</h4>
-            <div className="d-flex flex-column flex-grow-1 overflow-scroll">
-                {messages.map((m, i) =>
-                    <ChatbotMessage message={m.message} type={m.type} key={i}/>
-                )}
+            <div 
+                className="d-flex flex-column flex-grow-1 overflow-scroll my-1"
+                ref={messageContainerRef}
+            >
+                {
+                messages.length > 0 ?
+                    messages.map((m, i) =>
+                        <ChatbotMessage message={m.message} type={m.type} key={i}/>
+                    )
+                :
+                    <div className="h-100 d-flex align-items-center justify-content-center">
+                        <span>
+                            Ask a question about the video
+                        </span>
+                    </div>
+                }
             </div>
             <div className="input-group">
                 <input type="text" 
                     className="form-control" 
                     placeholder="Ask a question" 
                     aria-label="Ask a question" 
-                    aria-describedby="chatbot-send-btn" />
+                    aria-describedby="chatbot-send-btn" 
+                    onChange={handleMessageChange}
+                    onKeyDown={handleMessageKeyDown}
+                    value={messageInput}
+                />
                 <button className="btn btn-outline-secondary" 
                     type="button" 
-                    id="chatbot-send-btn">Ask</button>
+                    id="chatbot-send-btn"
+                    onClick={() => sendMessage(messageInput)}
+                >Ask</button>
             </div>
         </div>
     );

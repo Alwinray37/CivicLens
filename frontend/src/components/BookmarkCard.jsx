@@ -1,5 +1,17 @@
 import styles from './BookmarkCard.module.css';
 
+/* 
+    * Card to display a video's bookmarks
+    * props:
+        * bookmarks: {
+                * title: string
+                    * title of the bookmark
+                * description: string
+                    * description of the bookmark
+                * time: string
+                    * formatted string of the time at which this bookmark is set to
+            * }[]
+*/
 export default function BookmarkCard({
     bookmarks
 }) {
