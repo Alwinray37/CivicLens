@@ -1,3 +1,5 @@
+import dummydata from '../assets/dummydata.json';
+
 import { useParams } from "react-router-dom";
 
 import { useQuery } from "@tanstack/react-query";
@@ -24,30 +26,31 @@ export default function VideoPage() {
 
     async function fetchVideoData() {
         // would call api here in real implementation
-        return new Promise((resolve, reject) => {
-            setTimeout(() => {
-                resolve(
-                    {
-                        src: "https://youtube.com/watch?v=BBm5RCvC0TU",
-                    }
-                );
-            }, 300)
-        })
+
+        const video = dummydata.find((v) => v.id.toString() === id);
+        if(!video) {
+            throw new Error("Meeting not found");
+        } else {
+            return video;
+        }
     }
 
     return (
             <div className="container">
+                {
+                videoQuery.isPending ?
+                <LoadingSpinner />
+                : videoQuery.isError ?
+                <div>An error occurred: {videoQuery.error.message}</div>
+                :
                 <div className="row gap-3 row-cols-1 row-cols-lg-2 justify-content-center">
                     <div className="col col-lg-8 d-flex flex-column gap-3 flex-grow-1 ">
                         {
-                        videoQuery.isPending ?
-                        <div className="w-50 align-self-center">
-                            <LoadingSpinner />
-                        </div>
-                        : videoQuery.isError ?
-                            <div>an error occurred: {videoQuery.error}</div>
-                        :
-                        <ReactPlayer src={videoQuery.data.src} 
+                        videoQuery.data.videoUrl ?
+                        <ReactPlayer 
+                            src={videoQuery.data.videoUrl}
+                            title={videoQuery.data.title}
+                            controls
                             style={{
                                 minWidth: "300px",
                                 width: "100%",
@@ -55,6 +58,8 @@ export default function VideoPage() {
                                 aspectRatio: "16 / 9",
                             }}
                         />
+                        :
+                        <div className="my-3">No video could be found for this meeting</div>
                         }
                         <TranscriptCard snippets={[
                             {
@@ -149,6 +154,7 @@ export default function VideoPage() {
                         ]}/>
                     </div>
                 </div>
+                }
             </div>
     )
 }

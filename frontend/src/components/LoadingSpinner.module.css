@@ -1,5 +1,8 @@
 .spinner {
     width: 100%;
+    max-width: 300px;
+    max-height: 300px;
+
     animation: loading-spin 0.75s linear;
     animation-iteration-count: infinite;
 }
