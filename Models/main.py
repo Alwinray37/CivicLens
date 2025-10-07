@@ -26,6 +26,7 @@ JSON_MODIFIED_OUTPUT = 'modifiedOutput.json'
 JSON_SUMMARY_OUTPUT = 'summary.json'
 JSON_SPEAKER_TIME = 'speaker_time.json'
 JSON_SPEAKER_WORDS = 'speaker_words.json'
+JSON_PDF_EXTRACTION = 'pdf_extraction.json'
 
 def load_json_data(json_filename):
     """
@@ -282,12 +283,13 @@ def main():
     ner_results = nlp(example)
     print(ner_results)"""
 
-    speaker_output = load_json_data(JSON_SPEAKER_TIME)
-    raw_output = load_json_data(JSON_RAW_OUTPUT)
-    output = combine_words_with_speakers(raw_output, speaker_output)
+    """Speaker words"""
+    #speaker_output = load_json_data(JSON_SPEAKER_TIME)
+    #raw_output = load_json_data(JSON_RAW_OUTPUT)
+    #output = combine_words_with_speakers(raw_output, speaker_output)
 
-    thing = merge_speaker_words(output)
-    write_json_data(JSON_SPEAKER_WORDS, output)
+    #thing = merge_speaker_words(output)
+    #write_json_data(JSON_SPEAKER_WORDS, output)
 
     """BART Summarizer"""    
     #modified_output = load_json_data(JSON_MODIFIED_OUTPUT)
@@ -299,6 +301,8 @@ def main():
     #speakers_dict = speaker_diarization(info_data['Wav'])
     #write_json_data(JSON_SPEAKER_TIME, speakers_dict)
     
+    pdf_output = extract_pdf_text(info_data['Agenda'])
+    write_json_data(JSON_PDF_EXTRACTION, pdf_output)
 
 
 if __name__ == '__main__':
