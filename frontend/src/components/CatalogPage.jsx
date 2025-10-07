@@ -3,14 +3,15 @@
 // when clicked, it will take the user to the video watch page
 import dummydata from '../assets/dummydata.json';
 import { useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 export default function VideoListPage() {
     const [dateOrder, setDateOrder] = useState('desc');
     const [filterTag, setFilterTag] = useState('');
     const [search, setSearch] = useState('');
+    const navigate = useNavigate();
 
-    // Get all unique tags from the data
+    // Get all unique tags from the data (not yet available)
     const allTags = Array.from(new Set(dummydata.flatMap(video => video.tags || [])));
 
     // filter the data from dummydata, retrieve only the videos that have a videoUrl
@@ -35,6 +36,12 @@ export default function VideoListPage() {
             return new Date(b.date) - new Date(a.date);
         }
     });
+
+    // handle button click to open video page 
+    // navigates to /watch/:id route with videoId as param
+    const handleButtonClick = (videoId, videoUrl) => {
+        navigate (`/watch/${videoId}`, { state: { videoId, videoUrl } });
+    }
 
     return (
         <div className="container" id="video-list-page">
@@ -77,7 +84,7 @@ export default function VideoListPage() {
             <div className="video-card-list container">
                 {filteredList.map((video) => (
                     <div className="video-card d-flex flex-row-reverse" key={video.id}>
-                        <button className="play-btn col-4" title={video.title} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '2rem', width: '100px', height: '100px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <button className="play-btn col-4" title={video.title} onClick={() => handleButtonClick(video.id, video.videoUrl)}>
                             <span role="img" aria-label="Play" style={{ fontSize: '3rem' }}>▶️</span>
                         </button>
                         <div className='col text-start'>
