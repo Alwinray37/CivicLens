@@ -1,4 +1,4 @@
-import { useParams } from "react-router-dom";
+import { useParams, useLocation,  } from "react-router-dom";
 import ReactPlayer from 'react-player';
 import { useEffect, useState } from "react";
 
@@ -12,6 +12,11 @@ export default function VideoPage() {
     const [videoData, setVideoData] = useState({
         src: undefined,
     });
+    const location = useLocation();
+    const videoID = location.state?.videoId || id;
+    const videoURL = location.state?.videoUrl || null;
+    console.log("Video ID:", videoID);
+    console.log("Video url:", videoURL);
 
     useEffect(() => {
         function fetchVideoData() {
@@ -30,7 +35,7 @@ export default function VideoPage() {
             <div className="container">
                 <div className="row gap-3 row-cols-1 row-cols-lg-2 justify-content-center">
                     <div className="col col-lg-8 d-flex flex-column gap-3 flex-grow-1 ">
-                        <ReactPlayer src={videoData.src} 
+                        <ReactPlayer src={videoURL} controls={true}
                             style={{
                                 minWidth: "300px",
                                 width: "100%",
