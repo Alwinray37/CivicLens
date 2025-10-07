@@ -12,6 +12,8 @@ export default function VideoPage() {
     const [videoData, setVideoData] = useState({
         src: undefined,
     });
+    // this is data passed from the CatalogPage when navigating to this page
+    // found in handleButtonClick function
     const location = useLocation();
     const videoID = location.state?.videoId || id;
     const videoURL = location.state?.videoUrl || null;

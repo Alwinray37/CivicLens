@@ -1,4 +1,4 @@
-// Video List Page Component
+// Catalog Page Component
 // this will list the video as cards for users to click on and watch
 // when clicked, it will take the user to the video watch page
 import dummydata from '../assets/dummydata.json';
