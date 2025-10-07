@@ -25,6 +25,7 @@ JSON_RAW_OUTPUT = 'output.json'
 JSON_MODIFIED_OUTPUT = 'modifiedOutput.json'
 JSON_SUMMARY_OUTPUT = 'summary.json'
 JSON_SPEAKER_TIME = 'speaker_time.json'
+JSON_SPEAKER_WORDS = 'speaker_words.json'
 
 def load_json_data(json_filename):
     """
@@ -175,11 +176,72 @@ def summarize_lines(data):
 
     return summarizations
 
+def speaker_diarization(audio_filename):
+    try:
+        diarization_pipeline = Pipeline.from_pretrained('pyannote/speaker-diarization-3.1')
+        print("Pipeline loaded successfully")
+    except Exception as e:
+        print(f"Error loading pipeline: {e}")
+        return
+    
+    if torch.cuda.is_available():
+        diarization_pipeline.to(torch.device("cuda"))    
+
+    with ProgressHook() as hook:
+        output = diarization_pipeline(audio_filename, hook=hook)
+    
+    speakers_dict = []
+    for turn, _, speaker in output.itertracks(yield_label=True):
+
+        print(f"{speaker} speaks between t={turn.start}s and t={turn.end}s")
+        speakers_dict.append({
+            "speaker": speaker,
+            "start": turn.start,
+            "end": turn.end
+        })
+
+    return speakers_dict
+
+def combine_words_with_speakers(data, speakers):
+    combined = []
+
+    sorted_speakers = sorted(speakers, key=lambda x: x['start'])
+    
+    curr_word_index = 0
+    for i, speaker in enumerate(sorted_speakers):
+        s_start = speaker['start']
+        s_end = speaker['end']
+
+        speaker_line = ""
+
+        while curr_word_index < len(data):
+            word_data = data[curr_word_index]
+            word_start = word_data['start']
+            word_end = word_data['end']
+
+          
+
+            speaker_line += word_data['word'] + " "
+            curr_word_index += 1
+
+            if not(word_start >= s_start and word_end <= s_end):
+                break
+
+        combined.append({
+            "speaker": speaker['speaker'],
+            "start": s_start,
+            "end": s_end,
+            "line": speaker_line.strip()
+        })
+
+    return combined
+
 def main():
     load_dotenv()
 
-    pyannote_token = os.getenv("PYANNOTE_TOKEN")
-    login(token=pyannote_token)
+    """Uncomment to login to Huggingface"""
+    #pyannote_token = os.getenv("PYANNOTE_TOKEN")
+    #login(token=pyannote_token)
 
     info_data = load_json_data(JSON_INFO)
 
@@ -205,36 +267,22 @@ def main():
     ner_results = nlp(example)
     print(ner_results)"""
 
+    speaker_output = load_json_data(JSON_SPEAKER_TIME)
+    modified_output = load_json_data(JSON_RAW_OUTPUT)
+    output = combine_words_with_speakers(modified_output, speaker_output)
+    write_json_data(JSON_SPEAKER_WORDS, output)
+
     """BART Summarizer"""    
     #modified_output = load_json_data(JSON_MODIFIED_OUTPUT)
 
     #summary_output = summarize_lines(modified_output)       
     #write_json_data(JSON_SUMMARY_OUTPUT, summary_output)
 
-    try:
-        diarization_pipeline = Pipeline.from_pretrained('pyannote/speaker-diarization-3.1')
-        print("Pipeline loaded successfully")
-    except Exception as e:
-        print(f"Error loading pipeline: {e}")
-        return
+    """Speaker Diarization"""
+    #speakers_dict = speaker_diarization(info_data['Wav'])
+    #write_json_data(JSON_SPEAKER_TIME, speakers_dict)
     
-    if torch.cuda.is_available():
-        diarization_pipeline.to(torch.device("cuda"))    
 
-    with ProgressHook() as hook:
-        output = diarization_pipeline(info_data["Wav"], hook=hook)
-    
-    speakers_dict = []
-    for turn, _, speaker in output.itertracks(yield_label=True):
-
-        print(f"{speaker} speaks between t={turn.start}s and t={turn.end}s")
-        speakers_dict.append({
-            "speaker": speaker,
-            "start": turn.start,
-            "end": turn.end
-        })
-
-    write_json_data(JSON_SPEAKER_TIME, speakers_dict)
 
 if __name__ == '__main__':
     main() 
