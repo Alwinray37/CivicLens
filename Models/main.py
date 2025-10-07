@@ -219,8 +219,6 @@ def combine_words_with_speakers(data, speakers):
             word_start = word_data['start']
             word_end = word_data['end']
 
-          
-
             speaker_line += word_data['word'] + " "
             curr_word_index += 1
 
@@ -235,6 +233,23 @@ def combine_words_with_speakers(data, speakers):
         })
 
     return combined
+
+def merge_speaker_words(speaker_words):
+    merged = {}
+
+    for i, data in enumerate(speaker_words):
+        if data['speaker'] not in merged:
+            merged[data['speaker']] = {                
+                'start': data['start'],
+                'end': data['end'],
+                'line': data['line']
+            }
+            continue
+
+        merged[data['speaker']]['line'] += data['line']
+        merged[data['speaker']]['end'] = data['end']
+
+    return merged
 
 def main():
     load_dotenv()
@@ -268,8 +283,10 @@ def main():
     print(ner_results)"""
 
     speaker_output = load_json_data(JSON_SPEAKER_TIME)
-    modified_output = load_json_data(JSON_RAW_OUTPUT)
-    output = combine_words_with_speakers(modified_output, speaker_output)
+    raw_output = load_json_data(JSON_RAW_OUTPUT)
+    output = combine_words_with_speakers(raw_output, speaker_output)
+
+    thing = merge_speaker_words(output)
     write_json_data(JSON_SPEAKER_WORDS, output)
 
     """BART Summarizer"""    
