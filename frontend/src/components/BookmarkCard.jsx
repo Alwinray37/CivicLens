@@ -21,7 +21,7 @@ export default function BookmarkCard({
             <h4 className="mx-2 py-2 ps-1 mb-0 border-bottom text-start text-body-secondary fw-bold">Bookmarks</h4>
             <div className="overflow-scroll py-2 d-flex flex-column gap-1 flex-grow-1">
                 {bookmarks.map((b, i) =>
-                <div className="bg-body-tertiary rounded rounded-2 p-3 mx-2 d-flex justify-content-between"
+                <div className="bg-body-tertiary shadow-sm rounded rounded-2 p-3 mx-2 d-flex justify-content-between"
                     key={i}
                 >
                     <div>

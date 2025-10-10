@@ -6,7 +6,7 @@ import { useQuery } from "@tanstack/react-query";
 
 import ReactPlayer from 'react-player';
 
-import LoadingSpinner from "./LoadingSpinner";
+import LoadingSpinner from "./icons/LoadingSpinner";
 
 import Chatbot from "./Chatbot";
 import TranscriptCard from "./TranscriptCard";
