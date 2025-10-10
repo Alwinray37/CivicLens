@@ -15,8 +15,8 @@ export default function ChatbotMessage({
     return (
         <div className={`d-flex 
                     ${type === "outgoing" 
-                        ? "justify-content-end" 
-                        : "justify-content-start"} 
+                        ? "justify-content-end pe-2" 
+                        : "justify-content-start ps-2"} 
                     w-100`}>
             <span className={"border rounded-1 py-1 px-2 my-1 d-inline-block "
                             + styles.chatbotMessage}>

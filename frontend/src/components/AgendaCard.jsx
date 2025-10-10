@@ -14,16 +14,16 @@ export default function AgendaCard({
     events,
 }) {
     return (
-        <div className={"container border p-2 d-flex flex-column bg-light "
+        <div className={"container rounded p-0 d-flex flex-column bg-body-secondary "
                         + styles.agendaCard}>
-            <h4 className="m-0 pb-2 ps-2 border-bottom text-start">Agenda</h4>
-            <div className="overflow-scroll pt-2 d-flex flex-column gap-1 flex-grow-1">
+            <h4 className="mb-0 mx-2 py-2 ps-1 border-bottom text-start text-body-secondary fw-bold">Agenda</h4>
+            <div className="overflow-scroll py-2 d-flex flex-column gap-1 flex-grow-1">
                 {events.map((e, i) =>
-                <div className="border rounded rounded-2 p-3"
+                <div className="bg-body-tertiary shadow-sm rounded rounded-2 p-3 mx-2"
                     key={i}
                 >
-                    <span className="text-start d-block mb-1">{e.content}</span>
-                    <span className="d-block text-start">{e.timespan}</span>
+                    <span className="text-start d-block mb-1 text-body-secondary ">{e.content}</span>
+                    <span className="d-block text-start text-body-tertiary ">{e.timespan}</span>
                 </div>
                 )}
             </div>

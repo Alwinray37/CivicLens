@@ -2,12 +2,12 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 
 const Navbar = () => (
-    <nav style={styles.nav}>
+    <nav className="bg-body-secondary" style={styles.nav}>
         <div style={styles.logo}>
-            <Link to="/" style={styles.link}>CivicLens</Link>
+            <Link to="/" className="link-body-emphasis" style={styles.link}>CivicLens</Link>
         </div>
         <ul style={styles.navLinks}>
-            <li><Link to="/" style={styles.link}>Home</Link></li>
+            <li><Link to="/" className="link-body-emphasis" style={styles.link}>Home</Link></li>
         </ul>
     </nav>
 );
