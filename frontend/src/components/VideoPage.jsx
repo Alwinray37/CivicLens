@@ -12,6 +12,7 @@ import Chatbot from "./Chatbot";
 import TranscriptCard from "./TranscriptCard";
 import AgendaCard from "./AgendaCard";
 import BookmarkCard from "./BookmarkCard";
+import { useRef } from 'react';
 
 /*
     * Display of individual videos alongside 
@@ -24,6 +25,8 @@ export default function VideoPage() {
     // data associated with the video needed for ReactPlayer
     const videoQuery = useQuery({ queryKey: ['videos', id], queryFn: fetchVideoData });
 
+    const playerRef = useRef(null);
+
     async function fetchVideoData() {
         // would call api here in real implementation
 
@@ -32,6 +35,13 @@ export default function VideoPage() {
             throw new Error("Meeting not found");
         } else {
             return video;
+        }
+    }
+
+    const handleTranscriptSelect = (sec) => {
+        console.log(sec);
+        if(playerRef.current && sec >= 0) {
+            playerRef.current.currentTime = sec;
         }
     }
 
@@ -48,8 +58,10 @@ export default function VideoPage() {
                         {
                         videoQuery.data.videoUrl ?
                         <ReactPlayer 
+                            ref={playerRef}
                             src={videoQuery.data.videoUrl}
                             title={videoQuery.data.title}
+                            
                             controls
                             style={{
                                 minWidth: "300px",
@@ -61,29 +73,31 @@ export default function VideoPage() {
                         :
                         <div className="my-3">No video could be found for this meeting</div>
                         }
-                        <TranscriptCard snippets={[
+                        <TranscriptCard 
+                            onItemClick={handleTranscriptSelect}
+                            snippets={[
                             {
                                 time: "2:57",
                                 content: "Lorem ipsum dolor sit amet, consectetur adipiscing elit",
                             },
                             {
-                                time: "2:57",
+                                time: "5:57",
                                 content: "Lorem ipsum dolor sit amet, consectetur adipiscing elit",
                             },
                             {
-                                time: "2:57",
+                                time: "10:57",
                                 content: "Lorem ipsum dolor sit amet, consectetur adipiscing elit",
                             },
                             {
-                                time: "2:57",
+                                time: "20:00",
                                 content: "Lorem ipsum dolor sit amet, consectetur adipiscing elit",
                             },
                             {
-                                time: "2:57",
+                                time: "words",
                                 content: "Lorem ipsum dolor sit amet, consectetur adipiscing elit",
                             },
                             {
-                                time: "2:57",
+                                time: "100000:00",
                                 content: "Lorem ipsum dolor sit amet, consectetur adipiscing elit",
                             },
                             {

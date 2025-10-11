@@ -12,7 +12,27 @@ import styles from './TranscriptCard.module.css';
 */
 export default function TranscriptCard({
     snippets,
+    onItemClick,
 }) {
+    /* takes a time string like "2:35" and
+        * converts it to a number in seconds (155)
+        *
+        * a returned time of -1 means the function 
+        * failed to convert the time string to a number
+    */
+    const timeStrToSeconds = (timeStr) => {
+        const split = timeStr.split(":");
+        if(split.length !== 2) return -1;
+
+        const convMin = Number.parseInt(split[0]);
+        if(Number.isNaN(convMin)) return -1;
+
+        const convSec = Number.parseInt(split[1]);
+        if(Number.isNaN(convSec)) return -1;
+
+        return convMin * 60 + convSec;
+    }
+
     return (
         <div className={"container border p-2 d-flex flex-column bg-light "
                         + styles.transcriptCard}>
@@ -21,8 +41,9 @@ export default function TranscriptCard({
                 {snippets.map((s, i) => 
                     <div className="border rounded rounded-2 p-3 d-flex justify-content-between"
                         key={i}
+                        onClick={() => onItemClick?.(timeStrToSeconds(s.time))}
                     >
-                        <span className={"text-start " + styles.transcriptTime}>{s.time}</span>
+                        <span className={"text-start text-truncate " + styles.transcriptTime}>{s.time}</span>
                         <span className={"text-start " + styles.transcriptText}>{s.content}</span>
                     </div>
                 )}
