@@ -16,20 +16,20 @@ export default function BookmarkCard({
     bookmarks
 }) {
     return (
-        <div className={"container border p-2 d-flex flex-column bg-light "
+        <div className={"container rounded p-0 d-flex flex-column bg-body-secondary "
                         + styles.bookmarkCard}>
-            <h4 className="m-0 pb-2 ps-2 border-bottom text-start">Bookmarks</h4>
-            <div className="overflow-scroll pt-2 d-flex flex-column gap-1 flex-grow-1">
+            <h4 className="mx-2 py-2 ps-1 mb-0 border-bottom text-start text-body-secondary fw-bold">Bookmarks</h4>
+            <div className="overflow-scroll py-2 d-flex flex-column gap-2 flex-grow-1">
                 {bookmarks.map((b, i) =>
-                <div className="border rounded rounded-2 p-3 d-flex justify-content-between"
+                <div className="bg-body-tertiary shadow-sm rounded rounded-2 p-3 mx-2 d-flex justify-content-between"
                     key={i}
                 >
                     <div>
-                        <span className="text-start d-block mb-1">{b.title}</span>
-                        <span className={"d-block text-start "
+                        <span className="text-start d-block mb-1 text-body-secondary">{b.title}</span>
+                        <span className={"d-block text-start text-body-tertiary "
                                         + styles.bookmarkDescription}>{b.description}</span>
                     </div>
-                    <span className="d-block text-end">{b.time}</span>
+                    <span className="d-block text-end text-body-tertiary">{b.time}</span>
                 </div>
                 )}
             </div>

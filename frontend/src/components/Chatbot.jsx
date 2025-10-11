@@ -56,11 +56,11 @@ export default function Chatbot() {
     }, [messages]);
 
     return (
-        <div className={"container border text-start p-2 h-100 d-flex flex-column justify-content-between bg-light "
+        <div className={"container rounded text-start p-0 h-100 d-flex flex-column justify-content-between bg-body-secondary "
                         + styles.chatbotWrapper}>
-            <h4 className="border-bottom m-0 ps-1 pb-2">Chatbot</h4>
+            <h4 className="border-bottom py-2 mx-2 mb-0 ps-1 pb-2 text-body-secondary fw-bold">Chatbot</h4>
             <div 
-                className="d-flex flex-column flex-grow-1 overflow-scroll my-1"
+                className="d-flex flex-column flex-grow-1 overflow-scroll my-1 text-body-secondary"
                 ref={messageContainerRef}
             >
                 {
@@ -69,14 +69,14 @@ export default function Chatbot() {
                         <ChatbotMessage message={m.message} type={m.type} key={i}/>
                     )
                 :
-                    <div className="h-100 d-flex align-items-center justify-content-center">
+                    <div className="h-100 d-flex align-items-center justify-content-center text-body-tertiary">
                         <span>
                             Ask a question about the video
                         </span>
                     </div>
                 }
             </div>
-            <div className="input-group">
+            <div className="input-group px-2 pb-2">
                 <input type="text" 
                     className="form-control" 
                     placeholder="Ask a question" 
