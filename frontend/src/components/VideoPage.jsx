@@ -92,18 +92,6 @@ export default function VideoPage() {
                                 time: "20:00",
                                 content: "Lorem ipsum dolor sit amet, consectetur adipiscing elit",
                             },
-                            {
-                                time: "words",
-                                content: "Lorem ipsum dolor sit amet, consectetur adipiscing elit",
-                            },
-                            {
-                                time: "100000:00",
-                                content: "Lorem ipsum dolor sit amet, consectetur adipiscing elit",
-                            },
-                            {
-                                time: "2:57",
-                                content: "Lorem ipsum dolor sit amet, consectetur adipiscing elit",
-                            }
                         ]}/>
                     </div>
                     <div className="col col-lg-3 d-flex flex-column gap-3 flex-grow-1 ">
