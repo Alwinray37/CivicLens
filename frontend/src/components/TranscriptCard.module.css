@@ -2,6 +2,12 @@
     max-height: 400px;
 }
 
+.transcriptItem:hover {
+    margin-left: .35rem !important;
+    margin-right: .35rem !important;
+    box-shadow: 0 .25rem .5rem rgba(0, 0, 0, .15) !important;
+}
+
 .transcriptTime {
     width: 15%;
 }

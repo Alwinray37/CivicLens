@@ -83,7 +83,7 @@ export default function VideoListPage() {
 
             <div className="video-card-list container">
                 {filteredList.map((video) => (
-                    <div className="video-card d-flex flex-row-reverse" key={video.id}>
+                    <div className="video-card d-flex flex-row-reverse bg-body-secondary " key={video.id}>
                         <button className="play-btn col-4" title={video.title} onClick={() => handleButtonClick(video.id, video.videoUrl)}>
                             <span role="img" aria-label="Play" style={{ fontSize: '3rem' }}>▶️</span>
                         </button>

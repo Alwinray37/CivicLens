@@ -18,8 +18,6 @@ a {
   text-align: center;
 
   overflow: hidden;
-
-  background-color: var(--c-bg-1);
 }
 
 .main {
@@ -30,6 +28,10 @@ a {
     overflow: auto;
     padding: 1rem;
 }
+
+/* :root[data-bs-theme="light"] .main { */
+/*     background-color: var(--c-bg-1); */
+/* } */
 
 .logo {
   height: 6em;
@@ -79,8 +81,8 @@ nav{
   align-items: center;
   justify-content: space-between;
 
-  background-color: white;
-  color: black;
+  /* background-color: white; */
+  /* color: black; */
   box-shadow: 2px 2px 5px rgba(0,0,0,0.1);
 
   padding: 10px;
@@ -90,7 +92,7 @@ nav{
 nav li, nav ul, nav a{
   list-style: none;
   display: inline;
-  color: black;
+  /* color: black; */
   padding: 0;
   margin: 0;
 }
