@@ -109,6 +109,7 @@ python-dateutil==2.9.0.post0
 python-dotenv==1.1.1
 pytorch-lightning==2.5.5
 pytorch-metric-learning==2.9.0
+pytubefix==10.0.0
 pytz==2025.2
 pywin32==311
 PyYAML==6.0.3

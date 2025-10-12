@@ -2,6 +2,7 @@ import json
 import pymupdf
 import torch
 import torchaudio
+import ffmpeg
 
 import numpy as np
 
@@ -252,6 +253,19 @@ def merge_speaker_words(speaker_words):
 
     return merged
 
+def get_frame_at_timestamp(input_video, timestamp, output_image):
+    try:
+        (
+            ffmpeg
+            .input(input_video, ss=timestamp)
+            .filter('crop', 283-60, 273-20, 60, 20) #width, height, x, y
+            .output(output_image, vframes=1)
+            .run(overwrite_output=True)
+        )
+        print(f"Frame extracted successfully to {output_image}")
+    except ffmpeg.Error as e:
+        print(f"Error extracting frame: {e.stderr.decode()}")
+
 def main():
     load_dotenv()
 
@@ -301,8 +315,11 @@ def main():
     #speakers_dict = speaker_diarization(info_data['Wav'])
     #write_json_data(JSON_SPEAKER_TIME, speakers_dict)
     
-    pdf_output = extract_pdf_text(info_data['Agenda'])
-    write_json_data(JSON_PDF_EXTRACTION, pdf_output)
+    """PDF Extraction"""
+    #pdf_output = extract_pdf_text(info_data['Agenda'])
+    #write_json_data(JSON_PDF_EXTRACTION, pdf_output)
+
+    get_frame_at_timestamp(info_data["Video"], "00:44:41.000", "test_frame_%03d.jpg")
 
 
 if __name__ == '__main__':
