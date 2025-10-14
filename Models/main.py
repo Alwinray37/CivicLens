@@ -1,3 +1,4 @@
+import re
 import json
 import pymupdf
 import torch
@@ -74,6 +75,35 @@ def extract_pdf_text(pdf_filname):
             })
 
     return extracted_text
+
+def extract_pdf_raw_text(pdf_filename):
+    parts = []
+    with pymupdf.open(pdf_filename) as doc:
+        for page in doc:
+            parts.append(page.get_text())
+    return "\n".join(parts)
+
+def extract_agenda_items(pdf_text):
+    items = []
+
+    item_block = re.compile(r"\((\d+)\)\s*(.*?)(?=\n\(\d+\)\s|$)", re.DOTALL)
+    file_num_block = re.compile(r"\b\d{2}-\d{4}(?:-S\d+)?\b(?:\s*(?:\n)?CD\s*\d+)?", re.MULTILINE)
+
+    for item_num, block in item_block.findall(pdf_text):
+        m = file_num_block.search(block)
+        file_no = m.group(0).strip() if m else None
+
+        if file_no is None:
+            continue
+
+        block = block.replace(file_no, "")
+
+        items.append({
+            "item_number": item_num,
+            "file_number": file_no,
+            "text": block.strip()
+        })
+    return items
 
 def set_raw_output(audio_filename, model_size = 'medium'):
     """
@@ -316,10 +346,13 @@ def main():
     #write_json_data(JSON_SPEAKER_TIME, speakers_dict)
     
     """PDF Extraction"""
-    #pdf_output = extract_pdf_text(info_data['Agenda'])
-    #write_json_data(JSON_PDF_EXTRACTION, pdf_output)
+    pdf_output = extract_pdf_raw_text("Agenda_12.pdf")
+    result = extract_agenda_items(pdf_output)
+    write_json_data("Agenda_12_Items.json", result)
+    
 
-    get_frame_at_timestamp(info_data["Video"], "00:44:41.000", "test_frame_%03d.jpg")
+    """Get Frame"""
+    #get_frame_at_timestamp(info_data["Video"], "00:44:41.000", "test_frame_%03d.jpg")
 
 
 if __name__ == '__main__':
