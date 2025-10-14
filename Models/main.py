@@ -346,7 +346,7 @@ def main():
     #write_json_data(JSON_SPEAKER_TIME, speakers_dict)
     
     """PDF Extraction"""
-    pdf_output = extract_pdf_raw_text("Agenda_12.pdf")
+    pdf_output = extract_pdf_raw_text("Agenda_Items\Agenda_12.pdf")
     result = extract_agenda_items(pdf_output)
     write_json_data("Agenda_12_Items.json", result)
     
