@@ -84,25 +84,40 @@ def extract_pdf_raw_text(pdf_filename):
     return "\n".join(parts)
 
 def extract_agenda_items(pdf_text):
+    pattern = re.compile(
+        r"\((\d+)\)\s*"                       
+        r"(\d{2}-\d{4}(?:-S\d+)?)\s*"        
+        r"(?:CD\s*\d+)?\s*"                 
+        r"(.+?)(?=\n\(\d+\)\s|$)",           
+        re.DOTALL
+    )
+
+    junk_line = re.compile(
+        r"^(?:Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday)\b"
+        r"|^PAGE\b|^- .* -$|^(?:https?://|www\.)",
+        re.I
+    )
+
+    first_sentence = re.compile(
+        r"^(.*?\.)\s*(?=(?:Recommendations?|Fiscal|Community|URGENCY|Items\b|\()|$)",
+        re.I | re.DOTALL
+    )
+
     items = []
+    for m in pattern.finditer(pdf_text):
+        item_no, file_no, block = m.groups()
 
-    item_block = re.compile(r"\((\d+)\)\s*(.*?)(?=\n\(\d+\)\s|$)", re.DOTALL)
-    file_num_block = re.compile(r"\b\d{2}-\d{4}(?:-S\d+)?\b(?:\s*(?:\n)?CD\s*\d+)?", re.MULTILINE)
+        block = block.split("\n(", 1)[0]
 
-    for item_num, block in item_block.findall(pdf_text):
-        m = file_num_block.search(block)
-        file_no = m.group(0).strip() if m else None
+        lines = [ln.strip() for ln in block.splitlines()
+                 if ln.strip() and not junk_line.match(ln.strip())]
+        text = re.sub(r"\s+", " ", " ".join(lines)).strip(" -")
 
-        if file_no is None:
-            continue
+        mm = first_sentence.match(text)
+        title = (mm.group(1) if mm else text).strip()
 
-        block = block.replace(file_no, "")
-
-        items.append({
-            "item_number": item_num,
-            "file_number": file_no,
-            "text": block.strip()
-        })
+        if title:
+            items.append({"item_number": item_no, "file_number": file_no, "title": title})
     return items
 
 def set_raw_output(audio_filename, model_size = 'medium'):
