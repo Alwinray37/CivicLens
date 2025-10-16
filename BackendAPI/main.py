@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 import psycopg
 
 app = FastAPI()
@@ -7,21 +7,45 @@ app = FastAPI()
 
 
 @app.get("/getMeetings")
-def getMeetings():
+def get_meetings():
+    try:
+        with psycopg.connect("dbname=CivicLensDB user=postgres password=postgres") as conn:
+            with conn.cursor() as cur:
+                cur.execute("""
+                    SELECT * FROM public."Meetings"
+                    ORDER BY "MeetingID" ASC
+                """)
+                rows = cur.fetchall()
+                return {"data": rows}
+
+    except psycopg.OperationalError as e:
+        raise HTTPException(status_code=503, detail=f"Database connection failed: {e.pgerror or str(e)}")
+
+    except psycopg.ProgrammingError as e:
+        raise HTTPException(status_code=400, detail=f"SQL error: {e.pgerror or str(e)}")
+
+    except psycopg.Error as e:
+        raise HTTPException(status_code=500, detail=f"Database error: {e.pgerror or str(e)}")
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Unexpected error: {str(e)}")
+
+
+@app.get("/getMeetingInfo/{meeting_id}")
+def getMeetingInfo(meeting_id: int):
     # Connect to an existing database
     with psycopg.connect("dbname=CivicLensDB user=postgres password=postgres") as conn:
 
         # Open a cursor to perform database operations
         with conn.cursor() as cur:
-            breakpoint()
             # Execute a command: this creates a new table
             cur.execute("""
-                SELECT * FROM public."Meetings"
-                    ORDER BY "ID" ASC 
-                """)
+                SELECT get_meeting_json(%s);
+                """,
+                (meeting_id,))
             
-            rows = cur.fetchall()
-            return {"data": rows}
+            rows = cur.fetchone()
+            return rows
 
 
 # Test and example code: 
@@ -41,7 +65,6 @@ def test():
 
         # Open a cursor to perform database operations
         with conn.cursor() as cur:
-            breakpoint()
             # Execute a command: this creates a new table
             cur.execute("""
                 SELECT * FROM public."Meetings"
