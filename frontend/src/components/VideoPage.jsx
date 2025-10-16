@@ -33,7 +33,7 @@ export default function VideoPage() {
         }
     }
 
-    const handleTranscriptSelect = (sec) => {
+    const handleTimeSelect = (sec) => {
         if(playerRef.current && sec >= 0) {
             // set the time of the video
             playerRef.current.currentTime = sec;
@@ -69,7 +69,7 @@ export default function VideoPage() {
                         <div className="my-3">No video could be found for this meeting</div>
                         }
                         <TranscriptCard 
-                            onItemClick={handleTranscriptSelect}
+                            onItemClick={handleTimeSelect}
                             snippets={[
                             {
                                 time: "2:57",
@@ -91,10 +91,23 @@ export default function VideoPage() {
                     </div>
                     <div className="col col-lg-3 d-flex flex-column gap-3 flex-grow-1 ">
                         <Chatbot />
-                        <AgendaCard events={[
+                        <AgendaCard 
+                            events={[
                             {
                                 content: "Lorem ipsum dolor sit amet, consectetur adipiscing elit",
                                 timespan: "0:00-5:00",
+                            },
+                            {
+                                content: "Lorem ipsum dolor sit amet, consectetur adipiscing elit",
+                                timespan: "2:10-5:00",
+                            },
+                            {
+                                content: "Lorem ipsum dolor sit amet, consectetur adipiscing elit",
+                                timespan: "0:00-5:00",
+                            },
+                            {
+                                content: "Lorem ipsum dolor sit amet, consectetur adipiscing elit",
+                                timespan: "10:00-5:00",
                             },
                             {
                                 content: "Lorem ipsum dolor sit amet, consectetur adipiscing elit",
@@ -104,19 +117,9 @@ export default function VideoPage() {
                                 content: "Lorem ipsum dolor sit amet, consectetur adipiscing elit",
                                 timespan: "0:00-5:00",
                             },
-                            {
-                                content: "Lorem ipsum dolor sit amet, consectetur adipiscing elit",
-                                timespan: "0:00-5:00",
-                            },
-                            {
-                                content: "Lorem ipsum dolor sit amet, consectetur adipiscing elit",
-                                timespan: "0:00-5:00",
-                            },
-                            {
-                                content: "Lorem ipsum dolor sit amet, consectetur adipiscing elit",
-                                timespan: "0:00-5:00",
-                            },
-                        ]}/>
+                        ]}
+                        onItemClick={handleTimeSelect}
+                        />
                         <BookmarkCard bookmarks={[
                             {
                                 title: "Smith Opposition Statement",
