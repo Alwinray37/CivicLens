@@ -41,7 +41,6 @@ export default function VideoListPage() {
     let allTags = Array.from(new Set(dummydata.flatMap(video => video.tags || [])));
 
     if(catalogQuery.status === "success") {
-        console.log(dateOrder);
         // filter the data from dummydata, retrieve only the videos that have a videoUrl
         filteredList = catalogQuery.data.data[0][0].filter(video => {
             if (video.VideoUrl === null) return false;

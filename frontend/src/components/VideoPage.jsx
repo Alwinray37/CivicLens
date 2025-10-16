@@ -28,7 +28,6 @@ export default function VideoPage() {
         const res = await fetch(`${MEETING_ENDPOINT}/${id}`);
         if(!res.ok) throw new Error("Server error");
         const data = await res.json();
-        console.log(data[0]);
         // currently retrieving video obj from dummydata 
         if(!data || !data[0]) {
             throw new Error("Meeting not found");
