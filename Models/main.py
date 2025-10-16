@@ -116,8 +116,11 @@ def extract_agenda_items(pdf_text):
         mm = first_sentence.match(text)
         title = (mm.group(1) if mm else text).strip()
 
+        _, _, after_title = text.partition(title)
+        after_title = after_title.strip()
+
         if title:
-            items.append({"item_number": item_no, "file_number": file_no, "title": title})
+            items.append({"item_number": item_no, "file_number": file_no, "title": title, "description": after_title})
     return items
 
 def set_raw_output(audio_filename, model_size = 'medium'):
@@ -361,9 +364,9 @@ def main():
     #write_json_data(JSON_SPEAKER_TIME, speakers_dict)
     
     """PDF Extraction"""
-    pdf_output = extract_pdf_raw_text("Agenda_Items\Agenda_12.pdf")
+    pdf_output = extract_pdf_raw_text("Agenda_Items\Agenda_10.pdf")
     result = extract_agenda_items(pdf_output)
-    write_json_data("Agenda_12_Items.json", result)
+    write_json_data("Agenda_09_Items.json", result)
     
 
     """Get Frame"""
