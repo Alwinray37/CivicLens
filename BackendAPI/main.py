@@ -19,7 +19,7 @@ def get_meetings():
                 return {"data": rows}
 
     except psycopg.OperationalError as e:
-        raise HTTPException(status_code=503, detail=f"Database connection failed: {e.pgerror or str(e)}")
+        raise HTTPException(status_code=503, detail=f"Database connection failed: {e.pgerror or str(e)}`")
 
     except psycopg.ProgrammingError as e:
         raise HTTPException(status_code=400, detail=f"SQL error: {e.pgerror or str(e)}")
