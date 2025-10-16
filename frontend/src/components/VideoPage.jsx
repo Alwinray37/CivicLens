@@ -23,13 +23,15 @@ export default function VideoPage() {
 
     async function fetchVideoData() {
         // would call api here in real implementation
-
+        const res = await fetch(`http://127.0.0.1:8000/getMeetingInfo/${id}`);
+        if(!res.ok) throw new Error("Server error");
+        const data = await res.json();
+        console.log(data[0]);
         // currently retrieving video obj from dummydata 
-        const video = dummydata.find((v) => v.id.toString() === id);
-        if(!video) {
+        if(!data || !data[0]) {
             throw new Error("Meeting not found");
         } else {
-            return video;
+            return data[0];
         }
     }
 
@@ -51,11 +53,11 @@ export default function VideoPage() {
                 <div className="row gap-3 row-cols-1 row-cols-lg-2 justify-content-center">
                     <div className="col col-lg-8 d-flex flex-column gap-3 flex-grow-1 ">
                         {
-                        videoQuery.data.videoUrl ?
+                        videoQuery.data.meeting.VideoURL ?
                         <ReactPlayer 
                             ref={playerRef}
-                            src={videoQuery.data.videoUrl}
-                            title={videoQuery.data.title}
+                            src={videoQuery.data.meeting.VideoURL}
+                            title={videoQuery.data.meeting.Title}
                             
                             controls
                             style={{
@@ -92,32 +94,13 @@ export default function VideoPage() {
                     <div className="col col-lg-3 d-flex flex-column gap-3 flex-grow-1 ">
                         <Chatbot />
                         <AgendaCard 
-                            events={[
-                            {
-                                content: "Lorem ipsum dolor sit amet, consectetur adipiscing elit",
-                                timespan: "0:00-5:00",
-                            },
-                            {
-                                content: "Lorem ipsum dolor sit amet, consectetur adipiscing elit",
-                                timespan: "2:10-5:00",
-                            },
-                            {
-                                content: "Lorem ipsum dolor sit amet, consectetur adipiscing elit",
-                                timespan: "0:00-5:00",
-                            },
-                            {
-                                content: "Lorem ipsum dolor sit amet, consectetur adipiscing elit",
-                                timespan: "10:00-5:00",
-                            },
-                            {
-                                content: "Lorem ipsum dolor sit amet, consectetur adipiscing elit",
-                                timespan: "0:00-5:00",
-                            },
-                            {
-                                content: "Lorem ipsum dolor sit amet, consectetur adipiscing elit",
-                                timespan: "0:00-5:00",
-                            },
-                        ]}
+                            events={
+                                videoQuery.data.agenda.map(a => ({
+                                    
+                                    content: a.Title,
+                                    timespan: "5:00",
+                                }))
+                            }
                         onItemClick={handleTimeSelect}
                         />
                         <BookmarkCard bookmarks={[
