@@ -6,6 +6,7 @@ DROP FUNCTION IF EXISTS public.insert_meeting(date, text, text) CASCADE;
 DROP FUNCTION IF EXISTS public.attach_document(integer, text, bytea) CASCADE;
 DROP FUNCTION IF EXISTS public.ensure_document_type(text) CASCADE;
 DROP FUNCTION IF EXISTS public.add_agenda_item(integer, text, text, integer, text, integer) CASCADE;
+DROP FUNCTION IF EXISTS public.get_meetings_json() CASCADE;
 
 -- ========== DROP TABLES ==========
 DROP TABLE IF EXISTS public."Documents" CASCADE;
@@ -126,6 +127,15 @@ BEGIN
   RETURNING "MeetingID" INTO new_id;
   RETURN new_id;
 END;$$;
+
+CREATE FUNCTION public.get_meetings_json()
+RETURNS jsonb
+LANGUAGE sql
+STABLE
+AS $$
+SELECT jsonb_agg(to_jsonb(m) ORDER BY m."Date" DESC, m."MeetingID" DESC)
+FROM public."Meetings" m;
+$$;
 
 CREATE FUNCTION public.get_meeting_json(p_meeting_id integer)
 RETURNS jsonb
