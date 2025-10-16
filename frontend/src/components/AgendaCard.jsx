@@ -6,6 +6,10 @@ import { timeStrToSeconds } from '../util/time';
     * Card to display the agenda items of a meeting
     * props:
         * events: {
+            * itemNum: string
+                * Item number of the agenda item
+            * fileNum: string
+                * File number of the agenda item
             * content: string 
                 * Agenda description
             * timespan: string
@@ -31,7 +35,7 @@ export default function AgendaCard({
                     onClick={() => onItemClick?.(timeStrToSeconds(e.timespan.split('-')[0]))}
                     key={i}
                 >
-                    <span className="text-start d-block text-body-secondary fw-bold">Item {e.itemNum}: {e.fileNum}</span>
+                    <span className="text-start d-block text-body-secondary fw-bold">NO. ({e.itemNum}) - {e.fileNum}</span>
                     <span className="text-start d-block mb-1 text-body-secondary ">{e.content}</span>
                     <span className="d-block text-start text-body-tertiary ">{e.timespan}</span>
                 </div>
