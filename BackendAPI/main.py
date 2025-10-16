@@ -9,11 +9,10 @@ app = FastAPI()
 @app.get("/getMeetings")
 def get_meetings():
     try:
-        with psycopg.connect("dbname=CivicLensDB user=postgres password=postgres") as conn:
+        with psycopg.connect("postgresql://postgres:postgres@localhost:5431") as conn:
             with conn.cursor() as cur:
                 cur.execute("""
-                    SELECT * FROM public."Meetings"
-                    ORDER BY "MeetingID" ASC
+                SELECT get_meetings_json();
                 """)
                 rows = cur.fetchall()
                 return {"data": rows}
@@ -34,7 +33,7 @@ def get_meetings():
 @app.get("/getMeetingInfo/{meeting_id}")
 def getMeetingInfo(meeting_id: int):
     # Connect to an existing database
-    with psycopg.connect("dbname=CivicLensDB user=postgres password=postgres") as conn:
+    with psycopg.connect("postgresql://postgres:postgres@localhost:5431") as conn:
 
         # Open a cursor to perform database operations
         with conn.cursor() as cur:
@@ -61,7 +60,7 @@ def getMeetingInfo(meeting_id: int):
 @app.get("/test")
 def test():
     # Connect to an existing database
-    with psycopg.connect("dbname=CivicLensDB user=postgres password=postgres") as conn:
+    with psycopg.connect("postgresql://postgres:postgres@localhost:5431") as conn:
 
         # Open a cursor to perform database operations
         with conn.cursor() as cur:
