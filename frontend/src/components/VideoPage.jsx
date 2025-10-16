@@ -11,6 +11,8 @@ import AgendaCard from "./AgendaCard";
 import BookmarkCard from "./BookmarkCard";
 import { useRef } from 'react';
 
+const MEETING_ENDPOINT = "http://127.0.0.1:8000/getMeetingInfo";
+
 // display videos alongside its transcript, agenda, bookmarks, and a chatbot
 export default function VideoPage() {
     // id of the video being viewed
@@ -23,7 +25,7 @@ export default function VideoPage() {
 
     async function fetchVideoData() {
         // would call api here in real implementation
-        const res = await fetch(`http://127.0.0.1:8000/getMeetingInfo/${id}`);
+        const res = await fetch(`${MEETING_ENDPOINT}/${id}`);
         if(!res.ok) throw new Error("Server error");
         const data = await res.json();
         console.log(data[0]);
@@ -96,7 +98,8 @@ export default function VideoPage() {
                         <AgendaCard 
                             events={
                                 videoQuery.data.agenda.map(a => ({
-                                    
+                                    itemNum: a.ItemNumber,
+                                    fileNum: a.FileNumber,
                                     content: a.Title,
                                     timespan: "5:00",
                                 }))

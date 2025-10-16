@@ -31,6 +31,7 @@ export default function AgendaCard({
                     onClick={() => onItemClick?.(timeStrToSeconds(e.timespan.split('-')[0]))}
                     key={i}
                 >
+                    <span className="text-start d-block text-body-secondary fw-bold">Item {e.itemNum}: {e.fileNum}</span>
                     <span className="text-start d-block mb-1 text-body-secondary ">{e.content}</span>
                     <span className="d-block text-start text-body-tertiary ">{e.timespan}</span>
                 </div>
