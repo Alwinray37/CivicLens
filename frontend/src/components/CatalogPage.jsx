@@ -41,6 +41,7 @@ export default function VideoListPage() {
     let allTags = Array.from(new Set(dummydata.flatMap(video => video.tags || [])));
 
     if(catalogQuery.status === "success") {
+        console.log(dateOrder);
         // filter the data from dummydata, retrieve only the videos that have a videoUrl
         filteredList = catalogQuery.data.data[0][0].filter(video => {
             if (video.VideoUrl === null) return false;
@@ -56,11 +57,11 @@ export default function VideoListPage() {
             return tagMatch && searchMatch;
         })
         .sort((a, b) => { // Sort by date
-            if (!a.date || !b.date) return 0;
+            if (!a.Date || !b.Date) return 0;
             if (dateOrder === 'asc') {
-                return new Date(a.date) - new Date(b.date);
+                return new Date(a.Date) - new Date(b.Date);
             } else {
-                return new Date(b.date) - new Date(a.date);
+                return new Date(b.Date) - new Date(a.Date);
             }
         });
     }
