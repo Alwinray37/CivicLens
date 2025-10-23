@@ -1,7 +1,7 @@
 # COMP490
 Group project for class COMP 490, Senior Design. 
 
-Group Members: 
+Group Members:
 - Alwin Ray Roble
 - Alexander Leontiev
 - Thomas Scott
