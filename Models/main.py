@@ -1,9 +1,10 @@
 import re
-import json
 import pymupdf
 import torch
 import torchaudio
 import ffmpeg
+
+from json_helper import JsonHelper
 
 import numpy as np
 
@@ -29,38 +30,6 @@ JSON_SUMMARY_OUTPUT = 'summary.json'
 JSON_SPEAKER_TIME = 'speaker_time.json'
 JSON_SPEAKER_WORDS = 'speaker_words.json'
 JSON_PDF_EXTRACTION = 'pdf_extraction.json'
-
-def load_json_data(json_filename):
-    """
-    Loads JSON data from a file.
-
-    Args:
-        json_filename (str): Path to the JSON file.
-
-    Returns:
-        dict or None: Parsed JSON data if successful, None otherwise.
-    """
-    try:
-        with open(json_filename, 'r') as file:
-            data = json.load(file)
-        return data
-    except FileNotFoundError:
-        print(f"Error: '{json_filename}' not found")
-    except json.JSONDecodeError:
-        print(f"Error: Could not decode JSON from '{json_filename}'")
-    # Return None if file not found or JSON is invalid
-    return None
-
-def write_json_data(json_filename, data):
-    """
-    Writes JSON data to a file.
-
-    Args:
-        json_filename (str): Path to the JSON file.
-        data (dict): Data to write to the file.
-    """
-    with open(json_filename, 'w') as file:
-        json.dump(data, file, indent=4)
 
 def extract_pdf_text(pdf_filname):
     extracted_text = []
@@ -146,7 +115,7 @@ def set_raw_output(audio_filename, model_size = 'medium'):
         for word in segment.words:
             word_info.append({'start': float(word.start), 'end': float(word.end), 'word': word.word})
 
-    write_json_data(JSON_RAW_OUTPUT, word_info)   
+    JsonHelper.write_json_data(JSON_RAW_OUTPUT, word_info)   
 
 def combine_words(data, max_time = 300):
     sentences = []
@@ -321,7 +290,7 @@ def main():
     #pyannote_token = os.getenv("PYANNOTE_TOKEN")
     #login(token=pyannote_token)
 
-    info_data = load_json_data(JSON_INFO)
+    info_data = JsonHelper.load_json_data(JSON_INFO)
 
     if info_data is None:        
         return
@@ -366,7 +335,7 @@ def main():
     """PDF Extraction"""
     pdf_output = extract_pdf_raw_text("Agenda_Items\Agenda_10.pdf")
     result = extract_agenda_items(pdf_output)
-    write_json_data("Agenda_09_Items.json", result)
+    JsonHelper.write_json_data("Agenda_09_Items.json", result)
     
 
     """Get Frame"""
