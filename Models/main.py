@@ -5,6 +5,7 @@ import torchaudio
 import ffmpeg
 
 from json_helper import JsonHelper
+from asr_extraction import AsrExtraction
 
 import numpy as np
 
@@ -17,7 +18,6 @@ from pyannote.audio.pipelines.utils.hook import ProgressHook
 
 from transformers import AutoTokenizer, AutoModelForTokenClassification
 from transformers import pipeline
-from faster_whisper import WhisperModel, BatchedInferencePipeline
 
 from huggingface_hub import login
 
@@ -91,91 +91,6 @@ def extract_agenda_items(pdf_text):
         if title:
             items.append({"item_number": item_no, "file_number": file_no, "title": title, "description": after_title})
     return items
-
-def set_raw_output(audio_filename, model_size = 'medium'):
-    """
-    Transcribes audio using WhisperModel and saves word-level info to a JSON file.
-
-    Args:
-        audio_filename (str): Path to the audio file to transcribe.
-
-    Returns:
-        None
-    """
-    model = WhisperModel(model_size, device="cpu", compute_type="int8")
-
-    batched_model = BatchedInferencePipeline(model=model)    
-    segments, info = batched_model.transcribe(audio_filename, batch_size=16, word_timestamps=True, vad_filter=True)
-    #segments, info = model.transcribe(audio_filename, word_timestamps=True, vad_filter=True)
-    #segments = list(segments)
-
-
-    word_info = []
-    for segment in segments:
-        for word in segment.words:
-            word_info.append({'start': float(word.start), 'end': float(word.end), 'word': word.word})
-
-    JsonHelper.write_json_data(JSON_RAW_OUTPUT, word_info)   
-
-def combine_words(data, max_time = 300):
-    sentences = []
-
-    current_line = {
-        'text': "",
-        'start': None,
-        'end': None,
-        'duration': 0.0,
-        'words': []        
-    }
-    
-    for i, word_data in enumerate(data):         
-        word_text = word_data['word']    
-        word_start = word_data['start']
-        word_end = word_data['end']
-        word_duration = word_end - word_start
-
-        max_time_hit = current_line['duration'] >= max_time        
-
-        if max_time_hit:
-            sentences.append({
-                'start': current_line['start'], 
-                'end': current_line['end'], 
-                'line': current_line['text'].strip(),
-                'words': current_line['words']
-                })
-
-            current_line = {
-                'text': "",
-                'start': None,
-                'end': None,
-                'duration': 0.0,
-                'words': []        
-            }
-
-        if current_line['start'] is None:
-            current_line['start'] = word_start
-
-        current_line['text'] += word_text
-        current_line['end'] = word_end
-        current_line['duration'] += word_duration
-        current_line['words'].append({
-            'text': word_text,
-            'start': word_start,
-            'end': word_end
-        })            
-        
-        
-    if current_line['text']:
-        sentences.append({
-            'start': current_line['start'], 
-            'end': current_line['end'], 
-            'line': current_line['text'].strip(),
-            'words': current_line['words']
-        })
-      
-
-    
-    return sentences
 
 def summarize_lines(data):
     summarizer = pipeline(task="summarization", model="sshleifer/distilbart-cnn-12-6")
@@ -295,12 +210,14 @@ def main():
     if info_data is None:        
         return
     
-    """Uncomment to Run ASR"""
-    #set_raw_output(info_data['Filename'], model_size='small')    
-
+    """Uncomment to Run ASR"""    
+    #asr_extractor = AsrExtraction()
+    #raw_output = asr_extractor.set_raw_output(info_data['Filename'], model_size='small')
+    #JsonHelper.write_json_data(raw_output)
+    
     """Combine words into time segmented phrases"""
     #raw_output = load_json_data(JSON_RAW_OUTPUT)
-    #processed_lines = combine_words(raw_output, info_data["MaxTime"])
+    #processed_lines = asr_extractor.combine_words(raw_output, info_data["MaxTime"])
     #write_json_data(JSON_MODIFIED_OUTPUT, processed_lines)
 
     """BERT Name Entity"""
@@ -333,9 +250,9 @@ def main():
     #write_json_data(JSON_SPEAKER_TIME, speakers_dict)
     
     """PDF Extraction"""
-    pdf_output = extract_pdf_raw_text("Agenda_Items\Agenda_10.pdf")
-    result = extract_agenda_items(pdf_output)
-    JsonHelper.write_json_data("Agenda_09_Items.json", result)
+    #pdf_output = extract_pdf_raw_text("Agenda_Items\Agenda_10.pdf")
+    #result = extract_agenda_items(pdf_output)
+    #JsonHelper.write_json_data("Agenda_09_Items.json", result)
     
 
     """Get Frame"""
