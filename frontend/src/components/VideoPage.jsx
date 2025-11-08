@@ -11,6 +11,8 @@ import AgendaCard from "./AgendaCard";
 import BookmarkCard from "./BookmarkCard";
 import { useRef } from 'react';
 
+const MEETING_ENDPOINT = "http://127.0.0.1:8000/getMeetingInfo";
+
 // display videos alongside its transcript, agenda, bookmarks, and a chatbot
 export default function VideoPage() {
     // id of the video being viewed
@@ -23,17 +25,18 @@ export default function VideoPage() {
 
     async function fetchVideoData() {
         // would call api here in real implementation
-
+        const res = await fetch(`${MEETING_ENDPOINT}/${id}`);
+        if(!res.ok) throw new Error("Server error");
+        const data = await res.json();
         // currently retrieving video obj from dummydata 
-        const video = dummydata.find((v) => v.id.toString() === id);
-        if(!video) {
+        if(!data || !data[0]) {
             throw new Error("Meeting not found");
         } else {
-            return video;
+            return data[0];
         }
     }
 
-    const handleTranscriptSelect = (sec) => {
+    const handleTimeSelect = (sec) => {
         if(playerRef.current && sec >= 0) {
             // set the time of the video
             playerRef.current.currentTime = sec;
@@ -51,11 +54,11 @@ export default function VideoPage() {
                 <div className="row gap-3 row-cols-1 row-cols-lg-2 justify-content-center">
                     <div className="col col-lg-8 d-flex flex-column gap-3 flex-grow-1 ">
                         {
-                        videoQuery.data.videoUrl ?
+                        videoQuery.data.meeting.VideoURL ?
                         <ReactPlayer 
                             ref={playerRef}
-                            src={videoQuery.data.videoUrl}
-                            title={videoQuery.data.title}
+                            src={videoQuery.data.meeting.VideoURL}
+                            title={videoQuery.data.meeting.Title}
                             
                             controls
                             style={{
@@ -69,7 +72,7 @@ export default function VideoPage() {
                         <div className="my-3">No video could be found for this meeting</div>
                         }
                         <TranscriptCard 
-                            onItemClick={handleTranscriptSelect}
+                            onItemClick={handleTimeSelect}
                             snippets={[
                             {
                                 time: "2:57",
@@ -91,32 +94,17 @@ export default function VideoPage() {
                     </div>
                     <div className="col col-lg-3 d-flex flex-column gap-3 flex-grow-1 ">
                         <Chatbot />
-                        <AgendaCard events={[
-                            {
-                                content: "Lorem ipsum dolor sit amet, consectetur adipiscing elit",
-                                timespan: "0:00-5:00",
-                            },
-                            {
-                                content: "Lorem ipsum dolor sit amet, consectetur adipiscing elit",
-                                timespan: "0:00-5:00",
-                            },
-                            {
-                                content: "Lorem ipsum dolor sit amet, consectetur adipiscing elit",
-                                timespan: "0:00-5:00",
-                            },
-                            {
-                                content: "Lorem ipsum dolor sit amet, consectetur adipiscing elit",
-                                timespan: "0:00-5:00",
-                            },
-                            {
-                                content: "Lorem ipsum dolor sit amet, consectetur adipiscing elit",
-                                timespan: "0:00-5:00",
-                            },
-                            {
-                                content: "Lorem ipsum dolor sit amet, consectetur adipiscing elit",
-                                timespan: "0:00-5:00",
-                            },
-                        ]}/>
+                        <AgendaCard 
+                            events={
+                                videoQuery.data.agenda.map(a => ({
+                                    itemNum: a.ItemNumber,
+                                    fileNum: a.FileNumber,
+                                    content: a.Title,
+                                    timespan: "5:00",
+                                }))
+                            }
+                        onItemClick={handleTimeSelect}
+                        />
                         <BookmarkCard bookmarks={[
                             {
                                 title: "Smith Opposition Statement",

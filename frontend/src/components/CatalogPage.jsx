@@ -4,38 +4,67 @@
 import dummydata from '../assets/dummydata.json';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
+import LoadingSpinner from './icons/LoadingSpinner';
+
+const CATALOG_ENDPOINT = "http://127.0.0.1:8000/getMeetings";
 
 export default function VideoListPage() {
     const [dateOrder, setDateOrder] = useState('desc');
     const [filterTag, setFilterTag] = useState('');
     const [search, setSearch] = useState('');
+
     const navigate = useNavigate();
 
-    // Get all unique tags from the data (not yet available)
-    const allTags = Array.from(new Set(dummydata.flatMap(video => video.tags || [])));
+    const catalogQuery = useQuery({ queryKey: ['catalog'], queryFn: fetchCatalogData });
 
-    // filter the data from dummydata, retrieve only the videos that have a videoUrl
-    let filteredList = dummydata.filter(video => {
-        if (video.videoUrl === null) return false;
-        const tagMatch = filterTag ? (video.tags || []).includes(filterTag) : true;
-        const videoId = video.id || video.videoId || video.videoID || null;
-        // Search in title or tags
-        const searchLower = search.toLowerCase();
-        const titleMatch = video.title.toLowerCase().includes(searchLower);
-        const tagsMatch = (video.tags || []).some(tag => tag.toLowerCase().includes(searchLower));
-        const searchMatch = search ? (titleMatch || tagsMatch) : true;
-        return tagMatch && searchMatch;
-    });
+    // fetches meetings in the catalog
+    async function fetchCatalogData() {
+        try {
+            const res = await fetch(CATALOG_ENDPOINT);
+            if(!res.ok) {
+                // tanstack requires data to be returned or
+                // an error to be thrown in the queryFn
+                throw new Error("Server error");
+            }
 
-    // Sort by date
-    filteredList = filteredList.sort((a, b) => {
-        if (!a.date || !b.date) return 0;
-        if (dateOrder === 'asc') {
-            return new Date(a.date) - new Date(b.date);
-        } else {
-            return new Date(b.date) - new Date(a.date);
+            const data = await res.json();
+            return data;
+        } catch(err) {
+            throw new Error(err);
         }
-    });
+    }
+
+    let filteredList;
+
+    // Get all unique tags from the data (not yet available)
+    let allTags = Array.from(new Set(dummydata.flatMap(video => video.tags || [])));
+
+    if(catalogQuery.status === "success") {
+        // filter the data from dummydata, retrieve only the videos that have a videoUrl
+        filteredList = catalogQuery.data.data[0][0].filter(video => {
+            if (video.VideoUrl === null) return false;
+            // no tags yet
+            // const tagMatch = filterTag ? (video.tags || []).includes(filterTag) : true;
+            const tagMatch = true; // TEMP
+            // Search in title or tags
+            const searchLower = search.toLowerCase();
+            const titleMatch = video.Title.toLowerCase().includes(searchLower);
+            // const tagsMatch = (video.tags || []).some(tag => tag.toLowerCase().includes(searchLower));
+            // const searchMatch = search ? (titleMatch || tagsMatch) : true;
+            const searchMatch = search ? titleMatch : true;
+            return tagMatch && searchMatch;
+        })
+        .sort((a, b) => { // Sort by date
+            if (!a.Date || !b.Date) return 0;
+            if (dateOrder === 'asc') {
+                return new Date(a.Date) - new Date(b.Date);
+            } else {
+                return new Date(b.Date) - new Date(a.Date);
+            }
+        });
+    }
+
 
     // handle button click to open video page 
     // navigates to /watch/:id route with videoId as param
@@ -82,19 +111,29 @@ export default function VideoListPage() {
             </div>
 
             <div className="video-card-list container">
-                {filteredList.map((video) => (
-                    <div className="video-card d-flex flex-row-reverse bg-body-secondary " key={video.id}>
-                        <button className="play-btn col-4" title={video.title} onClick={() => handleButtonClick(video.id, video.videoUrl)}>
-                            <span role="img" aria-label="Play" style={{ fontSize: '3rem' }}>▶️</span>
-                        </button>
-                        <div className='col text-start'>
-                            <h2 className="title">{video.title}</h2>
-                            <p>{video.date}</p>
-                            {/* <p className="description">{video.description}</p> */}
-                            {/* <button className='btn btn-primary'>Watch</button> */}
+                {
+                filteredList ?
+                    filteredList.length > 0 ?
+                    filteredList.map((video) => (
+                        <div className="video-card d-flex flex-row-reverse bg-body-secondary " 
+                            key={video.MeetingID}
+                        >
+                            <button className="play-btn col-4" title={video.title} onClick={() => handleButtonClick(video.MeetingID, video.VideoURL)}>
+                                <span role="img" aria-label="Play" style={{ fontSize: '3rem' }}>▶️</span>
+                            </button>
+                            <div className='col text-start'>
+                                <h2 className="title">{video.Title}</h2>
+                                <p>{video.Date}</p>
+                                {/* <p className="description">{video.description}</p> */}
+                                {/* <button className='btn btn-primary'>Watch</button> */}
+                            </div>
                         </div>
-                    </div>
-                ))}
+                    ))
+                    :
+                    <p>No meetings available</p>
+                :
+                <LoadingSpinner />
+                }
             </div>
         </div>
     )
