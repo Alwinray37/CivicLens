@@ -27,7 +27,7 @@ export default function AgendaCard({
     return (
         <div className={"container p-0 d-flex flex-column bg-body-secondary "
                         + styles.agendaCard}>
-            <div className="overflow-scroll py-2 d-flex flex-column gap-2 flex-grow-1">
+            <div className="overflow-y-scroll py-2 d-flex flex-column gap-2 flex-grow-1 min-scrollbar">
                 {events.map((e, i) =>
                 <div className={"bg-body-tertiary shadow-sm rounded rounded-2 p-3 mx-2 "
                                 + styles.agendaItem}
