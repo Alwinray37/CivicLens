@@ -25,9 +25,8 @@ export default function AgendaCard({
     onItemClick,
 }) {
     return (
-        <div className={"container rounded p-0 d-flex flex-column bg-body-secondary "
+        <div className={"container p-0 d-flex flex-column bg-body-secondary "
                         + styles.agendaCard}>
-            <h4 className="mb-0 mx-2 py-2 ps-1 border-bottom text-start text-body-secondary fw-bold">Agenda</h4>
             <div className="overflow-scroll py-2 d-flex flex-column gap-2 flex-grow-1">
                 {events.map((e, i) =>
                 <div className={"bg-body-tertiary shadow-sm rounded rounded-2 p-3 mx-2 "

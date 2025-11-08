@@ -1,4 +1,3 @@
-import dummydata from '../assets/dummydata.json';
 import { useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import ReactPlayer from 'react-player';
@@ -6,10 +5,8 @@ import ReactPlayer from 'react-player';
 import LoadingSpinner from "./icons/LoadingSpinner";
 
 import Chatbot from "./Chatbot";
-import TranscriptCard from "./TranscriptCard";
-import AgendaCard from "./AgendaCard";
-import BookmarkCard from "./BookmarkCard";
 import { useRef } from 'react';
+import VideoInfoCard from './VideoInfoCard';
 
 const MEETING_ENDPOINT = "http://127.0.0.1:8000/getMeetingInfo";
 
@@ -28,7 +25,7 @@ export default function VideoPage() {
         const res = await fetch(`${MEETING_ENDPOINT}/${id}`);
         if(!res.ok) throw new Error("Server error");
         const data = await res.json();
-        // currently retrieving video obj from dummydata 
+
         if(!data || !data[0]) {
             throw new Error("Meeting not found");
         } else {
@@ -59,7 +56,7 @@ export default function VideoPage() {
                             ref={playerRef}
                             src={videoQuery.data.meeting.VideoURL}
                             title={videoQuery.data.meeting.Title}
-                            
+
                             controls
                             style={{
                                 minWidth: "300px",
@@ -71,72 +68,13 @@ export default function VideoPage() {
                         :
                         <div className="my-3">No video could be found for this meeting</div>
                         }
-                        <TranscriptCard 
-                            onItemClick={handleTimeSelect}
-                            snippets={[
-                            {
-                                time: "2:57",
-                                content: "Lorem ipsum dolor sit amet, consectetur adipiscing elit",
-                            },
-                            {
-                                time: "5:57",
-                                content: "Lorem ipsum dolor sit amet, consectetur adipiscing elit",
-                            },
-                            {
-                                time: "10:57",
-                                content: "Lorem ipsum dolor sit amet, consectetur adipiscing elit",
-                            },
-                            {
-                                time: "20:00",
-                                content: "Lorem ipsum dolor sit amet, consectetur adipiscing elit",
-                            },
-                        ]}/>
+                        <VideoInfoCard 
+                            videoData={videoQuery.data}
+                            onTimeSelect={handleTimeSelect}
+                        />
                     </div>
                     <div className="col col-lg-3 d-flex flex-column gap-3 flex-grow-1 ">
                         <Chatbot />
-                        <AgendaCard 
-                            events={
-                                videoQuery.data.agenda.map(a => ({
-                                    itemNum: a.ItemNumber,
-                                    fileNum: a.FileNumber,
-                                    content: a.Title,
-                                    timespan: "5:00",
-                                }))
-                            }
-                        onItemClick={handleTimeSelect}
-                        />
-                        <BookmarkCard bookmarks={[
-                            {
-                                title: "Smith Opposition Statement",
-                                description: "Key opposition points",
-                                time: "60:20",
-                            },
-                            {
-                                title: "Smith Opposition Statement",
-                                description: "Key opposition points",
-                                time: "60:20",
-                            },
-                            {
-                                title: "Smith Opposition Statement",
-                                description: "Key opposition points",
-                                time: "60:20",
-                            },
-                            {
-                                title: "Smith Opposition Statement",
-                                description: "Key opposition points",
-                                time: "60:20",
-                            },
-                            {
-                                title: "Smith Opposition Statement",
-                                description: "Key opposition points",
-                                time: "60:20",
-                            },
-                            {
-                                title: "Smith Opposition Statement",
-                                description: "Key opposition points",
-                                time: "60:20",
-                            },
-                        ]}/>
                     </div>
                 </div>
                 }
