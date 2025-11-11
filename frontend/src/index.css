@@ -53,14 +53,10 @@ button:focus,
 button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
 }
-/**/
-/* .min-scrollbar::-webkit-scrollbar { */
-/*     scrollbar-width: none; */
-/* } */
 
 .min-scrollbar {
     scrollbar-width: thin;
-    scrollbar-color: var(--bs-secondary-bg-subtle) transparent;
+    scrollbar-color: var(--bs-secondary-bg) transparent;
 }
 
 @media (prefers-color-scheme: light) {

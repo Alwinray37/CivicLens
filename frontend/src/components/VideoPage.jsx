@@ -48,8 +48,9 @@ export default function VideoPage() {
                 : videoQuery.isError ?
                 <div>An error occurred: {videoQuery.error.message}</div>
                 :
-                <div className="row gap-3 row-cols-1 row-cols-lg-2 justify-content-center">
-                    <div className="col col-lg-8 d-flex flex-column gap-3 flex-grow-1 ">
+                <>
+                <div className="row gap-3 mb-3">
+                    <div className="col-lg-8">
                         {
                         videoQuery.data.meeting.VideoURL ?
                         <ReactPlayer 
@@ -68,15 +69,20 @@ export default function VideoPage() {
                         :
                         <div className="my-3">No video could be found for this meeting</div>
                         }
+                    </div>
+                    <div className="col">
+                        <Chatbot />
+                    </div>
+                </div>
+                <div className="row">
+                    <div className="col">
                         <VideoInfoCard 
                             videoData={videoQuery.data}
                             onTimeSelect={handleTimeSelect}
                         />
                     </div>
-                    <div className="col col-lg-3 d-flex flex-column gap-3 flex-grow-1 ">
-                        <Chatbot />
-                    </div>
                 </div>
+                </>
                 }
             </div>
     )
