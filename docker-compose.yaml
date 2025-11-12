@@ -1,3 +1,4 @@
+name: CivicLens
 services:
   db:
     image: postgres
@@ -9,9 +10,11 @@ services:
       POSTGRES_PASSWORD: ${DB_PASSWORD}
     volumes:
       - pgdata:/var/lib/postgresql/data
+      - ./DB/create_script.sql:/docker-entrypoint-initdb.d/create_script.sql
   api:
     build:
       context: ./BackendAPI
+    container_name: CivicLensAPI
     ports:
       - "8000:8000"
     environment:
