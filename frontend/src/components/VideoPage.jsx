@@ -53,19 +53,21 @@ export default function VideoPage() {
                     <div className="col-lg-8">
                         {
                         videoQuery.data.meeting.VideoURL ?
-                        <ReactPlayer 
-                            ref={playerRef}
-                            src={videoQuery.data.meeting.VideoURL}
-                            title={videoQuery.data.meeting.Title}
+                        <div className="rounded shadow overflow-hidden">
+                            <ReactPlayer 
+                                ref={playerRef}
+                                src={videoQuery.data.meeting.VideoURL}
+                                title={videoQuery.data.meeting.Title}
 
-                            controls
-                            style={{
-                                minWidth: "300px",
-                                width: "100%",
-                                height: "auto",
-                                aspectRatio: "16 / 9",
-                            }}
-                        />
+                                controls
+                                style={{
+                                    minWidth: "300px",
+                                    width: "100%",
+                                    height: "auto",
+                                    aspectRatio: "16 / 9",
+                                }}
+                            />
+                        </div>
                         :
                         <div className="my-3">No video could be found for this meeting</div>
                         }
