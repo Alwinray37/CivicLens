@@ -1,0 +1,29 @@
+services:
+  db:
+    image: postgres
+    container_name: CivicLensDB
+    restart: always
+    ports:
+      - "5431:5432"
+    environment:
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+  api:
+    build:
+      context: ./BackendAPI
+    ports:
+      - "8000:8000"
+    environment:
+      DB_CONN: ${DB_CONN}
+    develop:
+      watch:
+        - action: sync
+          path: ./BackendAPI/src
+          target: /app/src
+          initial_sync: true
+        - action: rebuild
+          path: ./BackendAPI/requirements.txt
+          target: /app/requirements.txt
+volumes:
+  pgdata:

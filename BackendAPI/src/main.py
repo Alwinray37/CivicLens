@@ -1,6 +1,7 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 import psycopg
+import os
 
 app = FastAPI()
 app.add_middleware(
@@ -11,13 +12,13 @@ app.add_middleware(
     allow_headers=["*"]
 )
 
-
+db_conn_str = os.getenv("DB_CONN")
 
 
 @app.get("/getMeetings")
 def get_meetings():
     try:
-        with psycopg.connect("postgresql://postgres:postgres@localhost:5431") as conn:
+        with psycopg.connect(db_conn_str) as conn:
             with conn.cursor() as cur:
                 cur.execute("""
                 SELECT get_meetings_json();
@@ -41,7 +42,7 @@ def get_meetings():
 @app.get("/getMeetingInfo/{meeting_id}")
 def getMeetingInfo(meeting_id: int):
     # Connect to an existing database
-    with psycopg.connect("postgresql://postgres:postgres@localhost:5431") as conn:
+    with psycopg.connect(db_conn_str) as conn:
 
         # Open a cursor to perform database operations
         with conn.cursor() as cur:
@@ -68,7 +69,7 @@ def getMeetingInfo(meeting_id: int):
 @app.get("/test")
 def test():
     # Connect to an existing database
-    with psycopg.connect("postgresql://postgres:postgres@localhost:5431") as conn:
+    with psycopg.connect(db_conn_str) as conn:
 
         # Open a cursor to perform database operations
         with conn.cursor() as cur:
