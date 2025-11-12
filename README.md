@@ -6,3 +6,8 @@ Group Members:
 - Alexander Leontiev
 - Thomas Scott
 - Nikita Ulianov
+
+## Run Backend
+```
+docker compose up --watch
+```
