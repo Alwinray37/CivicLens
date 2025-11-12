@@ -1,0 +1,7 @@
+.tabs {
+    background-color: 
+        color(from var(--bs-tertiary-bg) srgb 
+            calc(r * 0.9) 
+            calc(g * 0.9) 
+            calc(b * 0.9)); 
+}

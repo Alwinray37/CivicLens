@@ -1,3 +1,5 @@
+import styles from './VideoInfoCard.module.css';
+
 import 'bootstrap';
 import TranscriptCard from './TranscriptCard';
 import AgendaCard from './AgendaCard';
@@ -10,7 +12,7 @@ export default function VideoInfoCard({
 }) {
     return (
         <div className="bg-body-secondary rounded p-0 shadow-sm ">
-            <ul className="nav nav-pills bg-body-tertiary p-2 rounded-top d-flex justify-content-center gap-3 " id="video-info-tab" role="tablist">
+            <ul className={`nav nav-pills p-2 shadow-sm isolate rounded-top d-flex justify-content-center gap-3 ${styles.tabs}`} id="video-info-tab" role="tablist">
                 <li className="nav-item" role="presentation">
                     <button className="nav-link active" id="video-summary-tab" data-bs-toggle="pill" data-bs-target="#video-summary" type="button" role="tab" aria-controls="video-summary" aria-selected="true">Summary</button>
                 </li>
