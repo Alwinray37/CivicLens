@@ -23,6 +23,8 @@ from huggingface_hub import login
 
 from tqdm import tqdm
 
+from meeting_summary import MeetingSummary
+
 JSON_INFO = 'info.json'
 JSON_RAW_OUTPUT = 'output.json'
 JSON_MODIFIED_OUTPUT = 'modifiedOutput.json'
@@ -257,7 +259,11 @@ def main():
 
     """Get Frame"""
     #get_frame_at_timestamp(info_data["Video"], "00:44:41.000", "test_frame_%03d.jpg")
-
+    
+    """Get Summaries of SRT"""
+    # srt_path = 'ASR_Whisperx/RegularCityCouncil-9_12_25.srt'
+    # important_events = MeetingSummary.gen_important_events_from_srt(srt_path=srt_path)
+    # JsonHelper.write_json_data("Summaries/Summary-RegularCityCouncil-9_12_25.json", important_events)
 
 if __name__ == '__main__':
     main() 
