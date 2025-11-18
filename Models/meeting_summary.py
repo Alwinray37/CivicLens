@@ -64,9 +64,10 @@ Here is the chunk:
 {chunk}
 """.strip()
 
-    
     @staticmethod
     def get_important_events_prompt(summaries):
+        
+        newline = '\n'
         """
         Creates a prompt to be used when picking the most
         important event out of a list of summaries
@@ -109,7 +110,7 @@ Summary: [summary]
 
 Here are the chunks:
 [PASTE CHUNKS HERE]
-{"\n".join(summaries)}
+{newline.join(summaries)}
 """.strip()
 
     

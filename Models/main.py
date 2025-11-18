@@ -261,8 +261,8 @@ def main():
     #get_frame_at_timestamp(info_data["Video"], "00:44:41.000", "test_frame_%03d.jpg")
     
     """Get Summaries of SRT"""
-    srt_path = 'ASR_Whisperx/RegularCityCouncil-9_12_25.srt'
-    agenda_path = "Agenda_Items/Agenda_12_Items.json"
+    srt_path = 'ASR_Whisperx/RegularCityCouncil-9_10_25.srt'
+    agenda_path = "Agenda_Items/Agenda_10_Items.json"
     transcript = ""
     with open(srt_path, 'r', encoding='utf-8') as file:
         transcript += file.read()
@@ -274,11 +274,11 @@ def main():
     
     
     # SINGLE QUERY BY AGENDA AND HARDCODED FILTERS
-    # filter_list = ['Policy', 'Civic', 'Voting']
-    # filter_list = list(map(lambda a: f'{a['title']}', agenda_json))
-    # additional_filters = ['Policy', 'Civic', 'Voting']
-    # filter_list.extend(additional_filters)
-    # important_events = MeetingSummary.gen_important_events_by_query(transcript=transcript, filter_list=filter_list, lines_per_chunk=30, max_query=5)
+    filter_list = ['Policy', 'Civic', 'Voting']
+    filter_list = list(map(lambda a: a['title'], agenda_json))
+    additional_filters = ['Policy', 'Civic', 'Voting']
+    filter_list.extend(additional_filters)
+    important_events = MeetingSummary.gen_important_events_by_query(transcript=transcript, filter_list=filter_list, lines_per_chunk=30, max_query=5)
     
     
     
@@ -297,10 +297,10 @@ def main():
     
     
     # CLUSTER CENTROID METHOD
-    important_events = MeetingSummary.get_important_events_by_cluster_centroids(transcript=transcript, lines_per_chunk=30, n_clusters=7)
+    # important_events = MeetingSummary.get_important_events_by_cluster_centroids(transcript=transcript, lines_per_chunk=30, n_clusters=7)
     
     
-    JsonHelper.write_json_data("Summaries/Summary-RegularCityCouncil-9_12_25.json", important_events)
+    JsonHelper.write_json_data("Summaries/Summary-RegularCityCouncil-9_10_25.json", important_events)
 
 if __name__ == '__main__':
     main() 
