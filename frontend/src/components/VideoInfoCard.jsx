@@ -28,7 +28,10 @@ export default function VideoInfoCard({
             </ul>
             <div className="tab-content overflow-hidden rounded-bottom" id="video-tabContent">
                 <div className="tab-pane fade show active" id="video-summary" role="tabpanel" aria-labelledby="video-summary-tab" tabIndex="0">
-                    <SummaryCard />
+                    <SummaryCard 
+                        onItemClick={onTimeSelect}
+                        summaries={videoData.summaries}
+                    />
                 </div>
                 <div className="tab-pane fade" id="video-agenda" role="tabpanel" aria-labelledby="video-agenda-tab" tabIndex="0">
                      <AgendaCard 

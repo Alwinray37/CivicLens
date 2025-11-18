@@ -1,3 +1,5 @@
+import dummysummaries from '../assets/dummysummaries.json'
+
 import { useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import ReactPlayer from 'react-player';
@@ -24,12 +26,16 @@ export default function VideoPage() {
         // would call api here in real implementation
         const res = await fetch(`${MEETING_ENDPOINT}/${id}`);
         if(!res.ok) throw new Error("Server error");
-        const data = await res.json();
+        const data = (await res.json())?.at(0);
+        
+        // TEMPORARY
+        // INSERT SUMMARY DUMMY DATA
+        data.summaries = dummysummaries;
 
-        if(!data || !data[0]) {
+        if(!data) {
             throw new Error("Meeting not found");
         } else {
-            return data[0];
+            return data;
         }
     }
 
