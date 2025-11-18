@@ -261,9 +261,46 @@ def main():
     #get_frame_at_timestamp(info_data["Video"], "00:44:41.000", "test_frame_%03d.jpg")
     
     """Get Summaries of SRT"""
-    # srt_path = 'ASR_Whisperx/RegularCityCouncil-9_12_25.srt'
+    srt_path = 'ASR_Whisperx/RegularCityCouncil-9_12_25.srt'
+    agenda_path = "Agenda_Items/Agenda_12_Items.json"
+    transcript = ""
+    with open(srt_path, 'r', encoding='utf-8') as file:
+        transcript += file.read()
+        
+    agenda_json = JsonHelper.load_json_data(agenda_path) or []
+    
+    # CHOICE OF ALL SUMMARIES METHOD
     # important_events = MeetingSummary.gen_important_events_from_srt(srt_path=srt_path)
-    # JsonHelper.write_json_data("Summaries/Summary-RegularCityCouncil-9_12_25.json", important_events)
+    
+    
+    # SINGLE QUERY BY AGENDA AND HARDCODED FILTERS
+    # filter_list = ['Policy', 'Civic', 'Voting']
+    # filter_list = list(map(lambda a: f'{a['title']}', agenda_json))
+    # additional_filters = ['Policy', 'Civic', 'Voting']
+    # filter_list.extend(additional_filters)
+    # important_events = MeetingSummary.gen_important_events_by_query(transcript=transcript, filter_list=filter_list, lines_per_chunk=30, max_query=5)
+    
+    
+    
+    
+    
+    # EMBED AND DOUBLE FILTER METHOD
+    # filter by agenda titles
+    # filter_list = list(map(lambda a: a['title'], agenda_json))
+    # add extra filters if agenda is lackluster
+    # additional_queries = ['Policy discussion', 'Civic discourse', 'Voting results or discussions']
+    # filter_list.extend(additional_queries)
+    # important_events = MeetingSummary.gen_important_events_by_double_query(transcript=transcript, filter_list=filter_list, init_lines_per_chunk=100, last_lines_per_chunk=25)
+    
+    
+    
+    
+    
+    # CLUSTER CENTROID METHOD
+    important_events = MeetingSummary.get_important_events_by_cluster_centroids(transcript=transcript, lines_per_chunk=30, n_clusters=7)
+    
+    
+    JsonHelper.write_json_data("Summaries/Summary-RegularCityCouncil-9_12_25.json", important_events)
 
 if __name__ == '__main__':
     main() 

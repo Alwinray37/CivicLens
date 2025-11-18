@@ -1,6 +1,12 @@
-import json
+import math
+import chromadb
 from ollama import chat
 from ollama import ChatResponse
+import ollama
+
+import numpy
+
+from sklearn.cluster import KMeans
 
 # If you want to attempt to use the format option with ollama.
 # Not currently in use as the models seem to be very iffy when trying to produce consistent JSON.
@@ -105,9 +111,26 @@ Here are the chunks:
 [PASTE CHUNKS HERE]
 {"\n".join(summaries)}
 """.strip()
+
     
     @staticmethod
-    def chunk_transcript_file(file_path, encoding='utf-8', lines_per_chunk=10):
+    def chunk_transcript_file_content(file_content, encoding='utf-8', lines_per_chunk=30):
+        i = 0
+        c_id = 0
+        lines = file_content.split('\n\n')
+
+        chunks = []
+        while i < len(lines):
+            chunk = lines[i:i+lines_per_chunk]
+            chunk_str = "\n\n".join(chunk)
+            chunks.append(chunk_str)
+            i += lines_per_chunk
+            c_id += 1
+        print(f'Created {c_id} chunks')
+        return chunks
+        
+    @staticmethod
+    def chunk_transcript_file(file_path, encoding='utf-8', lines_per_chunk=30):
         """
         Creates chunks at a given interval of a transcript at a given
         path
@@ -123,23 +146,110 @@ Here are the chunks:
         with open(file_path, 'r', encoding=encoding) as file:
             file_content = file.read()
     
-            i = 0
-            c_id = 0
-            lines = file_content.split('\n\n')
+            return MeetingSummary.chunk_transcript_file_content(file_content=file_content, lines_per_chunk=lines_per_chunk)
     
-            chunks = []
-            while i < len(lines):
-                chunk = lines[i:i+lines_per_chunk]
-                chunk_str = "\n\n".join(chunk)
-                chunks.append(chunk_str)
-                i += lines_per_chunk
-                c_id += 1
-            print(f'Created {c_id} chunks')
-            return chunks
-            
+    @staticmethod 
+    def embed_list(str_list: list[str]):
+        embeddings = ollama.embed(
+            model="qwen3-embedding:4b",
+            input=str_list
+        )
+        
+        return embeddings['embeddings']
+        
     
     @staticmethod
-    def gen_chunk_summaries(chunks):
+    def embed_and_cluster_chunks(chunks: list[str], n_clusters=7):
+        vectors = MeetingSummary.embed_list(str_list=chunks)
+        clusters = KMeans(n_clusters=n_clusters, random_state=101).fit(vectors)
+        print(f'Clustered chunks:\n{clusters.labels_}')
+        return (vectors, clusters)
+        
+    
+    
+    @staticmethod
+    def get_clustered_chunk_groups(chunks: list[str], embeddings, n_clusters=7):
+        vectors = None
+        clusters = None
+        
+        if embeddings is None:
+            vectors, clusters = MeetingSummary.embed_and_cluster_chunks(chunks=chunks, n_clusters=n_clusters)
+        else:
+            vectors = embeddings
+            clusters = KMeans(n_clusters=n_clusters, random_state=101).fit(vectors)
+            
+        if clusters.labels_ is None:
+            return {}
+            
+        grouped_chunks = {}
+        for i, label in enumerate(clusters.labels_):
+            if label in grouped_chunks:
+                grouped_chunks[label].append({
+                    'chunk': chunks[i],
+                    'embedding': vectors[i]
+                })
+            else:
+                grouped_chunks[label] = [
+                    {
+                        'chunk': chunks[i],
+                        'embedding': vectors[i]
+                    }
+                ]
+        
+        return grouped_chunks
+        
+        
+    
+    @staticmethod
+    def get_queried_chunks(chunks: list[str]|None=None, ch_embeddings=None, filter_list: list[str]|None=None, fi_embeddings=None, max_query: int = 12):
+        client = chromadb.Client()
+        collection = client.create_collection(name="chunks")
+        
+        chunk_embeddings = ch_embeddings or MeetingSummary.embed_list(str_list=chunks or [])
+        chunk_embeddings_ids = [str(index) for index, value in enumerate(chunk_embeddings)]
+        
+        
+        collection.add(
+            ids=chunk_embeddings_ids,
+            embeddings=chunk_embeddings,
+            documents=chunks
+        )
+        
+        filter_embeddings = fi_embeddings or MeetingSummary.embed_list(str_list=filter_list or [])
+        
+        query_res = collection.query(
+            query_embeddings=filter_embeddings,
+            n_results=max_query
+        )
+        
+        client.delete_collection(name='chunks')
+        
+        documents = query_res['documents']
+        if documents is not None:
+            for i, document in enumerate(documents):
+                print(f'Filter {i} queried {len(document)} chunks\n')
+        
+        return documents or []
+    
+    @staticmethod
+    def get_centroid_chunks(chunks: list[str], n_clusters=7):
+        vectors, clusters = MeetingSummary.embed_and_cluster_chunks(chunks=chunks, n_clusters=n_clusters)
+        
+        closest_list = []
+        for i in range(n_clusters):
+            dist = numpy.linalg.norm(vectors - clusters.cluster_centers_[i], axis=1)
+            closest = numpy.argmin(dist)
+            closest_list.append(closest)
+            
+        centroid_chunks = []
+        for index in closest_list:
+            centroid_chunks.append(chunks[index])
+                
+        return centroid_chunks
+
+    
+    @staticmethod
+    def gen_chunks_summaries(chunks):
         """
         Generates summaries for each of the given chunks from a transcript
     
@@ -159,7 +269,7 @@ Here are the chunks:
                     'content': prompt,
                     # 'format': MeetingEvent.model_json_schema(),
                     'options': {
-                        'temperature': 0.3,
+                        'temperature': 0,
                     }
                 }
             ]
@@ -235,8 +345,8 @@ Here are the chunks:
         # print("---THINKING---\n")
         # print(response['message']['thinking'])
         print("Picked important events\n")
+        print(content)
         json_format = MeetingSummary.important_events_txt_to_json(content)
-        print(json.dumps(json_format, indent=4))
         
         return json_format
     
@@ -271,6 +381,60 @@ Here are the chunks:
             
         chunks = MeetingSummary.chunk_transcript_file(file_path=srt_path, lines_per_chunk=50)
         print("Chunked transcript\n")
-        summaries = MeetingSummary.gen_chunk_summaries(chunks=chunks)
+        summaries = MeetingSummary.gen_chunks_summaries(chunks=chunks)
         print("Summarized chunks\n")
+        return MeetingSummary.gen_important_events_from_summaries(summaries=summaries)
+        
+    @staticmethod
+    def gen_important_events_by_query(transcript:str, filter_list: list[str], lines_per_chunk=30, max_query=5):
+        chunks = MeetingSummary.chunk_transcript_file_content(file_content=transcript, lines_per_chunk=lines_per_chunk)
+        # query 5 chunks per filter
+        query_res = MeetingSummary.get_queried_chunks(chunks=chunks, filter_list=filter_list, max_query=max_query)
+        np_res_arr = numpy.array(query_res)
+        
+        # flatten and remove duplicates
+        queried_chunks = set(np_res_arr.flatten())
+        summaries = MeetingSummary.gen_chunks_summaries(chunks=queried_chunks)
+        
+        return MeetingSummary.gen_important_events_from_summaries(summaries=summaries)
+        
+        
+    @staticmethod
+    def gen_important_events_by_double_query(transcript:str, filter_list: list[str], init_lines_per_chunk=100, last_lines_per_chunk=25):
+        chunks = MeetingSummary.chunk_transcript_file_content(file_content=transcript, lines_per_chunk=init_lines_per_chunk)
+        
+        max_query = math.ceil(len(filter_list) / 2)
+        
+        # query_res comes back as an list of lists of query results based on filter_list length
+        query_res = MeetingSummary.get_queried_chunks(chunks=chunks, filter_list=filter_list, max_query=max_query)
+        np_res_arr = numpy.array(query_res)
+        
+        # flatten and remove duplicates
+        queried_chunks = set(np_res_arr.flatten())
+        
+        double_filtered_chunks = []
+        for q_chunk in queried_chunks:
+            # break down queried chunks into smaller chunks
+            small_chunks = MeetingSummary.chunk_transcript_file_content(file_content=q_chunk, lines_per_chunk=last_lines_per_chunk)
+            
+            # query these smaller chunks
+            max_small_query = math.ceil(len(small_chunks) / 2)
+            
+            q_small_res = MeetingSummary.get_queried_chunks(chunks=small_chunks, filter_list=filter_list, max_query=max_small_query)
+            np_res_arr = numpy.array(q_small_res)
+            q_small_chunks = set(np_res_arr.flatten())
+            
+            double_filtered_chunks.extend(q_small_chunks)
+        
+        print(f'DOUBLE FILTERED CHUNK LEN: {len(double_filtered_chunks)}\n\n')
+        summaries = MeetingSummary.gen_chunks_summaries(chunks=set(double_filtered_chunks))
+        return MeetingSummary.gen_important_events_from_summaries(summaries=summaries)
+    
+    
+    @staticmethod
+    def get_important_events_by_cluster_centroids(transcript: str, lines_per_chunk=30, n_clusters=12):
+        chunks = MeetingSummary.chunk_transcript_file_content(file_content=transcript, lines_per_chunk=lines_per_chunk)
+        
+        centroid_chunks = MeetingSummary.get_centroid_chunks(chunks=chunks, n_clusters=n_clusters)
+        summaries = MeetingSummary.gen_chunks_summaries(chunks=centroid_chunks)
         return MeetingSummary.gen_important_events_from_summaries(summaries=summaries)
