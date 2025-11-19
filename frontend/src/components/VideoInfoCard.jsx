@@ -20,9 +20,6 @@ export default function VideoInfoCard({
                     <button className="nav-link" id="video-agenda-tab" data-bs-toggle="pill" data-bs-target="#video-agenda" type="button" role="tab" aria-controls="video-agenda" aria-selected="false">Agenda</button>
                 </li>
                 <li className="nav-item" role="presentation">
-                    <button className="nav-link" id="video-timeline-tab" data-bs-toggle="pill" data-bs-target="#video-timeline" type="button" role="tab" aria-controls="video-timeline" aria-selected="false">Timeline</button>
-                </li>
-                <li className="nav-item" role="presentation">
                     <button className="nav-link" id="video-transcript-tab" data-bs-toggle="pill" data-bs-target="#video-transcript" type="button" role="tab" aria-controls="video-transcript" aria-selected="false" >Transcript</button>
                 </li>
             </ul>
@@ -45,9 +42,6 @@ export default function VideoInfoCard({
                          }
                      onItemClick={onTimeSelect}
                      />
-                </div>
-                <div className="tab-pane fade" id="video-timeline" role="tabpanel" aria-labelledby="video-timeline-tab" tabIndex={0}>
-                    <TimelineCard />
                 </div>
                 <div className="tab-pane fade" id="video-transcript" role="tabpanel" aria-labelledby="video-transcript-tab" tabIndex={0}>
                      <TranscriptCard 

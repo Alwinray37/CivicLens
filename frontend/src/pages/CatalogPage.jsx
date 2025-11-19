@@ -9,7 +9,7 @@ import LoadingSpinner from '@components/icons/LoadingSpinner';
 
 const CATALOG_ENDPOINT = "http://127.0.0.1:8000/getMeetings";
 
-export default function VideoListPage() {
+export default function CatalogPage() {
     const [dateOrder, setDateOrder] = useState('desc');
     const [filterTag, setFilterTag] = useState('');
     const [search, setSearch] = useState('');
