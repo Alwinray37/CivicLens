@@ -1,5 +1,3 @@
-import re
-import pymupdf
 import torch
 import torchaudio
 import ffmpeg
@@ -24,6 +22,7 @@ from huggingface_hub import login
 from tqdm import tqdm
 
 from meeting_summary import MeetingSummary
+from pdf_extraction import PdfExtraction
 
 JSON_INFO = 'info.json'
 JSON_RAW_OUTPUT = 'output.json'
@@ -32,67 +31,6 @@ JSON_SUMMARY_OUTPUT = 'summary.json'
 JSON_SPEAKER_TIME = 'speaker_time.json'
 JSON_SPEAKER_WORDS = 'speaker_words.json'
 JSON_PDF_EXTRACTION = 'pdf_extraction.json'
-
-def extract_pdf_text(pdf_filname):
-    extracted_text = []
-
-    with pymupdf.open(pdf_filname) as doc:
-        for page_num, page in enumerate(doc):
-            text = page.get_text()
-           
-            extracted_text.append({
-                "page": page_num + 1,
-                "text": text.strip()
-            })
-
-    return extracted_text
-
-def extract_pdf_raw_text(pdf_filename):
-    parts = []
-    with pymupdf.open(pdf_filename) as doc:
-        for page in doc:
-            parts.append(page.get_text())
-    return "\n".join(parts)
-
-def extract_agenda_items(pdf_text):
-    pattern = re.compile(
-        r"\((\d+)\)\s*"                       
-        r"(\d{2}-\d{4}(?:-S\d+)?)\s*"        
-        r"(?:CD\s*\d+)?\s*"                 
-        r"(.+?)(?=\n\(\d+\)\s|$)",           
-        re.DOTALL
-    )
-
-    junk_line = re.compile(
-        r"^(?:Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday)\b"
-        r"|^PAGE\b|^- .* -$|^(?:https?://|www\.)",
-        re.I
-    )
-
-    first_sentence = re.compile(
-        r"^(.*?\.)\s*(?=(?:Recommendations?|Fiscal|Community|URGENCY|Items\b|\()|$)",
-        re.I | re.DOTALL
-    )
-
-    items = []
-    for m in pattern.finditer(pdf_text):
-        item_no, file_no, block = m.groups()
-
-        block = block.split("\n(", 1)[0]
-
-        lines = [ln.strip() for ln in block.splitlines()
-                 if ln.strip() and not junk_line.match(ln.strip())]
-        text = re.sub(r"\s+", " ", " ".join(lines)).strip(" -")
-
-        mm = first_sentence.match(text)
-        title = (mm.group(1) if mm else text).strip()
-
-        _, _, after_title = text.partition(title)
-        after_title = after_title.strip()
-
-        if title:
-            items.append({"item_number": item_no, "file_number": file_no, "title": title, "description": after_title})
-    return items
 
 def summarize_lines(data):
     summarizer = pipeline(task="summarization", model="sshleifer/distilbart-cnn-12-6")
@@ -252,27 +190,27 @@ def main():
     #write_json_data(JSON_SPEAKER_TIME, speakers_dict)
     
     """PDF Extraction"""
-    #pdf_output = extract_pdf_raw_text("Agenda_Items\Agenda_10.pdf")
-    #result = extract_agenda_items(pdf_output)
-    #JsonHelper.write_json_data("Agenda_09_Items.json", result)
+    pdf_output = PdfExtraction.extract_pdf_raw_text("Agenda_Items\Minutes_12.pdf")
+    result = PdfExtraction.extract_minutes_structured(pdf_output)
+    JsonHelper.write_json_data("Minutes_12.json", result)    
     
 
     """Get Frame"""
     #get_frame_at_timestamp(info_data["Video"], "00:44:41.000", "test_frame_%03d.jpg")
     
     """Get Summaries of SRT"""
-    srt_path = 'ASR_Whisperx/RegularCityCouncil-9_10_25.srt'
-    agenda_path = "Agenda_Items/Agenda_10_Items.json"
-    transcript = ""
-    with open(srt_path, 'r', encoding='utf-8') as file:
-        transcript += file.read()
+    # srt_path = 'ASR_Whisperx/RegularCityCouncil-9_10_25.srt'
+    # agenda_path = "Agenda_Items/Agenda_10_Items.json"
+    # transcript = ""
+    # with open(srt_path, 'r', encoding='utf-8') as file:
+    #     transcript += file.read()
         
-    agenda_json = JsonHelper.load_json_data(agenda_path) or []
+    # agenda_json = JsonHelper.load_json_data(agenda_path) or []
     
     # CHOICE OF ALL SUMMARIES METHOD
     # important_events = MeetingSummary.gen_important_events_from_srt(srt_path=srt_path)
     
-    MeetingSummary.current_summary = MeetingSummary.summary_models["llama-70b"]
+    # MeetingSummary.current_summary = MeetingSummary.summary_models["llama-70b"]
     
     # SINGLE QUERY BY AGENDA AND HARDCODED FILTERS
     # filter_list = ['Policy', 'Civic', 'Voting']

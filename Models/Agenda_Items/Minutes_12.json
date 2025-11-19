@@ -1,0 +1,71 @@
+{
+    "roll_call": {
+        "members_present": [
+            "Blumenfield",
+            "Harris-Dawson",
+            "Hernandez",
+            "Lee",
+            "Jurado",
+            "McOsker",
+            "Nazarian",
+            "Padilla",
+            "Price Jr.",
+            "Soto-Martinez",
+            "Yaroslavsky"
+        ],
+        "present_count": 11,
+        "members_absent": [
+            "Hutt",
+            "Park",
+            "Raman",
+            "Rodriguez"
+        ],
+        "absent_count": 4,
+        "raw_text": "Members Present: Blumenfield, Harris-Dawson, Hernandez, Lee, Jurado, McOsker, Nazarian, Padilla, Price Jr., Soto-Martinez, Yaroslavsky (11); Absent: Hutt, Park, Raman, Rodriguez (4)"
+    },
+    "items": [
+        {
+            "item_number": "3",
+            "file_number": "25-0532",
+            "title": "COMMUNICATIONS FROM THE CITY ADMINISTRATIVE OFFICER AND THE DEPARTMENT OF CITY PLANNING relative to authorization for the Local Coastal Program Local Assistance Grant award acceptance and agreement execution.",
+            "description": "(Planning and Land Use Management Committee report to be submitted in Council. If public hearing is not held in Committee, an opportuntiy for public comment will be provided.) (Please visit www.lacouncilfile.com for background documents.) (Budget and Finance Committee waived consideration of the above matter) Community Impact Statement: None submitted",
+            "vote": {
+                "adoption_phrase": "Adopted Item Forthwith - SEE ATTACHED",
+                "ayes": [
+                    "Blumenfield",
+                    "Harris-Dawson",
+                    "Hernandez",
+                    "Jurado",
+                    "Lee",
+                    "McOsker",
+                    "Nazarian",
+                    "Padilla",
+                    "Price Jr.",
+                    "Raman",
+                    "Soto-Martinez",
+                    "Yaroslavsky"
+                ],
+                "nays": [],
+                "absent": [
+                    "Hutt",
+                    "Park",
+                    "Rodriguez"
+                ],
+                "ayes_count": 12,
+                "nays_count": 0,
+                "absent_count": 3,
+                "raw_vote_text": "Ayes: Blumenfield, Harris-Dawson, Hernandez, Jurado, Lee, McOsker, Nazarian, Padilla, Price Jr., Raman, Soto-Martinez, Yaroslavsky (12); Nays: (0); Absent: Hutt, Park, Rodriguez (3)"
+            }
+        },
+        {
+            "item_number": "5",
+            "file_number": "25-0885",
+            "title": "CIVIL RIGHTS, EQUITY, IMMIGRATION AGING AND DISABILITY and BUDGET AND FINANCE COMMITTEES' REPORT relative to a report on all City projects, programs, and services that could be impacted by H.R. 1 (One Big Beautiful Bill Act); and related matters. PAGE3",
+            "description": "",
+            "vote": {
+                "adoption_phrase": "Adopted Item Recommendation for Council action, pursuant to Motion (Raman - Yaroslavsky): INSTRUCT the City Administrative Officer (CAO), with the assistance of the Chief Legislative Analyst (CLA) and relevant departments, to report to Council on all City projects, programs, and services that could be impacted by H.R. 1 (One Big Beautiful Bill Act), including estimates on the potential fiscal impacts of reduced grant funding that the City receives from the federal government. Fiscal Impact Statement: Neither the CAO nor the CLA has completed a financial analysis of this report. Community Impact Statement: None submitted",
+                "raw_vote_text": "Ayes: Blumenfield, Harris-Dawson, Hernandez, Jurado, Lee, McOsker, Nazarian, Padilla, Price Jr., Raman, Soto-Martinez, Yaroslavsky (12); Nays: (O); Absent: Hutt, Park, Rodriguez (3)"
+            }
+        }
+    ]
+}
