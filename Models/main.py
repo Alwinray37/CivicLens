@@ -212,9 +212,9 @@ def main():
     # CHOICE OF ALL SUMMARIES METHOD
     # important_events = MeetingSummary.gen_important_events_from_srt(srt_path=srt_path)
     
-    MeetingSummary.current_summary = MeetingSummary.summary_models["llama-70b"]
+    MeetingSummary.current_summary = MeetingSummary.summary_models["gpt-20b"]
 
-    MeetingSummary.gen_meeting_asr_segmentation(transcript=transcript, json_agenda=agenda_json, json_minutes=minutes_json, lines_per_chunk=30)
+    MeetingSummary.gen_meeting_asr_segmentation(transcript=transcript, json_agenda=agenda_json, json_minutes=minutes_json, lines_per_chunk=1)
     
     # SINGLE QUERY BY AGENDA AND HARDCODED FILTERS
     # filter_list = ['Policy', 'Civic', 'Voting']

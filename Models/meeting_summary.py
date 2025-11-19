@@ -30,7 +30,8 @@ class MeetingSummary:
     summary_models = {
         "llama-3b" : "llama3.2:3b",
         "llama-8b" : "llama3.1:8b",
-        "llama-70b" : "llama3.1:70b-instruct-q4_0"
+        "llama-70b" : "llama3.1:70b-instruct-q4_0",
+        "gpt-20b" : "gpt-oss:20b"
     }
 
     current_chunk_summary = summary_models["llama-3b"]
@@ -38,45 +39,54 @@ class MeetingSummary:
     current_embedding = embedding_models["qwen-4b"]    
 
     @staticmethod
-    def get_meeting_asr_segmented_prompt(agenda_json, minutes_json, chunk):
+    def get_meeting_asr_segmented_prompt(agenda_json, chunk):
         return f"""
-You must output ONLY one JSON object in this exact structure:
+Segment this SRT chunk according to the City Council agenda.
+
+You are given:
+- Agenda JSON (list of items with item_number + title + description).
+- Minutes text (optional supporting context).
+- One SRT CHUNK (several consecutive lines).
+
+Your task:
+- Group consecutive SRT lines into meaningful segments.
+- For each segment, decide if it matches an agenda item.
+- If yes → use the EXACT agenda item title + item_number.
+- If no → title = "Not on Agenda", agenda_item_id = null.
+- Always choose one classification: "agenda_item", "public_comment", "procedural", or "other".
+
+Your output MUST be exactly one JSON object:
 
 {{
   "segments": [
     {{
       "segment_id": "seg_001",
-      "title": "Exact title OR Not on Agenda",
-      "agenda_item_id": "ID or null",
-      "classification": "agenda_item | public_comment | procedural | other",
+      "title": "...",
+      "agenda_item_id": "... or null",
+      "classification": "...",
       "start_time": "HH:MM:SS,mmm",
       "end_time": "HH:MM:SS,mmm",
-      "srt_indices": [1, 2, 3],
-      "text": "Full concatenated text of all SRT lines in this segment.",
-      "reason": "One or two sentences explaining why this segment matches or does not match an agenda item."
+      "srt_indices": [ ... ],
+      "text": "...",
+      "reason": "1–2 sentences"
     }}
   ]
 }}
 
-RULES:
-- Top-level must be an object, not an array.
-- The ONLY top-level key is "segments".
-- Do NOT output a list of objects like [{{"id": 1, "text": "..."}}, ...].
-- Do NOT invent additional keys.
+Rules:
+- Top-level must be an object with only the key "segments".
+- No arrays at the top level.
+- Use exact start/end times based on included SRT lines.
+- Use “Not on Agenda” unless the match is absolutely clear.
+- Pre-meeting videos, PSAs, library/college workshop clips → always “other”.
 
-NOW USE THE DATA BELOW
-
-Agenda JSON:
+AGENDA JSON:
 {agenda_json}
-
-Meeting Minutes:
-{minutes_json}
 
 SRT CHUNK:
 {chunk}
 
-
-Produce only the JSON output described above.
+Produce ONLY the JSON object.
 """.strip()
 
     @staticmethod
@@ -225,7 +235,7 @@ Here are the chunks:
     
     
     @staticmethod
-    def get_clustered_chunk_groups(chunks: list[str], embeddings, n_clusters=7):
+    def get_clustered_chunk_groups(chunks: list[str], embeddings=None, n_clusters=7):
         vectors = None
         clusters = None
         
@@ -303,40 +313,6 @@ Here are the chunks:
             centroid_chunks.append(chunks[index])
                 
         return centroid_chunks
-
-    @staticmethod
-    def gen_segmentation_model(prompt: str) -> str:
-        """
-        Thin wrapper around ollama.chat for segmentation prompts.
-        """
-        response: ChatResponse = chat(
-            model = MeetingSummary.current_summary,
-            messages = [
-                {
-                    "role": "system",
-                    "content": (
-                        "You are a JSON generator. "
-                        "You MUST ALWAYS respond with exactly ONE valid JSON object "
-                        "with a top-level key named \"segments\". "
-                        "Never output a JSON array at the top level. "
-                        "Never use keys named \"id\" or \"text\" at the top level. "
-                        "Inside each segment, you MUST include the fields: "
-                        "segment_id, title, agenda_item_id, classification, "
-                        "start_time, end_time, srt_indices, text, reason."
-                    ),
-                },
-                {
-                    "role": "user",
-                    "content": prompt,
-                    
-                }
-            ],
-            options={
-                "temperature": 0,
-                "num_ctx": 16384,
-            },
-        )
-        return response["message"]["content"]
     
     @staticmethod
     def gen_chunks_summaries(chunks):
@@ -475,18 +451,40 @@ Here are the chunks:
     
     @staticmethod
     def gen_meeting_asr_segmentation(transcript: str, json_agenda: str, json_minutes: str, lines_per_chunk=30):
-        #prompt = MeetingSummary.get_meeting_asr_segmented_prompt(json_agenda, json_minutes, chunk)
-
+        all_segments = []
+       
         chunks = MeetingSummary.chunk_transcript_file_content(file_content=transcript, lines_per_chunk=lines_per_chunk)
         
         for chunk_idx, chunk in enumerate(chunks):
             print(f"processing chunk {chunk_idx + 1}/{len(chunks)}")
 
-            prompt = MeetingSummary.get_meeting_asr_segmented_prompt(agenda_json=json_agenda, minutes_json=json_minutes, chunk=chunk)
+            prompt = MeetingSummary.get_meeting_asr_segmented_prompt(agenda_json=json_agenda, chunk=chunk)
 
-            raw_response = MeetingSummary.gen_segmentation_model(prompt=prompt)
+            response: ChatResponse = chat(
+                model = MeetingSummary.current_summary,
+                messages = [
+                    {
+                        "role": "user",
+                        "content": prompt,                    
+                    }
+                ],
+                options={
+                    "temperature": 0,
+                },
+            )
+            raw_response = response["message"]["content"]
 
             print(raw_response)
+
+            try:
+                import json
+                segment_data = json.loads(raw_response)
+                all_segments.append(segment_data.get("segments", []))
+            except json.JSONDecodeError as e:
+                print(f"Error parsing JSON for chunk {chunk_idx}: {e}")
+                print(f"Raw response was: {raw_response}")
+
+        return all_segments
 
     @staticmethod
     def gen_important_events_by_query(transcript:str, filter_list: list[str], lines_per_chunk=30, max_query=5):
