@@ -272,13 +272,14 @@ def main():
     # CHOICE OF ALL SUMMARIES METHOD
     # important_events = MeetingSummary.gen_important_events_from_srt(srt_path=srt_path)
     
+    MeetingSummary.current_summary = MeetingSummary.summary_models["llama-70b"]
     
     # SINGLE QUERY BY AGENDA AND HARDCODED FILTERS
-    filter_list = ['Policy', 'Civic', 'Voting']
-    filter_list = list(map(lambda a: a['title'], agenda_json))
-    additional_filters = ['Policy', 'Civic', 'Voting']
-    filter_list.extend(additional_filters)
-    important_events = MeetingSummary.gen_important_events_by_query(transcript=transcript, filter_list=filter_list, lines_per_chunk=30, max_query=5)
+    # filter_list = ['Policy', 'Civic', 'Voting']
+    # filter_list = list(map(lambda a: a['title'], agenda_json))
+    # additional_filters = ['Policy', 'Civic', 'Voting']
+    # filter_list.extend(additional_filters)
+    # important_events = MeetingSummary.gen_important_events_by_query(transcript=transcript, filter_list=filter_list, lines_per_chunk=30, max_query=5)
     
     
     
@@ -300,7 +301,7 @@ def main():
     # important_events = MeetingSummary.get_important_events_by_cluster_centroids(transcript=transcript, lines_per_chunk=30, n_clusters=7)
     
     
-    JsonHelper.write_json_data("Summaries/Summary-RegularCityCouncil-9_10_25.json", important_events)
+    # JsonHelper.write_json_data("Summaries/70b_Summary-RegularCityCouncil-9_10_25.json", important_events)
 
 if __name__ == '__main__':
     main() 

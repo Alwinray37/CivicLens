@@ -23,6 +23,20 @@ from sklearn.cluster import KMeans
     
 
 class MeetingSummary:
+    embedding_models = {
+        "qwen-4b" : "qwen3-embedding:4b"
+    }
+
+    summary_models = {
+        "llama-3b" : "llama3.2:3b",
+        "llama-8b" : "llama3.1:8b",
+        "llama-70b" : "llama3.1:70b-instruct-q4_0"
+    }
+
+    current_chunk_summary = summary_models["llama-3b"]
+    current_summary = summary_models["llama-70b"]
+    current_embedding = embedding_models["qwen-4b"]    
+
     @staticmethod
     def get_per_chunk_prompt(chunk):
         """
@@ -152,7 +166,7 @@ Here are the chunks:
     @staticmethod 
     def embed_list(str_list: list[str]):
         embeddings = ollama.embed(
-            model="qwen3-embedding:4b",
+            model=MeetingSummary.current_embedding,
             input=str_list
         )
         
@@ -264,7 +278,7 @@ Here are the chunks:
         for i, chunk in enumerate(chunks):
             prompt = MeetingSummary.get_per_chunk_prompt(chunk=chunk)
             
-            ch_response: ChatResponse = chat(model='llama3.2:3b', messages=[
+            ch_response: ChatResponse = chat(model=MeetingSummary.current_chunk_summary, messages=[
                 {
                     'role': 'user',
                     'content': prompt,
@@ -330,7 +344,7 @@ Here are the chunks:
             list[dict[str, str]]: JSON formatted array
         """
         prompt = MeetingSummary.get_important_events_prompt(summaries=summaries)
-        response: ChatResponse = chat(model='llama3.1:8b', messages=[
+        response: ChatResponse = chat(model=MeetingSummary.current_summary, messages=[
         {
             'role': 'user',
             'content': prompt,
