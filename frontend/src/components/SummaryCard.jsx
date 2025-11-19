@@ -22,7 +22,7 @@ export default function SummaryCard({
                     title={s.Title}
                     content={s.Summary}
                     time={s.StartTime}
-                    onClick={() => onItemClick?.(srtTimeStrToSeconds(s.StartTime))}
+                    onTimeClick={() => onItemClick?.(srtTimeStrToSeconds(s.StartTime))}
 
                     key={i}
                 />
