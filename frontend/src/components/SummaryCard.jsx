@@ -8,7 +8,7 @@ export default function SummaryCard({
     onItemClick,
 }) {
 
-    const sortedSummaries = [...summaries].sort((a, b) => a.StartTime.localeCompare(b.StartTime))
+    const sortedSummaries = summaries ? [...summaries].sort((a, b) => a.StartTime.localeCompare(b.StartTime)) : [];
 
     return (
         <div className={"container p-0 d-flex flex-column bg-body-secondary "

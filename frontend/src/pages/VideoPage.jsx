@@ -30,7 +30,7 @@ export default function VideoPage() {
         
         // TEMPORARY
         // INSERT SUMMARY DUMMY DATA
-        data.summaries = dummysummaries;
+        // data.summaries = dummysummaries;
 
         if(!data) {
             throw new Error("Meeting not found");
