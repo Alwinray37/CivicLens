@@ -43,7 +43,5 @@ export const srtTimeStrToSeconds = (timeStr) => {
     const convSec = Number.parseInt(secStr);
     if(Number.isNaN(convSec)) return -1;
 
-    console.log(convHours, convMin, convSec);
-
     return convHours * 3600 + convMin * 60 + convSec;
 }

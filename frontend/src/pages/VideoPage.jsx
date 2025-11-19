@@ -1,14 +1,14 @@
-import dummysummaries from '../assets/dummysummaries.json'
+import dummysummaries from '@assets/dummysummaries.json'
 
 import { useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import ReactPlayer from 'react-player';
 
-import LoadingSpinner from "./icons/LoadingSpinner";
+import LoadingSpinner from "@components/icons/LoadingSpinner";
 
-import Chatbot from "./Chatbot";
+import Chatbot from "@components/Chatbot";
 import { useRef } from 'react';
-import VideoInfoCard from './VideoInfoCard';
+import VideoInfoCard from '@components/VideoInfoCard';
 
 const MEETING_ENDPOINT = "http://127.0.0.1:8000/getMeetingInfo";
 

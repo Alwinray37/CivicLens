@@ -1,10 +1,10 @@
 import styles from './VideoInfoCard.module.css';
 
 import 'bootstrap';
-import TranscriptCard from './TranscriptCard';
-import AgendaCard from './AgendaCard';
-import SummaryCard from './SummaryCard';
-import TimelineCard from './TimelineCard';
+import TranscriptCard from '@components/TranscriptCard';
+import AgendaCard from '@components/AgendaCard';
+import SummaryCard from '@components/SummaryCard';
+import TimelineCard from '@components/TimelineCard';
 
 export default function VideoInfoCard({
     videoData,
@@ -27,13 +27,13 @@ export default function VideoInfoCard({
                 </li>
             </ul>
             <div className="tab-content overflow-hidden rounded-bottom" id="video-tabContent">
-                <div className="tab-pane fade show active" id="video-summary" role="tabpanel" aria-labelledby="video-summary-tab" tabIndex="0">
+                <div className="tab-pane fade show active" id="video-summary" role="tabpanel" aria-labelledby="video-summary-tab" tabIndex={0}>
                     <SummaryCard 
                         onItemClick={onTimeSelect}
                         summaries={videoData.summaries}
                     />
                 </div>
-                <div className="tab-pane fade" id="video-agenda" role="tabpanel" aria-labelledby="video-agenda-tab" tabIndex="0">
+                <div className="tab-pane fade" id="video-agenda" role="tabpanel" aria-labelledby="video-agenda-tab" tabIndex={0}>
                      <AgendaCard 
                          events={
                              videoData.agenda.map(a => ({
@@ -46,10 +46,10 @@ export default function VideoInfoCard({
                      onItemClick={onTimeSelect}
                      />
                 </div>
-                <div className="tab-pane fade" id="video-timeline" role="tabpanel" aria-labelledby="video-timeline-tab" tabIndex="0">
+                <div className="tab-pane fade" id="video-timeline" role="tabpanel" aria-labelledby="video-timeline-tab" tabIndex={0}>
                     <TimelineCard />
                 </div>
-                <div className="tab-pane fade" id="video-transcript" role="tabpanel" aria-labelledby="video-transcript-tab" tabIndex="0">
+                <div className="tab-pane fade" id="video-transcript" role="tabpanel" aria-labelledby="video-transcript-tab" tabIndex={0}>
                      <TranscriptCard 
                          onItemClick={onTimeSelect}
                          snippets={[

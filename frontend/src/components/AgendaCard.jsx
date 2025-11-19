@@ -1,6 +1,6 @@
 import styles from './AgendaCard.module.css';
 
-import { timeStrToSeconds } from '../util/time';
+import { timeStrToSeconds } from '@util/time';
 
 /* 
     * Card to display the agenda items of a meeting

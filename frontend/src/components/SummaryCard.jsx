@@ -1,6 +1,6 @@
 import styles from './SummaryCard.module.css';
 
-import { srtTimeStrToSeconds, timeStrToSeconds } from "../util/time";
+import { srtTimeStrToSeconds } from "@util/time";
 
 export default function SummaryCard({
     summaries,
