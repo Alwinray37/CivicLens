@@ -190,27 +190,31 @@ def main():
     #write_json_data(JSON_SPEAKER_TIME, speakers_dict)
     
     """PDF Extraction"""
-    pdf_output = PdfExtraction.extract_pdf_raw_text("Agenda_Items\Minutes_12.pdf")
-    result = PdfExtraction.extract_minutes_structured(pdf_output)
-    JsonHelper.write_json_data("Minutes_12.json", result)    
+    #pdf_output = PdfExtraction.extract_pdf_raw_text("Agenda_Items\Minutes_12.pdf")
+    #result = PdfExtraction.extract_minutes_structured(pdf_output)
+    #JsonHelper.write_json_data("Minutes_12.json", result)    
     
 
     """Get Frame"""
     #get_frame_at_timestamp(info_data["Video"], "00:44:41.000", "test_frame_%03d.jpg")
     
     """Get Summaries of SRT"""
-    # srt_path = 'ASR_Whisperx/RegularCityCouncil-9_10_25.srt'
-    # agenda_path = "Agenda_Items/Agenda_10_Items.json"
-    # transcript = ""
-    # with open(srt_path, 'r', encoding='utf-8') as file:
-    #     transcript += file.read()
+    srt_path = 'ASR_Whisperx/RegularCityCouncil-9_9_25.srt'
+    agenda_path = "Agenda_Items/Agenda_09_Items.json"
+    minutes_path = "Agenda_Items/Minutes_09.json"
+    transcript = ""
+    with open(srt_path, 'r', encoding='utf-8') as file:
+        transcript += file.read()
         
-    # agenda_json = JsonHelper.load_json_data(agenda_path) or []
+    agenda_json = JsonHelper.load_json_data(agenda_path) or []
+    minutes_json = JsonHelper.load_json_data(minutes_path) or []
     
     # CHOICE OF ALL SUMMARIES METHOD
     # important_events = MeetingSummary.gen_important_events_from_srt(srt_path=srt_path)
     
-    # MeetingSummary.current_summary = MeetingSummary.summary_models["llama-70b"]
+    MeetingSummary.current_summary = MeetingSummary.summary_models["llama-70b"]
+
+    MeetingSummary.gen_meeting_asr_segmentation(transcript=transcript, json_agenda=agenda_json, json_minutes=minutes_json, lines_per_chunk=30)
     
     # SINGLE QUERY BY AGENDA AND HARDCODED FILTERS
     # filter_list = ['Policy', 'Civic', 'Voting']

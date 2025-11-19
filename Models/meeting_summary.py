@@ -38,6 +38,48 @@ class MeetingSummary:
     current_embedding = embedding_models["qwen-4b"]    
 
     @staticmethod
+    def get_meeting_asr_segmented_prompt(agenda_json, minutes_json, chunk):
+        return f"""
+You must output ONLY one JSON object in this exact structure:
+
+{{
+  "segments": [
+    {{
+      "segment_id": "seg_001",
+      "title": "Exact title OR Not on Agenda",
+      "agenda_item_id": "ID or null",
+      "classification": "agenda_item | public_comment | procedural | other",
+      "start_time": "HH:MM:SS,mmm",
+      "end_time": "HH:MM:SS,mmm",
+      "srt_indices": [1, 2, 3],
+      "text": "Full concatenated text of all SRT lines in this segment.",
+      "reason": "One or two sentences explaining why this segment matches or does not match an agenda item."
+    }}
+  ]
+}}
+
+RULES:
+- Top-level must be an object, not an array.
+- The ONLY top-level key is "segments".
+- Do NOT output a list of objects like [{{"id": 1, "text": "..."}}, ...].
+- Do NOT invent additional keys.
+
+NOW USE THE DATA BELOW
+
+Agenda JSON:
+{agenda_json}
+
+Meeting Minutes:
+{minutes_json}
+
+SRT CHUNK:
+{chunk}
+
+
+Produce only the JSON output described above.
+""".strip()
+
+    @staticmethod
     def get_per_chunk_prompt(chunk):
         """
         Creates a prompt to be used when summarizing 
@@ -262,6 +304,39 @@ Here are the chunks:
                 
         return centroid_chunks
 
+    @staticmethod
+    def gen_segmentation_model(prompt: str) -> str:
+        """
+        Thin wrapper around ollama.chat for segmentation prompts.
+        """
+        response: ChatResponse = chat(
+            model = MeetingSummary.current_summary,
+            messages = [
+                {
+                    "role": "system",
+                    "content": (
+                        "You are a JSON generator. "
+                        "You MUST ALWAYS respond with exactly ONE valid JSON object "
+                        "with a top-level key named \"segments\". "
+                        "Never output a JSON array at the top level. "
+                        "Never use keys named \"id\" or \"text\" at the top level. "
+                        "Inside each segment, you MUST include the fields: "
+                        "segment_id, title, agenda_item_id, classification, "
+                        "start_time, end_time, srt_indices, text, reason."
+                    ),
+                },
+                {
+                    "role": "user",
+                    "content": prompt,
+                    
+                }
+            ],
+            options={
+                "temperature": 0,
+                "num_ctx": 16384,
+            },
+        )
+        return response["message"]["content"]
     
     @staticmethod
     def gen_chunks_summaries(chunks):
@@ -327,9 +402,7 @@ Here are the chunks:
             
             events_json.append(event_obj)
         
-        return events_json
-                    
-    
+        return events_json                
     
     @staticmethod
     def gen_important_events_from_summaries(summaries):
@@ -398,8 +471,23 @@ Here are the chunks:
         print("Chunked transcript\n")
         summaries = MeetingSummary.gen_chunks_summaries(chunks=chunks)
         print("Summarized chunks\n")
-        return MeetingSummary.gen_important_events_from_summaries(summaries=summaries)
+        return MeetingSummary.gen_important_events_from_summaries(summaries=summaries)        
+    
+    @staticmethod
+    def gen_meeting_asr_segmentation(transcript: str, json_agenda: str, json_minutes: str, lines_per_chunk=30):
+        #prompt = MeetingSummary.get_meeting_asr_segmented_prompt(json_agenda, json_minutes, chunk)
+
+        chunks = MeetingSummary.chunk_transcript_file_content(file_content=transcript, lines_per_chunk=lines_per_chunk)
         
+        for chunk_idx, chunk in enumerate(chunks):
+            print(f"processing chunk {chunk_idx + 1}/{len(chunks)}")
+
+            prompt = MeetingSummary.get_meeting_asr_segmented_prompt(agenda_json=json_agenda, minutes_json=json_minutes, chunk=chunk)
+
+            raw_response = MeetingSummary.gen_segmentation_model(prompt=prompt)
+
+            print(raw_response)
+
     @staticmethod
     def gen_important_events_by_query(transcript:str, filter_list: list[str], lines_per_chunk=30, max_query=5):
         chunks = MeetingSummary.chunk_transcript_file_content(file_content=transcript, lines_per_chunk=lines_per_chunk)
