@@ -1,3 +1,4 @@
+import InfoPill from '@components/InfoPill';
 import styles from './SummaryCard.module.css';
 
 import { srtTimeStrToSeconds } from "@util/time";
@@ -16,15 +17,15 @@ export default function SummaryCard({
                 {
                 sortedSummaries && sortedSummaries.length > 0 ?
                 sortedSummaries.map((s, i) =>
-                <div className={"bg-body-tertiary shadow-sm rounded rounded-2 p-3 mx-2 "
-                                + styles.summaryItem}
+                    
+                <InfoPill
+                    title={s.Title}
+                    content={s.Summary}
+                    time={s.StartTime}
                     onClick={() => onItemClick?.(srtTimeStrToSeconds(s.StartTime))}
+
                     key={i}
-                >
-                    <span className="text-start text-md text-body-secondary fw-bold d-block mb-1">{s.Title}</span>
-                    <span className="text-start d-block text-body-secondary mb-1">{s.Summary}</span>
-                    <span className="text-start d-block text-body-tertiary">{s.StartTime.split(',').at(0)}</span>
-                </div>
+                />
                 )
                 :
                 <p className="mt-3">There are no summaries for this video</p>
