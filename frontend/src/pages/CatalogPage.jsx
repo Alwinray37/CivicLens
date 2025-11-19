@@ -1,11 +1,11 @@
 // Catalog Page Component
 // this will list the video as cards for users to click on and watch
 // when clicked, it will take the user to the video watch page
-import dummydata from '../assets/dummydata.json';
+import dummydata from '@assets/dummydata.json';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import LoadingSpinner from './icons/LoadingSpinner';
+import LoadingSpinner from '@components/icons/LoadingSpinner';
 
 const CATALOG_ENDPOINT = "http://127.0.0.1:8000/getMeetings";
 

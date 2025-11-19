@@ -1,6 +1,7 @@
 import styles from './AgendaCard.module.css';
 
-import { timeStrToSeconds } from '../util/time';
+import { timeStrToSeconds } from '@util/time';
+import InfoPill from '@components/InfoPill';
 
 /* 
     * Card to display the agenda items of a meeting
@@ -29,15 +30,14 @@ export default function AgendaCard({
                         + styles.agendaCard}>
             <div className="overflow-y-scroll py-2 d-flex flex-column gap-2 flex-grow-1 min-scrollbar">
                 {events.map((e, i) =>
-                <div className={"bg-body-tertiary shadow-sm rounded rounded-2 p-3 mx-2 "
-                                + styles.agendaItem}
+                <InfoPill
+                    title={`NO. (${e.itemNum}) - ${e.fileNum}`}
+                    content={e.content}
+                    time={e.timespan}
                     onClick={() => onItemClick?.(timeStrToSeconds(e.timespan.split('-')[0]))}
+
                     key={i}
-                >
-                    <span className="text-start text-md text-body-secondary fw-bold d-block mb-1">NO. ({e.itemNum}) - {e.fileNum}</span>
-                    <span className="text-start d-block text-body-secondary mb-1">{e.content}</span>
-                    <span className="text-start d-block text-body-tertiary">{e.timespan}</span>
-                </div>
+                />
                 )}
             </div>
         </div>
