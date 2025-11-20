@@ -13,6 +13,7 @@ DROP TABLE IF EXISTS public."Documents" CASCADE;
 DROP TABLE IF EXISTS public."DocumentDatas" CASCADE;
 DROP TABLE IF EXISTS public."DocumentTypes" CASCADE;
 DROP TABLE IF EXISTS public."AgendaItems" CASCADE;
+DROP TABLE IF EXISTS public."Summaries" CASCADE;
 DROP TABLE IF EXISTS public."Meetings" CASCADE;
 
 -- ========== TABLES ==========
@@ -32,6 +33,14 @@ CREATE TABLE public."AgendaItems" (
     "ItemNumber" integer NOT NULL,
     "OrderNumber" integer NOT NULL,
     "FileNumber" text
+);
+
+CREATE TABLE public."Summaries" (
+    "SummaryId" bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    "MeetingID" integer NOT NULL REFERENCES public."Meetings"("MeetingID") ON UPDATE CASCADE ON DELETE CASCADE,
+    "Title" text NOT NULL,
+    "Summary" text NOT NULL,
+    "StartTime" text NOT NULL
 );
 
 CREATE TABLE public."DocumentTypes" (
@@ -145,6 +154,8 @@ SELECT jsonb_build_object(
   'meeting', to_jsonb(m),
   'agenda', (SELECT jsonb_agg(to_jsonb(a) ORDER BY "OrderNumber")
              FROM "AgendaItems" a WHERE a."MeetingID" = m."MeetingID"),
+  'summaries', (SELECT jsonb_agg(to_jsonb(s))
+             FROM "Summaries" s WHERE s."MeetingID" = m."MeetingID"),
   'documents', (
     SELECT jsonb_agg(jsonb_build_object(
       'documentId', d."DocumentID",
@@ -764,5 +775,184 @@ SELECT
   s.item_number,
   s.file_number
 FROM src s;
+
+
+-- Insert summaries for Sep 10, 2025
+WITH m AS (
+  SELECT "MeetingID" AS mid FROM public."Meetings" WHERE "Date" = '2025-09-10'
+),
+src AS (
+  SELECT
+    (j->>'StartTime')                     AS StartTime,
+    j->>'Title'                           AS Title,
+    j->>'Summary'                         AS Summary
+  FROM jsonb_array_elements(
+    $$  [
+        {
+            "StartTime": "01:53:14,373",
+            "Title": "Council Meeting Agenda Item Discussion",
+            "Summary": "The council members discuss and vote on several agenda items, including a roll call vote on item 29, a reconsideration of item 41 for public comment, and an item for which to be sent forth with urgency."
+        },
+        {
+            "StartTime": "01:35:35,442",
+            "Title": "Housing Committee Discussion on Tenants' Rights and Rent Reductions",
+            "Summary": "The discussion focuses on tenants' rights in Los Angeles, particularly the need for rent reductions when property owners fail to make necessary repairs. Speakers from ACE and the housing committee share their perspectives on improving SEP (Section 8 Program) and ensuring quality repairs."
+        },
+        {
+            "StartTime": "01:32:40,434",
+            "Title": "Tenants Discuss Housing Issues and Request Justice",
+            "Summary": "A group of tenants speak out about their poor living conditions and demand justice from the housing department, advocating for policy changes and recommendations to address their concerns, including a petition to prevent landlords from increasing rent without making necessary repairs."
+        },
+        {
+            "StartTime": "01:22:12,158",
+            "Title": "Rent Control Discussion at Public Hearing",
+            "Summary": "Speakers discuss the need for rent control and affordable housing, citing economic difficulties and personal struggles with high rent costs. They advocate for regulations to cap rent at 3% and improve transparency in repairs, as well as support for low-income families affected by rising rents."
+        },
+        {
+            "StartTime": "01:19:59,921",
+            "Title": "Rent Increases and Housing Issues",
+            "Summary": "The discussion revolves around rent increases and housing issues in the community, with speakers discussing their experiences with landlords and advocating for rent stabilization. They also address the 03% LARSO-LA rent stabilization formula and its impact on small landlords."
+        },
+        {
+            "StartTime": "01:14:09,567",
+            "Title": "Support for West Harbor Modification Project in San Pedro",
+            "Summary": "The discussion revolves around supporting the West Harbor Modification Project in San Pedro, with speaker Andrew Silber advocating for its approval and certification of the Supplemental Environmental Impact Report, highlighting his personal connection to the community and the need for this project to fulfill the potential of San Pedro."
+        },
+        {
+            "StartTime": "01:08:49,774",
+            "Title": "Opposition to Port Development Appeal",
+            "Summary": "A speaker from the Los Angeles Maritime Institute opposes an appeal to a port development decision, citing concerns about the process and its impact on the community. He urges the council to uphold the original decision and deny the appeal."
+        },
+        {
+            "StartTime": "00:55:25,668",
+            "Title": "City Council Meeting on West Harbor Modification Project",
+            "Summary": "The city council is discussing the approval of the West Harbor Modification Project by the Los Angeles Board of Harbor Commissioners. Speaker_62 expresses gratitude for the support and calls for public commenting on specific items."
+        },
+        {
+            "StartTime": "00:51:47,377",
+            "Title": "Los Angeles City Council Discussion on Community Events and Park Space",
+            "Summary": "The Los Angeles City Council discusses the importance of community-driven organizations, the need for more park space in San Pedro downtown, and the implementation of the Secure Tenant Eviction Protection (SCEP) plan."
+        },
+        {
+            "StartTime": "00:44:30,517",
+            "Title": "Tenants' Rights Discussion at City Council Meeting",
+            "Summary": "The discussion focuses on tenants' rights in Los Angeles, with attendees sharing their experiences and advocating for improvements to the city's housing policies. They specifically discuss the need for a clear path to activating habitability plans and express gratitude towards council members who have supported tenant rights initiatives."
+        },
+        {
+            "StartTime": "01:49:03,090",
+            "Title": "City Council Meeting Debate on Election Integrity",
+            "Summary": "The discussion revolves around concerns about election integrity and the threat of autocratic regimes undermining democracy. Speaker 37 presents a resolution aimed at stopping administrative actions to rig elections and maintain California's commitment to democracy."
+        },
+        {
+            "StartTime": "00:39:12,760",
+            "Title": "Council Meeting Discussion on Voting Items and Public Comment",
+            "Summary": "The council members discuss voting items, including some being moved to later dates or made special, and plan for public comment at 11 o'clock with an estimated time limit for speakers."
+        }
+    ]$$::jsonb
+  ) AS j
+)
+INSERT INTO public."Summaries"
+  ("MeetingID","StartTime","Title","Summary")
+SELECT
+  (SELECT mid FROM m),
+  s.StartTime,
+  s.Title,
+  s.Summary
+FROM src s;
+
+
+-- Insert summaries for Sep 12, 2025
+WITH m AS (
+  SELECT "MeetingID" AS mid FROM public."Meetings" WHERE "Date" = '2025-09-12'
+),
+src AS (
+  SELECT
+    (j->>'StartTime')                     AS StartTime,
+    j->>'Title'                           AS Title,
+    j->>'Summary'                         AS Summary
+  FROM jsonb_array_elements(
+    $$ [
+        {
+            "StartTime": "01:09:11,500",
+            "Title": "Honoring a Community Leader",
+            "Summary": "The discussion revolves around honoring Veronica, a community leader who has been serving the area for 21 years, and her impact on improving people's lives through her work and policies."
+        },
+        {
+            "StartTime": "00:54:14,813",
+            "Title": "World Cup Walking Soccer Launch",
+            "Summary": "SRT speaker discusses the launch of a walking soccer program before the World Cup in Los Angeles, expressing gratitude to Jeremy and other supporters for their help. The conversation includes thank-yous to volunteers, players, and city officials."
+        },
+        {
+            "StartTime": "00:43:02,800",
+            "Title": "Los Angeles City Council Meeting Agenda Discussion",
+            "Summary": "The Los Angeles City Council discusses their agenda, including public comments, approval of minutes, commendatory resolutions, and presentations from various council districts. They also address items for special consideration and open the floor for discussion."
+        },
+        {
+            "StartTime": "00:04:02,437",
+            "Title": "Homelessness Solutions in LA",
+            "Summary": "The discussion focuses on homelessness solutions in Los Angeles, with speakers from the Housing Authority and local organizations sharing their experiences and efforts to provide affordable housing and support services. They highlight the importance of partnerships and community engagement in addressing this issue."
+        },
+        {
+            "StartTime": "02:28:19,617",
+            "Title": "City Officials Under Fire for Clowns in Charge",
+            "Summary": "A public speaker criticizes city officials and clowns for their incompetence, citing examples of budget mismanagement, lack of action on pressing issues like homelessness and fires, and poor planning."
+        },
+        {
+            "StartTime": "02:30:19,562",
+            "Title": "LA City Council Discussion on Voting Systems",
+            "Summary": "The Los Angeles City Council discussed various voting systems, including star voting, rank choice voting, and the current top two system. Speakers shared their experiences with different voting methods and emphasized the importance of electoral accuracy. Dr. Sam Davidson presented research findings from Harvard and UC Berkeley that suggest star voting produces the most accurate elections."
+        },
+        {
+            "StartTime": "02:24:21,985",
+            "Title": "Council Discussion on Senior Parking and Police Oversight",
+            "Summary": "The speakers discuss the need for restrictive parking to prevent seniors from having to clean up after others, as well as their concerns about police oversight and the lack of ability for general public comments in certain situations."
+        },
+        {
+            "StartTime": "00:00:00,031",
+            "Title": "Community Policing and Immigration Policy",
+            "Summary": "Law enforcement officials discuss their efforts to engage with the community and dispel myths about police department policies on immigration. They highlight events like \"Coffee with a Cop\" as opportunities for dialogue and networking. The conversation also touches on the impact of immigration policies on local businesses and residents."
+        },
+        {
+            "StartTime": "02:16:39,145",
+            "Title": "Council Discussion on Public Participation and Agenda Items",
+            "Summary": "The council discusses the lack of public participation in agenda items due to previous committee votes, leading to some members not being aware of the full scope of issues. Speaker 28 expresses frustration with the system, while Speaker 15 criticizes Nithya Brahmin's handling of homelessness committee matters."
+        },
+        {
+            "StartTime": "02:34:37,834",
+            "Title": "City Council Meeting Description",
+            "Summary": "Council members discuss the posting of motions and the upcoming Festival of Philippine Arts and Culture in San Pedro. They also address announcements and remove a council member for disrupting the meeting."
+        },
+        {
+            "StartTime": "01:14:00,807",
+            "Title": "Veronica's Tribute to the Beloved Community of Watts",
+            "Summary": "In this emotional exchange, Veronica expresses gratitude to Councilmember McCosker for his great work in her community, highlighting the importance of acknowledging and supporting vulnerable populations within the community."
+        },
+        {
+            "StartTime": "02:20:50,878",
+            "Title": "LA City Council Discussion on Voting Systems",
+            "Summary": "The Los Angeles City Council discussed various voting systems, including star voting, rank choice voting, and the current top two system. Speakers shared their experiences with different voting methods and emphasized the importance of electoral accuracy. Dr. Sam Davidson presented research findings from Harvard and UC Berkeley that suggest star voting produces the most accurate elections."
+        },
+        {
+            "StartTime": "02:32:51,493",
+            "Title": "Meeting Disruptions and Citizenship Plan Discussion",
+            "Summary": "The discussion revolves around a citizen's plan to obtain citizenship through a tax plan, with multiple speakers presenting their views and concerns. One speaker receives a time limit warning for disrupting the meeting, while another attempts to address chain of command issues within the building."
+        },
+        {
+            "StartTime": "01:31:09,919",
+            "Title": "Celebration of Latino Hispanic Heritage Month",
+            "Summary": "The discussion focuses on celebrating Latino Hispanic Heritage Month in the City of Los Angeles, with a presentation honoring a family who has made an empire while preserving their traditions from Mexico."
+        }
+    ] $$::jsonb
+  ) AS j
+)
+INSERT INTO public."Summaries"
+  ("MeetingID","StartTime","Title","Summary")
+SELECT
+  (SELECT mid FROM m),
+  s.StartTime,
+  s.Title,
+  s.Summary
+FROM src s;
+
 
 COMMIT;
