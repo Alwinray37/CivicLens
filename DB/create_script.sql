@@ -778,7 +778,7 @@ FROM src s;
 
 -- Insert summaries for Sep 9, 2025
 WITH m AS (
-  SELECT "MeetingID" AS mid FROM public."Meetings" WHERE "Date" = '2025-09-10'
+  SELECT "MeetingID" AS mid FROM public."Meetings" WHERE "Date" = '2025-09-09'
 ),
 src AS (
   SELECT
