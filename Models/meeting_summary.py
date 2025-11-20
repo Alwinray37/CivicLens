@@ -1,0 +1,541 @@
+import math
+import chromadb
+from ollama import chat
+from ollama import ChatResponse
+import ollama
+
+import numpy
+
+from sklearn.cluster import KMeans
+
+# If you want to attempt to use the format option with ollama.
+# Not currently in use as the models seem to be very iffy when trying to produce consistent JSON.
+
+# from pydantic import BaseModel
+
+# class MeetingEvent(BaseModel):
+#     timecode: str
+#     title: str
+#     summary: str
+
+# class MeetingEvents(BaseModel):
+#     events: list[MeetingEvent]
+    
+
+class MeetingSummary:
+    embedding_models = {
+        "qwen-4b" : "qwen3-embedding:4b"
+    }
+
+    summary_models = {
+        "llama-3b" : "llama3.2:3b",
+        "llama-8b" : "llama3.1:8b",
+        "llama-70b" : "llama3.1:70b-instruct-q4_0",
+        "gpt-20b" : "gpt-oss:20b"
+    }
+
+    current_chunk_summary = summary_models["llama-3b"]
+    current_summary = summary_models["llama-70b"]
+    current_embedding = embedding_models["qwen-4b"]    
+
+    @staticmethod
+    def get_meeting_asr_segmented_prompt(agenda_json, chunk):
+        return f"""
+Segment this SRT chunk according to the City Council agenda.
+
+You are given:
+- Agenda JSON (list of items with item_number + title + description).
+- Minutes text (optional supporting context).
+- One SRT CHUNK (several consecutive lines).
+
+Your task:
+- Group consecutive SRT lines into meaningful segments.
+- For each segment, decide if it matches an agenda item.
+- If yes → use the EXACT agenda item title + item_number.
+- If no → title = "Not on Agenda", agenda_item_id = null.
+- Always choose one classification: "agenda_item", "public_comment", "procedural", or "other".
+
+Your output MUST be exactly one JSON object:
+
+{{
+  "segments": [
+    {{
+      "segment_id": "seg_001",
+      "title": "...",
+      "agenda_item_id": "... or null",
+      "classification": "...",
+      "start_time": "HH:MM:SS,mmm",
+      "end_time": "HH:MM:SS,mmm",
+      "srt_indices": [ ... ],
+      "text": "...",
+      "reason": "1–2 sentences"
+    }}
+  ]
+}}
+
+Rules:
+- Top-level must be an object with only the key "segments".
+- No arrays at the top level.
+- Use exact start/end times based on included SRT lines.
+- Use “Not on Agenda” unless the match is absolutely clear.
+- Pre-meeting videos, PSAs, library/college workshop clips → always “other”.
+
+AGENDA JSON:
+{agenda_json}
+
+SRT CHUNK:
+{chunk}
+
+Produce ONLY the JSON object.
+""".strip()
+
+    @staticmethod
+    def get_per_chunk_prompt(chunk):
+        """
+        Creates a prompt to be used when summarizing 
+        individual transcript chunks
+    
+        Parameters:
+            chunk (str): The chunk to be summarized
+    
+        Returns:
+            str: The created prompt
+        """
+        
+        return f"""
+You will receive a chunk of an SRT transcript.
+
+Each SRT entry has this format:
+[index number]
+[start_time --> end_time]
+[text]
+
+Your task:
+1. Read all start times in the chunk. A start time is the first time in any line with the pattern "HH:MM:SS,MMM -->".
+2. Use the earliest start time that actually appears.
+3. Do not guess or invent any times.
+4. Create:
+    - A short, descriptive title based ONLY on the content of the chunk.
+    - The title must NOT include words like: SRT, transcript, chunk, file, section, or similar meta words.
+    - The title should describe what the people are talking about.
+    - A 3–5 sentence summary of the discussion.
+
+Output ONLY in this format:
+
+StartTime: [start_time]
+Title: [title]
+Summary: [summary]
+
+Here is the chunk:
+{chunk}
+""".strip()
+
+    @staticmethod
+    def get_important_events_prompt(summaries):
+        
+        newline = '\n'
+        """
+        Creates a prompt to be used when picking the most
+        important event out of a list of summaries
+    
+        Parameters:
+            summaries (str): The chunk summaries from a transcript
+    
+        Returns:
+            str: The created prompt
+        """
+        
+        return f"""
+You are given a list of processed chunks from a city council meeting.
+
+Each chunk has this format:
+StartTime: [time]
+Title: [title]
+Summary: [summary]
+
+Your task:
+Select up to 10 chunks that are the most important based on:
+- Civic issues (zoning, housing, budgeting, infrastructure, safety, etc.)
+- Policy debates or decisions
+- Motions, amendments, proposals, or votes
+
+Ignore chunks that are procedural, greetings, or off-topic unless they contain substantive policy content.
+
+OUTPUT RULES (important):
+- Do NOT use bold, italics, or any Markdown formatting.
+- Do NOT add numbering, bullets, or commentary.
+- Output plain text only.
+- Each selected chunk must appear in exactly this format:
+
+StartTime: [time]
+Title: [title]
+Summary: [summary]
+
+- Separate each chunk with a blank line.
+- Do NOT change any text inside the chunks.
+
+Here are the chunks:
+[PASTE CHUNKS HERE]
+{newline.join(summaries)}
+""".strip()
+
+    
+    @staticmethod
+    def chunk_transcript_file_content(file_content, encoding='utf-8', lines_per_chunk=30):
+        i = 0
+        c_id = 0
+        lines = file_content.split('\n\n')
+
+        chunks = []
+        while i < len(lines):
+            chunk = lines[i:i+lines_per_chunk]
+            chunk_str = "\n\n".join(chunk)
+            chunks.append(chunk_str)
+            i += lines_per_chunk
+            c_id += 1
+        print(f'Created {c_id} chunks')
+        return chunks
+        
+    @staticmethod
+    def chunk_transcript_file(file_path, encoding='utf-8', lines_per_chunk=30):
+        """
+        Creates chunks at a given interval of a transcript at a given
+        path
+    
+        Parameters:
+            file_path (str): The path of the SRT transcript file
+            encoding (str): The encoding to use when reading the file
+            lines_per_chunk (int): The amount of transcript lines you want per chunk
+    
+        Returns:
+            list[str]: A list of the created chunks
+        """
+        with open(file_path, 'r', encoding=encoding) as file:
+            file_content = file.read()
+    
+            return MeetingSummary.chunk_transcript_file_content(file_content=file_content, lines_per_chunk=lines_per_chunk)
+    
+    @staticmethod 
+    def embed_list(str_list: list[str]):
+        embeddings = ollama.embed(
+            model=MeetingSummary.current_embedding,
+            input=str_list
+        )
+        
+        return embeddings['embeddings']
+        
+    
+    @staticmethod
+    def embed_and_cluster_chunks(chunks: list[str], n_clusters=7):
+        vectors = MeetingSummary.embed_list(str_list=chunks)
+        clusters = KMeans(n_clusters=n_clusters, random_state=101).fit(vectors)
+        print(f'Clustered chunks:\n{clusters.labels_}')
+        return (vectors, clusters)
+        
+    
+    
+    @staticmethod
+    def get_clustered_chunk_groups(chunks: list[str], embeddings=None, n_clusters=7):
+        vectors = None
+        clusters = None
+        
+        if embeddings is None:
+            vectors, clusters = MeetingSummary.embed_and_cluster_chunks(chunks=chunks, n_clusters=n_clusters)
+        else:
+            vectors = embeddings
+            clusters = KMeans(n_clusters=n_clusters, random_state=101).fit(vectors)
+            
+        if clusters.labels_ is None:
+            return {}
+            
+        grouped_chunks = {}
+        for i, label in enumerate(clusters.labels_):
+            if label in grouped_chunks:
+                grouped_chunks[label].append({
+                    'chunk': chunks[i],
+                    'embedding': vectors[i]
+                })
+            else:
+                grouped_chunks[label] = [
+                    {
+                        'chunk': chunks[i],
+                        'embedding': vectors[i]
+                    }
+                ]
+        
+        return grouped_chunks
+        
+        
+    
+    @staticmethod
+    def get_queried_chunks(chunks: list[str]|None=None, ch_embeddings=None, filter_list: list[str]|None=None, fi_embeddings=None, max_query: int = 12):
+        client = chromadb.Client()
+        collection = client.create_collection(name="chunks")
+        
+        chunk_embeddings = ch_embeddings or MeetingSummary.embed_list(str_list=chunks or [])
+        chunk_embeddings_ids = [str(index) for index, value in enumerate(chunk_embeddings)]
+        
+        
+        collection.add(
+            ids=chunk_embeddings_ids,
+            embeddings=chunk_embeddings,
+            documents=chunks
+        )
+        
+        filter_embeddings = fi_embeddings or MeetingSummary.embed_list(str_list=filter_list or [])
+        
+        query_res = collection.query(
+            query_embeddings=filter_embeddings,
+            n_results=max_query
+        )
+        
+        client.delete_collection(name='chunks')
+        
+        documents = query_res['documents']
+        if documents is not None:
+            for i, document in enumerate(documents):
+                print(f'Filter {i} queried {len(document)} chunks\n')
+        
+        return documents or []
+    
+    @staticmethod
+    def get_centroid_chunks(chunks: list[str], n_clusters=7):
+        vectors, clusters = MeetingSummary.embed_and_cluster_chunks(chunks=chunks, n_clusters=n_clusters)
+        
+        closest_list = []
+        for i in range(n_clusters):
+            dist = numpy.linalg.norm(vectors - clusters.cluster_centers_[i], axis=1)
+            closest = numpy.argmin(dist)
+            closest_list.append(closest)
+            
+        centroid_chunks = []
+        for index in closest_list:
+            centroid_chunks.append(chunks[index])
+                
+        return centroid_chunks
+    
+    @staticmethod
+    def gen_chunks_summaries(chunks):
+        """
+        Generates summaries for each of the given chunks from a transcript
+    
+        Parameters:
+            chunks (list[str]): List of chunks to be summarized
+    
+        Returns:
+            list[str]: A list of the created summaries for the chunks
+        """
+        summaries = []
+        for i, chunk in enumerate(chunks):
+            prompt = MeetingSummary.get_per_chunk_prompt(chunk=chunk)
+            
+            ch_response: ChatResponse = chat(model=MeetingSummary.current_chunk_summary, messages=[
+                {
+                    'role': 'user',
+                    'content': prompt,
+                    # 'format': MeetingEvent.model_json_schema(),
+                    'options': {
+                        'temperature': 0,
+                    }
+                }
+            ]
+            )
+            ch_summ = ch_response['message']['content']
+            summaries.append(ch_response['message']['content'])
+            print(f'{ch_summ}\n')
+            
+        # with open('llama3.2_test_summaries.txt', 'w', encoding='utf-8') as file:
+        #     file.write("".join(summaries))
+        # exit()
+        return summaries
+        
+    @staticmethod
+    def important_events_txt_to_json(important_events):
+        """
+        Converts the important events model text output to a
+        JSON formatted array
+    
+        Parameters:
+            important_events (str): Important events string generated by model
+    
+        Returns:
+            list[dict[str, str]]: JSON formatted array
+        """
+        splt_events = important_events.split('\n\n')
+        events_json = []
+        
+        for event in splt_events:
+            key_values = event.split("\n")
+            event_obj = {}
+            for i, pair in enumerate(key_values):
+                value = pair.split(": ")[1]
+                if i == 0:
+                    event_obj['StartTime'] = value
+                elif i == 1:
+                    event_obj['Title'] = value
+                elif i == 2:
+                    event_obj['Summary'] = value
+            
+            events_json.append(event_obj)
+        
+        return events_json                
+    
+    @staticmethod
+    def gen_important_events_from_summaries(summaries):
+        """
+        Generates a list of important events given a list of summaries
+        of chunks from a transcript
+        
+        Parameters:
+            summaries (list[str]): Summaries of chunks from a transcript
+    
+        Returns:
+            list[dict[str, str]]: JSON formatted array
+        """
+        prompt = MeetingSummary.get_important_events_prompt(summaries=summaries)
+        response: ChatResponse = chat(model=MeetingSummary.current_summary, messages=[
+        {
+            'role': 'user',
+            'content': prompt,
+            # 'think': True,
+            'options': {
+                'temperature': 0,
+            }
+        },
+        ])
+        
+        content = response['message']['content']
+        
+        # print("---THINKING---\n")
+        # print(response['message']['thinking'])
+        print("Picked important events\n")
+        print(content)
+        json_format = MeetingSummary.important_events_txt_to_json(content)
+        
+        return json_format
+    
+    
+    @staticmethod
+    def gen_important_events_from_srt(srt_path):
+        """
+        Generates a list of important events given a path to an
+        SRT file
+        
+        Parameters:
+            srt_path (str): Path to SRT file
+    
+        Returns:
+            list[dict[str, str]]: JSON formatted array
+        """
+        
+        # Current method is very simplistic
+            # Chunk a transcript srt file
+            # Generate summaries for those chunks
+            # Pick most important summaries
+        
+        # Not currently using agenda items in prompt
+        # Model might be too small to consider it
+        
+        # agenda_file_path = "Agenda_12_Items.json"
+        
+        # agenda = ''
+        # with open(agenda_file_path, 'r', encoding='utf-8') as file:
+        #     file_content = file.read()
+        #     agenda += file_content
+            
+        chunks = MeetingSummary.chunk_transcript_file(file_path=srt_path, lines_per_chunk=50)
+        print("Chunked transcript\n")
+        summaries = MeetingSummary.gen_chunks_summaries(chunks=chunks)
+        print("Summarized chunks\n")
+        return MeetingSummary.gen_important_events_from_summaries(summaries=summaries)        
+    
+    @staticmethod
+    def gen_meeting_asr_segmentation(transcript: str, json_agenda: str, json_minutes: str, lines_per_chunk=30):
+        all_segments = []
+       
+        chunks = MeetingSummary.chunk_transcript_file_content(file_content=transcript, lines_per_chunk=lines_per_chunk)
+        
+        for chunk_idx, chunk in enumerate(chunks):
+            print(f"processing chunk {chunk_idx + 1}/{len(chunks)}")
+
+            prompt = MeetingSummary.get_meeting_asr_segmented_prompt(agenda_json=json_agenda, chunk=chunk)
+
+            response: ChatResponse = chat(
+                model = MeetingSummary.current_summary,
+                messages = [
+                    {
+                        "role": "user",
+                        "content": prompt,                    
+                    }
+                ],
+                options={
+                    "temperature": 0,
+                },
+            )
+            raw_response = response["message"]["content"]
+
+            print(raw_response)
+
+            try:
+                import json
+                segment_data = json.loads(raw_response)
+                all_segments.append(segment_data.get("segments", []))
+            except json.JSONDecodeError as e:
+                print(f"Error parsing JSON for chunk {chunk_idx}: {e}")
+                print(f"Raw response was: {raw_response}")
+
+        return all_segments
+
+    @staticmethod
+    def gen_important_events_by_query(transcript:str, filter_list: list[str], lines_per_chunk=30, max_query=5):
+        chunks = MeetingSummary.chunk_transcript_file_content(file_content=transcript, lines_per_chunk=lines_per_chunk)
+        # query 5 chunks per filter
+        query_res = MeetingSummary.get_queried_chunks(chunks=chunks, filter_list=filter_list, max_query=max_query)
+        np_res_arr = numpy.array(query_res)
+        
+        # flatten and remove duplicates
+        queried_chunks = set(np_res_arr.flatten())
+        summaries = MeetingSummary.gen_chunks_summaries(chunks=queried_chunks)
+        
+        return MeetingSummary.gen_important_events_from_summaries(summaries=summaries)
+        
+        
+    @staticmethod
+    def gen_important_events_by_double_query(transcript:str, filter_list: list[str], init_lines_per_chunk=100, last_lines_per_chunk=25):
+        chunks = MeetingSummary.chunk_transcript_file_content(file_content=transcript, lines_per_chunk=init_lines_per_chunk)
+        
+        max_query = math.ceil(len(filter_list) / 2)
+        
+        # query_res comes back as an list of lists of query results based on filter_list length
+        query_res = MeetingSummary.get_queried_chunks(chunks=chunks, filter_list=filter_list, max_query=max_query)
+        np_res_arr = numpy.array(query_res)
+        
+        # flatten and remove duplicates
+        queried_chunks = set(np_res_arr.flatten())
+        
+        double_filtered_chunks = []
+        for q_chunk in queried_chunks:
+            # break down queried chunks into smaller chunks
+            small_chunks = MeetingSummary.chunk_transcript_file_content(file_content=q_chunk, lines_per_chunk=last_lines_per_chunk)
+            
+            # query these smaller chunks
+            max_small_query = math.ceil(len(small_chunks) / 2)
+            
+            q_small_res = MeetingSummary.get_queried_chunks(chunks=small_chunks, filter_list=filter_list, max_query=max_small_query)
+            np_res_arr = numpy.array(q_small_res)
+            q_small_chunks = set(np_res_arr.flatten())
+            
+            double_filtered_chunks.extend(q_small_chunks)
+        
+        print(f'DOUBLE FILTERED CHUNK LEN: {len(double_filtered_chunks)}\n\n')
+        summaries = MeetingSummary.gen_chunks_summaries(chunks=set(double_filtered_chunks))
+        return MeetingSummary.gen_important_events_from_summaries(summaries=summaries)
+    
+    
+    @staticmethod
+    def get_important_events_by_cluster_centroids(transcript: str, lines_per_chunk=30, n_clusters=12):
+        chunks = MeetingSummary.chunk_transcript_file_content(file_content=transcript, lines_per_chunk=lines_per_chunk)
+        
+        centroid_chunks = MeetingSummary.get_centroid_chunks(chunks=chunks, n_clusters=n_clusters)
+        summaries = MeetingSummary.gen_chunks_summaries(chunks=centroid_chunks)
+        return MeetingSummary.gen_important_events_from_summaries(summaries=summaries)
