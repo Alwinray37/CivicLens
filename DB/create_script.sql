@@ -787,93 +787,68 @@ src AS (
     j->>'Title'                           AS Title,
     j->>'Summary'                         AS Summary
   FROM jsonb_array_elements(
-    $$ [
-        {
-            "StartTime": "00:24:15,415",
-            "Title": "Affordable Housing Crisis and Partnership with City of Los Angeles",
-            "Summary": "The Vice President of the LA Community College District discusses the district's efforts to address the housing crisis, including a partnership with the City of Los Angeles through Councilmember Gavrowski's motion for item 17. Another speaker, Liz Schindler-Johnson from the Grand Vision Foundation, advocates for supporting the West Harbor SEIR and the amphitheater project, highlighting its potential to deliver good jobs and economic vitality while preserving a union-friendly and accessible waterfront."
-        },
+    $$  [
         {
             "StartTime": "01:53:14,373",
-            "Title": "Council Vote on Urgent Item 29 and Reconsideration of Item 41",
-            "Summary": "The council is discussing the urgent item 29 and reconsidering item 41 for public comment after a public hearing has been held. They are tabulating votes and considering special votes for each item."
-        },
-        {
-            "StartTime": "01:47:19,747",
-            "Title": "Opposition to Port of San Pedro Project",
-            "Summary": "The speaker (SPEAKER_38) expresses strong opposition to the Port of San Pedro project, citing environmental concerns and CEQA abuse, advocating for the port's regulatory capacity to be improved."
-        },
-        {
-            "StartTime": "00:46:37,636",
-            "Title": "Support for Proposed Amphitheatre at West Harbor",
-            "Summary": "Speaker 08 expresses strong support for the proposed amphitheatre at West Harbor, highlighting its potential to transform San Pedro into a world-class destination and bring long-term economic growth and prosperity."
-        },
-        {
-            "StartTime": "01:42:16,715",
-            "Title": "Meeting Agenda and Voting Details",
-            "Summary": "The meeting discusses the agenda items for voting, including specimens to be voted on, special votes, and public comment periods. Councilmembers review the items and vote, with some requesting additional time to review the agenda."
-        },
-        {
-            "StartTime": "00:57:22,844",
-            "Title": "Los Angeles Community College District Addresses Housing Crisis",
-            "Summary": "The Los Angeles Community College District's vice chancellor and chief facilities executive, Dr. Lee Sada, discusses the district's efforts to address the housing crisis, including utilizing $500 million allocated in Measure LA for temporary housing and wraparound services, as well as a three-pronged housing strategy involving dorm partnerships, purchasing buildings, and construction on campus."
-        },
-        {
-            "StartTime": "01:19:59,921",
-            "Title": "Rent Dispute at a Public Housing Project",
-            "Summary": "The speakers discuss an ongoing issue with substandard repairs and maintenance at their public housing project, specifically regarding the landlords' refusal to make necessary repairs and the subsequent impact on residents' living conditions."
-        },
-        {
-            "StartTime": "00:35:39,427",
-            "Title": "City Council Meeting Discussion on Agenda Items",
-            "Summary": "The speakers discuss the agenda items for the city council meeting, including public hearings and amendments to certain items, with a focus on ensuring that all necessary steps are taken before proceeding."
-        },
-        {
-            "StartTime": "01:32:40,434",
-            "Title": "Tenant Advocacy and Housing Committee Recommendations",
-            "Summary": "The discussion revolves around tenant advocacy and the recommendations of the housing committee. Participants, including Mario Osorio and others, express support for various recommendations aimed at improving living conditions for tenants, particularly in regards to rent increases and repairs."
-        },
-        {
-            "StartTime": "01:21:59,824",
-            "Title": "Rent Control Debate",
-            "Summary": "The discussion focuses on rent control measures, with speaker Dominga Solorsano advocating for reducing rents and ensuring landlords make repairs while maintaining transparency and quality standards. She shares her personal experience as a low-income household where the spouse is the only income earner, highlighting the struggle to pay rent if prices increase."
-        },
-        {
-            "StartTime": "01:51:32,457",
-            "Title": "City Council Meeting on LA Budget and Policy Issues",
-            "Summary": "The city council discusses and votes on various policy issues affecting the city of Los Angeles, including budget allocations for different items. They also consider reconsidering item 28 with specific conditions."
-        },
-        {
-            "StartTime": "00:37:20,556",
-            "Title": "City Council Meeting Discussion on Agenda Items",
-            "Summary": "The city council discusses and votes on various agenda items, including amendments to motions and requests for special considerations. Councilmembers also discuss their positions on specific items, such as item 18 and 27, before voting on them."
-        },
-        {
-            "StartTime": "01:45:06,775",
-            "Title": "Environmental Appeal Processed at Last Minute",
-            "Summary": "A speaker discusses how an environmental appeal was filed with no basis in law just before a project's deadline, showing a lack of respect for the process and the efforts of those involved. They express outrage over the misguided judgment and argue that the concerns presented were already addressed through previous reviews."
-        },
-        {
-            "StartTime": "01:29:54,657",
-            "Title": "San Pedro Community Supports West Harbor Project Development",
-            "Summary": "The speaker, Ziggy Merkitsch, a founder of the San Pedro Film Festival and community radio station KCLA, passionately advocates for upholding the decision to move forward with the West Harbor Project. He emphasizes the project's potential benefits, including job creation, new park space, tourism, and revitalization of the area, citing San Pedro's neglected status and its importance in the overall development of Los Angeles and California."
-        },
-        {
-            "StartTime": "00:39:12,760",
-            "Title": "Meeting Agenda and Voting Details",
-            "Summary": "The meeting discusses the agenda items for voting, including specimens to be voted on, special votes, and public comment periods. Councilmembers review the items and vote, with some requesting additional time to review the agenda."
+            "Title": "Council Meeting Agenda Item Discussion",
+            "Summary": "The council members discuss and vote on several agenda items, including a roll call vote on item 29, a reconsideration of item 41 for public comment, and an item for which to be sent forth with urgency."
         },
         {
             "StartTime": "01:35:35,442",
-            "Title": "Support for San Pedro Development Project",
-            "Summary": "Speaker 57 advocates for the development of San Pedro, including changing its layout and moving forward with a project despite opposition. They also call for support from council members to preserve the community's future and approve a harbor modification project."
+            "Title": "Housing Committee Discussion on Tenants' Rights and Rent Reductions",
+            "Summary": "The discussion focuses on tenants' rights in Los Angeles, particularly the need for rent reductions when property owners fail to make necessary repairs. Speakers from ACE and the housing committee share their perspectives on improving SEP (Section 8 Program) and ensuring quality repairs."
+        },
+        {
+            "StartTime": "01:32:40,434",
+            "Title": "Tenants Discuss Housing Issues and Request Justice",
+            "Summary": "A group of tenants speak out about their poor living conditions and demand justice from the housing department, advocating for policy changes and recommendations to address their concerns, including a petition to prevent landlords from increasing rent without making necessary repairs."
+        },
+        {
+            "StartTime": "01:22:12,158",
+            "Title": "Rent Control Discussion at Public Hearing",
+            "Summary": "Speakers discuss the need for rent control and affordable housing, citing economic difficulties and personal struggles with high rent costs. They advocate for regulations to cap rent at 3% and improve transparency in repairs, as well as support for low-income families affected by rising rents."
+        },
+        {
+            "StartTime": "01:19:59,921",
+            "Title": "Rent Increases and Housing Issues",
+            "Summary": "The discussion revolves around rent increases and housing issues in the community, with speakers discussing their experiences with landlords and advocating for rent stabilization. They also address the 03% LARSO-LA rent stabilization formula and its impact on small landlords."
         },
         {
             "StartTime": "01:14:09,567",
-            "Title": "City Council Meeting on LA Budget and Policy Issues",
-            "Summary": "The city council discusses and votes on various policy issues affecting the city of Los Angeles, including budget allocations for different items. They also consider reconsidering item 28 with specific conditions."
+            "Title": "Support for West Harbor Modification Project in San Pedro",
+            "Summary": "The discussion revolves around supporting the West Harbor Modification Project in San Pedro, with speaker Andrew Silber advocating for its approval and certification of the Supplemental Environmental Impact Report, highlighting his personal connection to the community and the need for this project to fulfill the potential of San Pedro."
+        },
+        {
+            "StartTime": "01:08:49,774",
+            "Title": "Opposition to Port Development Appeal",
+            "Summary": "A speaker from the Los Angeles Maritime Institute opposes an appeal to a port development decision, citing concerns about the process and its impact on the community. He urges the council to uphold the original decision and deny the appeal."
+        },
+        {
+            "StartTime": "00:55:25,668",
+            "Title": "City Council Meeting on West Harbor Modification Project",
+            "Summary": "The city council is discussing the approval of the West Harbor Modification Project by the Los Angeles Board of Harbor Commissioners. Speaker_62 expresses gratitude for the support and calls for public commenting on specific items."
+        },
+        {
+            "StartTime": "00:51:47,377",
+            "Title": "Los Angeles City Council Discussion on Community Events and Park Space",
+            "Summary": "The Los Angeles City Council discusses the importance of community-driven organizations, the need for more park space in San Pedro downtown, and the implementation of the Secure Tenant Eviction Protection (SCEP) plan."
+        },
+        {
+            "StartTime": "00:44:30,517",
+            "Title": "Tenants' Rights Discussion at City Council Meeting",
+            "Summary": "The discussion focuses on tenants' rights in Los Angeles, with attendees sharing their experiences and advocating for improvements to the city's housing policies. They specifically discuss the need for a clear path to activating habitability plans and express gratitude towards council members who have supported tenant rights initiatives."
+        },
+        {
+            "StartTime": "01:49:03,090",
+            "Title": "City Council Meeting Debate on Election Integrity",
+            "Summary": "The discussion revolves around concerns about election integrity and the threat of autocratic regimes undermining democracy. Speaker 37 presents a resolution aimed at stopping administrative actions to rig elections and maintain California's commitment to democracy."
+        },
+        {
+            "StartTime": "00:39:12,760",
+            "Title": "Council Meeting Discussion on Voting Items and Public Comment",
+            "Summary": "The council members discuss voting items, including some being moved to later dates or made special, and plan for public comment at 11 o'clock with an estimated time limit for speakers."
         }
-    ] $$::jsonb
+    ]$$::jsonb
   ) AS j
 )
 INSERT INTO public."Summaries"
