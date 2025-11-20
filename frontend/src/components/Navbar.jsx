@@ -15,10 +15,10 @@ const Navbar = () => {
     }
 
     return (
-        <nav className="bg-body-secondary" style={styles.nav}>
-            <div className="d-flex gap-3">
-                <div style={styles.logo}>
-                    <Link to="/" className="link-body-emphasis" style={styles.link}>CivicLens</Link>
+        <nav className="" >
+            <div className="d-flex gap-3 logo align-items-center">
+                <div >
+                    <Link to="/" style={{color: "whitesmoke"}}>CivicLens</Link>
                 </div>
                     {theme === "light" ?
                 <button 
@@ -46,37 +46,14 @@ const Navbar = () => {
                 </button>
                 }
             </div>
-            <ul style={styles.navLinks}>
-                <li><Link to="/" className="link-body-emphasis" style={styles.link}>Home</Link></li>
-            </ul>
+            <div className="searchBar">
+                <input 
+                    type="text" 
+                    placeholder='Search for a meeting'
+                    />
+            </div>
         </nav>
     );
-}
-
-const styles = {
-    // nav: {
-    //     display: 'flex',
-    //     justifyContent: 'space-between',
-    //     alignItems: 'center',
-    //     background: '#222',
-    //     padding: '1rem 2rem',
-    // },
-    // logo: {
-    //     fontWeight: 'bold',
-    //     fontSize: '1.5rem',
-    // },
-    // navLinks: {
-    //     listStyle: 'none',
-    //     display: 'flex',
-    //     gap: '1.5rem',
-    //     margin: 0,
-    //     padding: 0,
-    // },
-    // link: {
-    //     color: '#fff',
-    //     textDecoration: 'none',
-    //     fontSize: '1rem',
-    // },
 };
 
 export default Navbar;
