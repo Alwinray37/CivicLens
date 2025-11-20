@@ -1,0 +1,23 @@
+{
+  "compilerOptions": {
+    "baseUrl" : ".",
+    "paths": {
+      "@/*": ["./src/*"],
+      "@components/*": ["./src/components/*"],
+      "@assets/*": ["./src/assets/*"],
+      "@pages/*": ["./src/pages/*"],
+      "@util/*": ["./src/util/*"]
+    },
+    // "module": "nodenext",
+    "allowJs": true,
+    // "checkJs": true,
+    "strict": false,
+    "noEmit": true,
+    "jsx": "react-jsx",
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
+    "allowArbitraryExtensions": true,
+    "lib": ["DOM", "ESNext"],
+  },
+  "include": ["src/**/*"]
+}

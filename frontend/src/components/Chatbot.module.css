@@ -1,4 +1,5 @@
 .chatbotWrapper {
-    max-height: 400px;
     min-height: 200px;
+
+    min-width: 250px;
 }

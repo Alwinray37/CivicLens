@@ -60,7 +60,7 @@ export default function Chatbot() {
                         + styles.chatbotWrapper}>
             <h4 className="border-bottom py-2 mx-2 mb-0 ps-1 pb-2 text-body-secondary fw-bold">Chatbot</h4>
             <div 
-                className="d-flex flex-column flex-grow-1 overflow-scroll my-1 text-body-secondary"
+                className="d-flex flex-column flex-grow-1 overflow-y-scroll min-scrollbar my-1 text-body-secondary"
                 ref={messageContainerRef}
             >
                 {
