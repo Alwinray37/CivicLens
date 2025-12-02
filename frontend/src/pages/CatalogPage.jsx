@@ -2,7 +2,7 @@
 // this will list the video as cards for users to click on and watch
 // when clicked, it will take the user to the video watch page
 import dummydata from '@assets/dummydata.json';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import LoadingSpinner from '@components/icons/LoadingSpinner';
@@ -18,6 +18,16 @@ export default function CatalogPage() {
 
     const catalogQuery = useQuery({ queryKey: ['catalog'], queryFn: fetchCatalogData });
 
+    // debug: log query state so we can inspect fetched payload
+    useEffect(() => {
+        console.log('CatalogPage - catalogQuery state:', {
+            isLoading: catalogQuery.isLoading,
+            isError: catalogQuery.isError,
+            data: catalogQuery.data,
+            error: catalogQuery.error,
+        });
+    }, [catalogQuery.isLoading, catalogQuery.isError, catalogQuery.data, catalogQuery.error]);
+
     // fetches meetings in the catalog
     async function fetchCatalogData() {
         try {
@@ -29,6 +39,7 @@ export default function CatalogPage() {
             }
 
             const data = await res.json();
+            console.log('CatalogPage - fetchCatalogData response:', data);
             return data;
         } catch(err) {
             throw new Error(err);
@@ -115,11 +126,11 @@ export default function CatalogPage() {
                 filteredList ?
                     filteredList.length > 0 ?
                     filteredList.map((video) => (
-                        <div className="video-card d-flex flex-row-reverse bg-body-secondary " 
+                        <div className="video-card d-flex flex-row-reverse " 
                             key={video.MeetingID}
                         >
                             <button className="play-btn col-4" title={video.title} onClick={() => handleButtonClick(video.MeetingID, video.VideoURL)}>
-                                <span role="img" aria-label="Play" style={{ fontSize: '3rem' }}>▶️</span>
+                                <span role="img" aria-label="Play" style={{ fontSize: '3rem', color: "whitesmoke" }}><i className="fa-solid fa-circle-play"></i></span>
                             </button>
                             <div className='col text-start'>
                                 <h2 className="title">{video.Title}</h2>

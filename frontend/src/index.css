@@ -11,6 +11,8 @@
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  --color-primary: #062C3D;
+  --color-secondary: #DFBFB3
 }
 
 a {
@@ -19,7 +21,7 @@ a {
   text-decoration: inherit;
 }
 a:hover {
-  color: #535bf2;
+  color: var(--color-secondary);
 }
 
 body {
@@ -56,8 +58,8 @@ button:focus-visible {
 
 @media (prefers-color-scheme: light) {
   :root {
-    color: #213547;
-    background-color: #ffffff;
+    color: var(--color-primary);
+    background-color: whitesmoke;
   }
   a:hover {
     color: #747bff;

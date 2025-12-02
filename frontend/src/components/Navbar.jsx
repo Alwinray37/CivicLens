@@ -12,13 +12,35 @@ const Navbar = () => {
         const newTheme = theme === "light" ? "dark" : "light";
         htmlEl.setAttribute("data-bs-theme", newTheme);
         setTheme(newTheme);
+
+        const mainEl = document.getElementsByClassName('main')[0];
+        const navEl = document.getElementsByTagName('nav')[0];
+        const navLinks = navEl.getElementsByTagName('a');
+        if (newTheme === "dark") {
+            mainEl.style.backgroundColor = "var(--color-primary)";
+            mainEl.style.color = "whitesmoke";
+            navEl.style.backgroundColor = "var(--color-primary)";
+            navEl.style.color = "whitesmoke";
+            for (let link of navLinks) {
+                link.style.color = "whitesmoke";
+            }
+
+        } else {
+            mainEl.style.backgroundColor = "var(--color-bg)";
+            mainEl.style.color = "var(--color-primary)";
+            navEl.style.backgroundColor = "var(--color-bg)";
+            navEl.style.color = "var(--color-primary)";
+            for (let link of navLinks) {
+                link.style.color = "var(--color-primary)";
+            }
+        }
     }
 
     return (
         <nav className="" >
             <div className="d-flex gap-3 logo align-items-center">
                 <div >
-                    <Link to="/" style={{color: "whitesmoke"}}>CivicLens</Link>
+                    <Link to="/">CivicLens</Link>
                 </div>
                     {theme === "light" ?
                 <button 
@@ -45,12 +67,6 @@ const Navbar = () => {
                     <LightModeIcon />
                 </button>
                 }
-            </div>
-            <div className="searchBar">
-                <input 
-                    type="text" 
-                    placeholder='Search for a meeting'
-                    />
             </div>
         </nav>
     );
