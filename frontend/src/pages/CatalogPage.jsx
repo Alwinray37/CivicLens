@@ -2,6 +2,7 @@
 // this will list the video as cards for users to click on and watch
 // when clicked, it will take the user to the video watch page
 import dummydata from '@assets/dummydata.json';
+import styles from './CatalogPage.module.css';
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
@@ -74,6 +75,22 @@ export default function CatalogPage() {
                 return new Date(b.Date) - new Date(a.Date);
             }
         });
+
+
+        // add thumbnail links to filteredList
+        filteredList = filteredList.map(video => {
+            const newVidObj = {...video};
+            // create URL object to access search params easier
+            const videoURL = new URL(newVidObj.VideoURL);
+            // get 'v' search param, which is the YouTube video ID
+            const ytVideoID = videoURL.searchParams.get('v');
+
+            // construct thumbnail URL (high quality 720p)
+            const thumbURL = `https://i.ytimg.com/vi/${ytVideoID}/hq720.jpg`;
+            newVidObj['ThumbnailURL'] = thumbURL;
+
+            return newVidObj;
+        });
     }
 
 
@@ -129,8 +146,11 @@ export default function CatalogPage() {
                         <div className="video-card d-flex flex-row-reverse " 
                             key={video.MeetingID}
                         >
-                            <button className="play-btn col-4" title={video.title} onClick={() => handleButtonClick(video.MeetingID, video.VideoURL)}>
-                                <span role="img" aria-label="Play" style={{ fontSize: '3rem', color: "whitesmoke" }}><i className="fa-solid fa-circle-play"></i></span>
+                            <button className={`col-4 ${styles.thumbnailBtn}`} title={video.title} onClick={() => handleButtonClick(video.MeetingID, video.VideoURL)}>
+                                <img src={video.ThumbnailURL} />
+                                <span className={`${styles.playIcon}`} role="img" aria-label="Play" >
+                                    <i className="fa-solid fa-circle-play"></i>
+                                </span>
                             </button>
                             <div className='col text-start'>
                                 <h2 className="title">{video.Title}</h2>
