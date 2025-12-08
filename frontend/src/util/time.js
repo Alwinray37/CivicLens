@@ -45,3 +45,10 @@ export const srtTimeStrToSeconds = (timeStr) => {
 
     return convHours * 3600 + convMin * 60 + convSec;
 }
+
+export const getTimezoneDate = (date) => {
+    const dateObj = date ?? new Date();
+
+    return new Date(dateObj.getTime() 
+                    + (dateObj.getTimezoneOffset() * 60 * 1000));
+}

@@ -9,6 +9,7 @@ import LoadingSpinner from "@components/icons/LoadingSpinner";
 import Chatbot from "@components/Chatbot";
 import { useRef } from 'react';
 import VideoInfoCard from '@components/VideoInfoCard';
+import { getTimezoneDate } from '@util/time';
 
 const MEETING_ENDPOINT = "http://127.0.0.1:8000/getMeetingInfo";
 
@@ -46,6 +47,13 @@ export default function VideoPage() {
         }
     }
 
+
+    // calculate date with timezone offset
+    const dateObj = videoQuery.status === "success"
+                    ? new Date(videoQuery.data.meeting.Date)
+                    : null;
+
+    const timezoneDateObj = getTimezoneDate(dateObj);
     return (
             <div className="container">
                 {
@@ -55,6 +63,9 @@ export default function VideoPage() {
                 <div>An error occurred: {videoQuery.error.message}</div>
                 :
                 <>
+                <div className="row mb-1">
+                    <h2 className="text-start">{videoQuery.data.meeting.Title} - {timezoneDateObj.toLocaleDateString()}</h2>
+                </div>
                 <div className="row gap-3 mb-3">
                     <div className="col-lg-8">
                         {
