@@ -27,7 +27,7 @@ export default function VideoPage() {
         // would call api here in real implementation
         const res = await fetch(`${MEETING_ENDPOINT}/${id}`);
         if(!res.ok) throw new Error("Server error");
-        const data = (await res.json())?.at(0);
+        const data = await res.json();
         
         // TEMPORARY
         // INSERT SUMMARY DUMMY DATA

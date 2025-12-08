@@ -53,8 +53,8 @@ def getMeetingInfo(meeting_id: int):
                 """,
                 (meeting_id,))
             
-            rows = cur.fetchone()
-            return rows
+            res = cur.fetchone() or []
+            return res[0]
 
 
 # Test and example code: 
