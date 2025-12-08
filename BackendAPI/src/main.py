@@ -12,7 +12,7 @@ app.add_middleware(
     allow_headers=["*"]
 )
 
-db_conn_str = os.getenv("DB_CONN")
+db_conn_str = os.getenv("DB_CONN") or ""
 
 
 @app.get("/getMeetings")
@@ -23,8 +23,9 @@ def get_meetings():
                 cur.execute("""
                 SELECT get_meetings_json();
                 """)
-                rows = cur.fetchall()
-                return {"data": rows}
+                res = cur.fetchone() or []
+                rows = res[0]
+                return rows
 
     except psycopg.OperationalError as e:
         raise HTTPException(status_code=503, detail=f"Database connection failed: {e.pgerror or str(e)}`")
