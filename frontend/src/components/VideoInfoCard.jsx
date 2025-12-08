@@ -37,7 +37,6 @@ export default function VideoInfoCard({
                                  itemNum: a.ItemNumber,
                                  fileNum: a.FileNumber,
                                  content: a.Title,
-                                 timespan: "5:00",
                              }))
                          }
                      onItemClick={onTimeSelect}
