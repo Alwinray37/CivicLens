@@ -152,9 +152,16 @@ export default function CatalogPage() {
                                     <i className="fa-solid fa-circle-play"></i>
                                 </span>
                             </button>
-                            <div className='col text-start'>
-                                <h2 className="title">{video.Title}</h2>
-                                <p>{video.Date}</p>
+                            <div className='col text-start d-flex flex-column justify-content-between'>
+                                <div>
+                                    <h2 className="title">{video.Title}</h2>
+                                    <p>{video.Date}</p>
+                                </div>
+                                <div className="d-flex flex-wrap gap-1">
+                                    <span className={`rounded p-1 px-2 text-dark ${styles.tag}`}>tag</span>
+                                    <span className={`rounded p-1 px-2 text-dark ${styles.tag}`}>tag</span>
+                                    <span className={`rounded p-1 px-2 text-dark ${styles.tag}`}>tag</span>
+                                </div>
                                 {/* <p className="description">{video.description}</p> */}
                                 {/* <button className='btn btn-primary'>Watch</button> */}
                             </div>
