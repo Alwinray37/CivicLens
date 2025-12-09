@@ -49,8 +49,28 @@ export default function CatalogPage() {
 
     let filteredList;
 
-    // Get all unique tags from the data (not yet available)
-    let allTags = Array.from(new Set(dummydata.flatMap(video => video.tags || [])));
+    // Static list of tags related to civic meetings (used until API provides tags)
+    const allTags = [
+        "Budget",
+        "Zoning",
+        "Land Use",
+        "Planning",
+        "Transportation",
+        "Public Works",
+        "Parks & Recreation",
+        "Housing",
+        "Economic Development",
+        "Public Safety",
+        "Police",
+        "Fire Department",
+        "Environmental",
+        "Utilities",
+        "Education",
+        "Procurement",
+        "Ordinance",
+        "Resolution",
+        "Citizen Comments"
+    ];
 
     if(catalogQuery.status === "success") {
         // filter the data from dummydata, retrieve only the videos that have a videoUrl
