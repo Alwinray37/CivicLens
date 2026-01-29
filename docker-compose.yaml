@@ -24,6 +24,7 @@ services:
         - action: sync
           path: ./BackendAPI/src
           target: /app/src
+          initial_sync: true
         - action: rebuild
           path: ./BackendAPI/requirements.txt
           target: /app/requirements.txt
