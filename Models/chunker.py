@@ -9,6 +9,7 @@ class FixedChunkOpts(TypedDict):
     method: Literal["fixed"]
     lines_per_chunk: int
     delim: str
+    overlap:int
 
 class SemanticChunkOpts(TypedDict):
     method: Literal["semantic"]
@@ -25,7 +26,7 @@ class Chunker:
     
     def chunk(self, text:str, key:str, opts: ChunkOpts):
         if opts["method"] == "fixed":
-            return self.fixed_chunk(text=text, key=key, lines_per_chunk=opts["lines_per_chunk"], delim=opts["delim"])
+            return self.fixed_chunk(text=text, key=key, lines_per_chunk=opts["lines_per_chunk"], delim=opts["delim"], overlap=opts["overlap"])
         else:
             return self.semantic_chunk(text=text, key=key)
 
@@ -57,7 +58,9 @@ class Chunker:
         return chunks
 
 
-    def fixed_chunk(self, text:str, delim:str, lines_per_chunk:int, key: str):
+    def fixed_chunk(self, text:str, key:str, delim:str, lines_per_chunk:int, overlap:int=0):
+        overlap = overlap % lines_per_chunk
+
         keyed_chunks = self.chunk_store.get(key)
 
         if (keyed_chunks is not None) and ((chunks := keyed_chunks.get("semantic")) is not None):
@@ -74,7 +77,7 @@ class Chunker:
             chunk = lines[i:i+lines_per_chunk]
             chunk_str = delim.join(chunk)
             chunks.append(chunk_str)
-            i += lines_per_chunk
+            i += lines_per_chunk - overlap
             c_id += 1
 
         if keyed_chunks is None:
