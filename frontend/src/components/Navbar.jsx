@@ -12,13 +12,35 @@ const Navbar = () => {
         const newTheme = theme === "light" ? "dark" : "light";
         htmlEl.setAttribute("data-bs-theme", newTheme);
         setTheme(newTheme);
+
+        const mainEl = document.getElementsByClassName('main')[0];
+        const navEl = document.getElementsByTagName('nav')[0];
+        const navLinks = navEl.getElementsByTagName('a');
+        if (newTheme === "dark") {
+            mainEl.style.backgroundColor = "var(--color-primary)";
+            mainEl.style.color = "whitesmoke";
+            navEl.style.backgroundColor = "var(--color-primary)";
+            navEl.style.color = "whitesmoke";
+            for (let link of navLinks) {
+                link.style.color = "whitesmoke";
+            }
+
+        } else {
+            mainEl.style.backgroundColor = "var(--color-bg)";
+            mainEl.style.color = "var(--color-primary)";
+            navEl.style.backgroundColor = "var(--color-bg)";
+            navEl.style.color = "var(--color-primary)";
+            for (let link of navLinks) {
+                link.style.color = "var(--color-primary)";
+            }
+        }
     }
 
     return (
-        <nav className="bg-body-secondary" style={styles.nav}>
-            <div className="d-flex gap-3">
-                <div style={styles.logo}>
-                    <Link to="/" className="link-body-emphasis" style={styles.link}>CivicLens</Link>
+        <nav className="" >
+            <div className="d-flex gap-3 logo align-items-center">
+                <div >
+                    <Link to="/">CivicLens</Link>
                 </div>
                     {theme === "light" ?
                 <button 
@@ -46,37 +68,8 @@ const Navbar = () => {
                 </button>
                 }
             </div>
-            <ul style={styles.navLinks}>
-                <li><Link to="/" className="link-body-emphasis" style={styles.link}>Home</Link></li>
-            </ul>
         </nav>
     );
-}
-
-const styles = {
-    // nav: {
-    //     display: 'flex',
-    //     justifyContent: 'space-between',
-    //     alignItems: 'center',
-    //     background: '#222',
-    //     padding: '1rem 2rem',
-    // },
-    // logo: {
-    //     fontWeight: 'bold',
-    //     fontSize: '1.5rem',
-    // },
-    // navLinks: {
-    //     listStyle: 'none',
-    //     display: 'flex',
-    //     gap: '1.5rem',
-    //     margin: 0,
-    //     padding: 0,
-    // },
-    // link: {
-    //     color: '#fff',
-    //     textDecoration: 'none',
-    //     fontSize: '1rem',
-    // },
 };
 
 export default Navbar;

@@ -5,7 +5,7 @@
 }
 a {
   text-decoration: none !important;
-  color: inherit;
+  /* color: inherit; */
 }
 
 #root {
@@ -18,56 +18,21 @@ a {
   text-align: center;
 
   overflow: hidden;
+  --color-primary: #062C3D;
+  --color-secondary: #DFBFB3;
+  --color-bg: whitesmoke;
 }
 
 .main {
-    width: 100%;
-    height: calc(100% - var(--nav-height));
-    margin-top: var(--nav-height);
+  width: 100%;
+  height: calc(100% - var(--nav-height));
+  margin-top: var(--nav-height);
 
-    overflow: auto;
-    padding: 1rem;
-}
-
-/* :root[data-bs-theme="light"] .main { */
-/*     background-color: var(--c-bg-1); */
-/* } */
-
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
+  overflow: auto;
+  padding: 1rem;
+  background-color: var(--color-bg);
 }
 
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
-}
-
-.card {
-  padding: 2em;
-}
-
-.read-the-docs {
-  color: #888;
-}
 
 nav{
   position: fixed;
@@ -75,31 +40,30 @@ nav{
   left:0;
   
   width: 100%;
-  height: var(--nav-height);
+  height: 3rem;
 
   display: flex;
   align-items: center;
   justify-content: space-between;
 
-  /* background-color: white; */
-  /* color: black; */
-  box-shadow: 2px 2px 5px rgba(0,0,0,0.1);
+  background-color: var(--color-bg);
+  color: #032c3c;
+  /* box-shadow: 2px 2px 5px rgba(0,0,0,0.1); */
 
-  padding: 10px;
+  padding: 1rem 2rem;
 
   z-index: 5000;
 }
 nav li, nav ul, nav a{
   list-style: none;
   display: inline;
-  /* color: black; */
+  color: var(--color-primary);
+  font-size: 2rem;
+  font-weight: bold;
   padding: 0;
   margin: 0;
 }
 
-.container{
-
-}
 
 .video-card-list {
   display: flex;
@@ -112,5 +76,33 @@ nav li, nav ul, nav a{
 .video-card{
   border-radius: 10px;
   padding: 1rem;
-  background-color: rgb(255, 255, 255);
+  background-color: rgba(255, 255, 255, 0.25);
+  border: 1px solid var(--color-secondary);
+}
+
+.video-card button{
+  border-radius: 10px;
+}
+
+.min-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: var(--bs-secondary-bg) transparent;
+}
+
+
+.text-lg {
+    font-size: 1.5rem;
+}
+
+.text-md {
+    font-size: 1.2rem;
+}
+
+.text-sm {
+    font-size: 0.7rem;
+}
+
+
+.isolate {
+    isolation: isolate;
 }

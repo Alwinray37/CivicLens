@@ -1,9 +1,9 @@
-import re
-import json
-import pymupdf
 import torch
 import torchaudio
 import ffmpeg
+
+from json_helper import JsonHelper
+from asr_extraction import AsrExtraction
 
 import numpy as np
 
@@ -16,11 +16,13 @@ from pyannote.audio.pipelines.utils.hook import ProgressHook
 
 from transformers import AutoTokenizer, AutoModelForTokenClassification
 from transformers import pipeline
-from faster_whisper import WhisperModel, BatchedInferencePipeline
 
 from huggingface_hub import login
 
 from tqdm import tqdm
+
+from meeting_summary import MeetingSummary
+from pdf_extraction import PdfExtraction
 
 JSON_INFO = 'info.json'
 JSON_RAW_OUTPUT = 'output.json'
@@ -29,184 +31,6 @@ JSON_SUMMARY_OUTPUT = 'summary.json'
 JSON_SPEAKER_TIME = 'speaker_time.json'
 JSON_SPEAKER_WORDS = 'speaker_words.json'
 JSON_PDF_EXTRACTION = 'pdf_extraction.json'
-
-def load_json_data(json_filename):
-    """
-    Loads JSON data from a file.
-
-    Args:
-        json_filename (str): Path to the JSON file.
-
-    Returns:
-        dict or None: Parsed JSON data if successful, None otherwise.
-    """
-    try:
-        with open(json_filename, 'r') as file:
-            data = json.load(file)
-        return data
-    except FileNotFoundError:
-        print(f"Error: '{json_filename}' not found")
-    except json.JSONDecodeError:
-        print(f"Error: Could not decode JSON from '{json_filename}'")
-    # Return None if file not found or JSON is invalid
-    return None
-
-def write_json_data(json_filename, data):
-    """
-    Writes JSON data to a file.
-
-    Args:
-        json_filename (str): Path to the JSON file.
-        data (dict): Data to write to the file.
-    """
-    with open(json_filename, 'w') as file:
-        json.dump(data, file, indent=4)
-
-def extract_pdf_text(pdf_filname):
-    extracted_text = []
-
-    with pymupdf.open(pdf_filname) as doc:
-        for page_num, page in enumerate(doc):
-            text = page.get_text()
-           
-            extracted_text.append({
-                "page": page_num + 1,
-                "text": text.strip()
-            })
-
-    return extracted_text
-
-def extract_pdf_raw_text(pdf_filename):
-    parts = []
-    with pymupdf.open(pdf_filename) as doc:
-        for page in doc:
-            parts.append(page.get_text())
-    return "\n".join(parts)
-
-def extract_agenda_items(pdf_text):
-    pattern = re.compile(
-        r"\((\d+)\)\s*"                       
-        r"(\d{2}-\d{4}(?:-S\d+)?)\s*"        
-        r"(?:CD\s*\d+)?\s*"                 
-        r"(.+?)(?=\n\(\d+\)\s|$)",           
-        re.DOTALL
-    )
-
-    junk_line = re.compile(
-        r"^(?:Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday)\b"
-        r"|^PAGE\b|^- .* -$|^(?:https?://|www\.)",
-        re.I
-    )
-
-    first_sentence = re.compile(
-        r"^(.*?\.)\s*(?=(?:Recommendations?|Fiscal|Community|URGENCY|Items\b|\()|$)",
-        re.I | re.DOTALL
-    )
-
-    items = []
-    for m in pattern.finditer(pdf_text):
-        item_no, file_no, block = m.groups()
-
-        block = block.split("\n(", 1)[0]
-
-        lines = [ln.strip() for ln in block.splitlines()
-                 if ln.strip() and not junk_line.match(ln.strip())]
-        text = re.sub(r"\s+", " ", " ".join(lines)).strip(" -")
-
-        mm = first_sentence.match(text)
-        title = (mm.group(1) if mm else text).strip()
-
-        _, _, after_title = text.partition(title)
-        after_title = after_title.strip()
-
-        if title:
-            items.append({"item_number": item_no, "file_number": file_no, "title": title, "description": after_title})
-    return items
-
-def set_raw_output(audio_filename, model_size = 'medium'):
-    """
-    Transcribes audio using WhisperModel and saves word-level info to a JSON file.
-
-    Args:
-        audio_filename (str): Path to the audio file to transcribe.
-
-    Returns:
-        None
-    """
-    model = WhisperModel(model_size, device="cpu", compute_type="int8")
-
-    batched_model = BatchedInferencePipeline(model=model)    
-    segments, info = batched_model.transcribe(audio_filename, batch_size=16, word_timestamps=True, vad_filter=True)
-    #segments, info = model.transcribe(audio_filename, word_timestamps=True, vad_filter=True)
-    #segments = list(segments)
-
-
-    word_info = []
-    for segment in segments:
-        for word in segment.words:
-            word_info.append({'start': float(word.start), 'end': float(word.end), 'word': word.word})
-
-    write_json_data(JSON_RAW_OUTPUT, word_info)   
-
-def combine_words(data, max_time = 300):
-    sentences = []
-
-    current_line = {
-        'text': "",
-        'start': None,
-        'end': None,
-        'duration': 0.0,
-        'words': []        
-    }
-    
-    for i, word_data in enumerate(data):         
-        word_text = word_data['word']    
-        word_start = word_data['start']
-        word_end = word_data['end']
-        word_duration = word_end - word_start
-
-        max_time_hit = current_line['duration'] >= max_time        
-
-        if max_time_hit:
-            sentences.append({
-                'start': current_line['start'], 
-                'end': current_line['end'], 
-                'line': current_line['text'].strip(),
-                'words': current_line['words']
-                })
-
-            current_line = {
-                'text': "",
-                'start': None,
-                'end': None,
-                'duration': 0.0,
-                'words': []        
-            }
-
-        if current_line['start'] is None:
-            current_line['start'] = word_start
-
-        current_line['text'] += word_text
-        current_line['end'] = word_end
-        current_line['duration'] += word_duration
-        current_line['words'].append({
-            'text': word_text,
-            'start': word_start,
-            'end': word_end
-        })            
-        
-        
-    if current_line['text']:
-        sentences.append({
-            'start': current_line['start'], 
-            'end': current_line['end'], 
-            'line': current_line['text'].strip(),
-            'words': current_line['words']
-        })
-      
-
-    
-    return sentences
 
 def summarize_lines(data):
     summarizer = pipeline(task="summarization", model="sshleifer/distilbart-cnn-12-6")
@@ -321,17 +145,19 @@ def main():
     #pyannote_token = os.getenv("PYANNOTE_TOKEN")
     #login(token=pyannote_token)
 
-    info_data = load_json_data(JSON_INFO)
+    info_data = JsonHelper.load_json_data(JSON_INFO)
 
     if info_data is None:        
         return
     
-    """Uncomment to Run ASR"""
-    #set_raw_output(info_data['Filename'], model_size='small')    
-
+    """Uncomment to Run ASR"""    
+    #asr_extractor = AsrExtraction()
+    #raw_output = asr_extractor.set_raw_output(info_data['Filename'], model_size='small')
+    #JsonHelper.write_json_data(raw_output)
+    
     """Combine words into time segmented phrases"""
     #raw_output = load_json_data(JSON_RAW_OUTPUT)
-    #processed_lines = combine_words(raw_output, info_data["MaxTime"])
+    #processed_lines = asr_extractor.combine_words(raw_output, info_data["MaxTime"])
     #write_json_data(JSON_MODIFIED_OUTPUT, processed_lines)
 
     """BERT Name Entity"""
@@ -364,14 +190,61 @@ def main():
     #write_json_data(JSON_SPEAKER_TIME, speakers_dict)
     
     """PDF Extraction"""
-    pdf_output = extract_pdf_raw_text("Agenda_Items\Agenda_10.pdf")
-    result = extract_agenda_items(pdf_output)
-    write_json_data("Agenda_09_Items.json", result)
+    #pdf_output = PdfExtraction.extract_pdf_raw_text("Agenda_Items\Minutes_12.pdf")
+    #result = PdfExtraction.extract_minutes_structured(pdf_output)
+    #JsonHelper.write_json_data("Minutes_12.json", result)    
     
 
     """Get Frame"""
     #get_frame_at_timestamp(info_data["Video"], "00:44:41.000", "test_frame_%03d.jpg")
+    
+    """Get Summaries of SRT"""
+    srt_path = 'ASR_Whisperx/RegularCityCouncil-9_9_25.srt'
+    agenda_path = "Agenda_Items/Agenda_09_Items.json"
+    minutes_path = "Agenda_Items/Minutes_09.json"
+    transcript = ""
+    with open(srt_path, 'r', encoding='utf-8') as file:
+        transcript += file.read()
+        
+    agenda_json = JsonHelper.load_json_data(agenda_path) or []
+    minutes_json = JsonHelper.load_json_data(minutes_path) or []
+    
+    # CHOICE OF ALL SUMMARIES METHOD
+    # important_events = MeetingSummary.gen_important_events_from_srt(srt_path=srt_path)
+    
+    MeetingSummary.current_summary = MeetingSummary.summary_models["llama-70b"]
 
+    # ASR SEGMENTATION
+    # MeetingSummary.gen_meeting_asr_segmentation(transcript=transcript, json_agenda=agenda_json, json_minutes=minutes_json, lines_per_chunk=1)
+    
+    # SINGLE QUERY BY AGENDA AND HARDCODED FILTERS
+    filter_list = ['Policy', 'Civic', 'Voting']
+    filter_list = list(map(lambda a: a['title'], agenda_json))
+    additional_filters = ['Policy', 'Civic', 'Voting']
+    filter_list.extend(additional_filters)
+    important_events = MeetingSummary.gen_important_events_by_query(transcript=transcript, filter_list=filter_list, lines_per_chunk=30, max_query=5)
+    
+    
+    
+    
+    
+    # EMBED AND DOUBLE FILTER METHOD
+    # filter by agenda titles
+    # filter_list = list(map(lambda a: a['title'], agenda_json))
+    # add extra filters if agenda is lackluster
+    # additional_queries = ['Policy discussion', 'Civic discourse', 'Voting results or discussions']
+    # filter_list.extend(additional_queries)
+    # important_events = MeetingSummary.gen_important_events_by_double_query(transcript=transcript, filter_list=filter_list, init_lines_per_chunk=100, last_lines_per_chunk=25)
+    
+    
+    
+    
+    
+    # CLUSTER CENTROID METHOD
+    # important_events = MeetingSummary.get_important_events_by_cluster_centroids(transcript=transcript, lines_per_chunk=30, n_clusters=7)
+    
+    
+    JsonHelper.write_json_data("Summaries/70b_Summary-RegularCityCouncil-9_9_25.json", important_events)
 
 if __name__ == '__main__':
     main() 

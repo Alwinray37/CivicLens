@@ -1,9 +1,7 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
 import './App.css'
-import CatalogPage from './components/CatalogPage'
-import VideoPage from './components/VideoPage'
-import Navbar from './components/Navbar'
+import CatalogPage from '@pages/CatalogPage';
+import VideoPage from '@pages/VideoPage';
+import Navbar from '@components/Navbar';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
