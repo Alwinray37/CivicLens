@@ -200,16 +200,17 @@ def main():
     
     """Get Summaries of SRT"""
     srt_path = 'ASR_Whisperx/RegularCityCouncil-9_9_25.srt'
-    agenda_path = "Agenda_Items/Agenda_09_Items.json"
-    minutes_path = "Agenda_Items/Minutes_09.json"
+    meeting_json_path =  'ASR_Whisperx/RegularCityCouncil-9_12_25.json'
+    agenda_path = "Agenda_Items/Agenda_12_Items.json"
+    minutes_path = "Agenda_Items/Minutes_12.json"
         
     agenda_json = JsonHelper.load_json_data(agenda_path) or []
     minutes_json = JsonHelper.load_json_data(minutes_path) or []
 
-    m_sum = MeetingSummary.from_file_path(file_path=srt_path, 
-                                          chunk_sum_model=MeetingSummary.summary_models["llama-3b"], 
-                                          fin_select_model=MeetingSummary.summary_models["llama-8b"],
-                                          emb_model=MeetingSummary.embedding_models["qwen-4b"])
+    m_sum = MeetingSummary(meeting_json_path=meeting_json_path, 
+                          chunk_sum_model=MeetingSummary.summary_models["llama-3b"], 
+                          fin_select_model=MeetingSummary.summary_models["llama-8b"],
+                          emb_model=MeetingSummary.embedding_models["qwen-4b"])
     
     # CHOICE OF ALL SUMMARIES METHOD
     # important_events = m_sum.gen_important_events(lines_per_chunk=30)
@@ -223,6 +224,7 @@ def main():
     additional_filters = ['Policy', 'Civic', 'Voting']
     filter_list.extend(additional_filters)
     important_events = m_sum.gen_important_events_by_query(filter_list=filter_list, lines_per_chunk=30, max_query=5)
+    print(important_events)
     
     
     
