@@ -1,4 +1,5 @@
 import math
+import re
 import chromadb
 from langchain_community.document_loaders import JSONLoader
 from langchain_experimental.text_splitter import SemanticChunker
@@ -50,9 +51,9 @@ class MeetingSummary:
                 content_key="text",
                 metadata_func=self._meeting_metadata_func)
 
-        docs = loader.load()
+        self.docs = loader.load()
         self.text = ""
-        for i, doc in enumerate(docs):
+        for i, doc in enumerate(self.docs):
             self.text += f"|{i}|: "
             self.text += doc.page_content
             self.text += "\n"
@@ -65,7 +66,6 @@ class MeetingSummary:
 
         self.chunker = Chunker(emb_model=emb_model)
         self.meeting_chunk_key = str(hash(self.text))
-        print(f"key {self.meeting_chunk_key}")
 
     def _meeting_metadata_func(self, record: dict, metadata: dict) -> dict:
         metadata["start"] = record.get("start") or 0
@@ -137,31 +137,34 @@ Produce ONLY the JSON object.
         """
         
         return f"""
-You will receive a chunk of an SRT transcript.
+You are a summarization engine.
 
-Each SRT entry has this format:
-[index number]
-[start_time --> end_time]
-[text]
+You will be given a chunk of dialogue from a civic meeting.
+Each line is formatted as:
+|{{INDEX}}|: {{SPEECH}}
 
-Your task:
-1. Read all start times in the chunk. A start time is the first time in any line with the pattern "HH:MM:SS,MMM -->".
-2. Use the earliest start time that actually appears.
-3. Do not guess or invent any times.
-4. Create:
-    - A short, descriptive title based ONLY on the content of the chunk.
-    - The title must NOT include words like: SRT, transcript, chunk, file, section, or similar meta words.
-    - The title should describe what the people are talking about.
-    - A 3–5 sentence summary of the discussion.
+Your task is to generate:
+1. A short, descriptive title for the discussion
+2. A concise, neutral summary of the discussion
 
-Output ONLY in this format:
+Rules:
+- Output MUST follow this exact format:
+  Title: {{GEN_TITLE}}
+  Summary: {{GEN_SUM}}
+- Output ONLY the title and summary in the specified format.
+- Do NOT include introductions, explanations, or extra text.
+- Do NOT mention indexes, transcripts, or dialogue structure.
+- Do NOT quote speakers directly.
+- Do NOT use bullet points, markdown, or headings beyond the required labels.
+- Title should be brief (3–8 words) and topic-focused.
+- Summary should be written in plain sentences, third person, and neutral in tone.
+- If the dialogue is procedural or low-information, generate a general but accurate title and summary.
 
-StartTime: [start_time]
-Title: [title]
-Summary: [summary]
-
-Here is the chunk:
+Dialogue:
 {chunk}
+
+
+Output:
 """.strip()
 
     def get_important_events_prompt(self, summaries):
@@ -345,6 +348,16 @@ Here are the chunks:
         """
         summaries = []
         for _, chunk in enumerate(chunks):
+            first_index_str = re.search(r"(?<=\|)\d+(?=\|)", chunk)
+            if first_index_str is None:
+                continue
+            
+            try:
+                start_time = self.docs[int(first_index_str.group())].metadata["start"]
+            except:
+                continue
+            
+
             prompt = self.get_per_chunk_prompt(chunk=chunk)
             
             ch_response: ChatResponse = chat(model=self.cur_chunk_sum_model, messages=[
@@ -358,8 +371,8 @@ Here are the chunks:
                 }
             ]
             )
-            ch_summ = ch_response['message']['content']
-            summaries.append(ch_response['message']['content'])
+            ch_summ = f"StartTime: {start_time}\n{ch_response['message']['content']}"
+            summaries.append(ch_summ)
             print(f'{ch_summ}\n')
             
         # with open('llama3.2_test_summaries.txt', 'w', encoding='utf-8') as file:
