@@ -161,12 +161,10 @@ Rules:
 - Title should be brief (3–8 words) and topic-focused.
 - Summary should be written in plain sentences, third person, and neutral in tone.
 - If the dialogue is procedural or low-information, generate a general but accurate title and summary.
+- Any output that does not exactly match the required format is invalid.
 
 Dialogue:
 {chunk}
-
-
-Output:
 """.strip()
 
     def get_important_events_prompt(self, summaries):
@@ -513,12 +511,14 @@ Here are the chunks:
         init_opts: ChunkOpts = {
                 'method': 'fixed',
                 'delim': '\n',
-                'lines_per_chunk': init_lines_per_chunk
+                'lines_per_chunk': init_lines_per_chunk,
+                'overlap': 0,
                 }
         last_opts: ChunkOpts = {
                 'method': 'fixed',
                 'delim': '\n',
-                'lines_per_chunk': last_lines_per_chunk
+                'lines_per_chunk': last_lines_per_chunk,
+                "overlap": 0,
                 }
         chunks = self.chunker.chunk(text=self.text, key=self.meeting_chunk_key, opts=init_opts)
         
