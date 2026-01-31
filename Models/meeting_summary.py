@@ -12,7 +12,7 @@ import numpy
 
 from sklearn.cluster import KMeans
 
-from chunker import Chunker
+from chunker import ChunkOpts, Chunker, chunking_method
 
 # If you want to attempt to use the format option with ollama.
 # Not currently in use as the models seem to be very iffy when trying to produce consistent JSON.
@@ -43,6 +43,10 @@ class MeetingSummary:
     cur_chunk_sum_model = summary_models["llama-3b"]
     cur_select_model = summary_models["llama-70b"]
     cur_emb_model = embedding_models["qwen-4b"]    
+
+    chunk_opts: ChunkOpts = {
+            'method': 'semantic',
+        }
 
     def __init__(self, meeting_json_path:str, chunk_sum_model: str = summary_models["llama-3b"], fin_select_model: str = summary_models["llama-70b"], emb_model: str = embedding_models["qwen-4b"]):
         loader = JSONLoader(
@@ -228,21 +232,6 @@ Here are the chunks:
         ms = int(seconds * 1000)
         
         return f"{hours:0>2d}:{minutes:0>2d}:{seconds_rd:0>2d},{ms:0>3d}"
-
-        # t = transcript or self.transcript
-        # i = 0
-        # c_id = 0
-        # lines = t.split('\n\n')
-        #
-        # chunks = []
-        # while i < len(lines):
-        #     chunk = lines[i:i+lines_per_chunk]
-        #     chunk_str = "\n\n".join(chunk)
-        #     chunks.append(chunk_str)
-        #     i += lines_per_chunk
-        #     c_id += 1
-        # print(f'Created {c_id} chunks')
-        # return chunks
         
     
     def embed_list(self, str_list: list[str]):
@@ -467,7 +456,7 @@ Here are the chunks:
         #     file_content = file.read()
         #     agenda += file_content
             
-        chunks = self.chunker.semantic_chunk(self.text, self.meeting_chunk_key)
+        chunks = self.chunker.chunk(text=self.text, key=self.meeting_chunk_key, opts=self.chunk_opts)
         print("Chunked transcript\n")
         summaries = self.gen_chunks_summaries(chunks=chunks)
         print("Summarized chunks\n")
@@ -476,7 +465,7 @@ Here are the chunks:
     def gen_meeting_asr_segmentation(self, json_agenda, json_minutes, lines_per_chunk=30):
         all_segments = []
        
-        chunks = self.chunker.semantic_chunk(self.text, self.meeting_chunk_key)
+        chunks = self.chunker.chunk(text=self.text, key=self.meeting_chunk_key, opts=self.chunk_opts)
         
         for chunk_idx, chunk in enumerate(chunks):
             print(f"processing chunk {chunk_idx + 1}/{len(chunks)}")
@@ -510,7 +499,7 @@ Here are the chunks:
         return all_segments
 
     def gen_important_events_by_query(self, filter_list: list[str], lines_per_chunk=30, max_query=5):
-        chunks = self.chunker.semantic_chunk(self.text, self.meeting_chunk_key)
+        chunks = self.chunker.chunk(text=self.text, key=self.meeting_chunk_key, opts=self.chunk_opts)
         # query 5 chunks per filter
         query_res = self.get_queried_chunks(chunks=chunks, filter_list=filter_list, max_query=max_query)
         np_res_arr = numpy.array(query_res)
@@ -523,7 +512,7 @@ Here are the chunks:
         
         
     def gen_important_events_by_double_query(self, filter_list: list[str], init_lines_per_chunk=100, last_lines_per_chunk=25):
-        chunks = self.chunker.semantic_chunk(self.text, self.meeting_chunk_key)
+        chunks = self.chunker.chunk(text=self.text, key=self.meeting_chunk_key, opts=self.chunk_opts)
         
         max_query = math.ceil(len(filter_list) / 2)
         
@@ -537,7 +526,7 @@ Here are the chunks:
         double_filtered_chunks = []
         for q_chunk in queried_chunks:
             # break down queried chunks into smaller chunks
-            small_chunks = self.chunker.semantic_chunk(q_chunk, key=str(hash(q_chunk)))
+            small_chunks = self.chunker.chunk(text=q_chunk, key=str(hash(q_chunk)), opts=self.chunk_opts)
             
             # query these smaller chunks
             max_small_query = math.ceil(len(small_chunks) / 2)
@@ -554,7 +543,7 @@ Here are the chunks:
     
     
     def get_important_events_by_cluster_centroids(self, lines_per_chunk=30, n_clusters=12):
-        chunks = self.chunker.semantic_chunk(self.text, self.meeting_chunk_key)
+        chunks = self.chunker.chunk(text=self.text, key=self.meeting_chunk_key, opts=self.chunk_opts)
         
         centroid_chunks = self.get_centroid_chunks(chunks=chunks, n_clusters=n_clusters)
         summaries = self.gen_chunks_summaries(chunks=centroid_chunks)

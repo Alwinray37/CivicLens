@@ -212,6 +212,12 @@ def main():
                           fin_select_model=MeetingSummary.summary_models["llama-8b"],
                           emb_model=MeetingSummary.embedding_models["qwen-4b"])
     
+    m_sum.chunk_opts = {
+            'method': 'fixed',
+            'delim': '\n',
+            'lines_per_chunk': 30,
+            }
+
     # CHOICE OF ALL SUMMARIES METHOD
     # important_events = m_sum.gen_important_events(lines_per_chunk=30)
 
