@@ -2,8 +2,6 @@ import math
 import re
 import chromadb
 from langchain_community.document_loaders import JSONLoader
-from langchain_experimental.text_splitter import SemanticChunker
-from langchain_ollama import OllamaEmbeddings
 from ollama import chat
 from ollama import ChatResponse
 import ollama
@@ -12,7 +10,7 @@ import numpy
 
 from sklearn.cluster import KMeans
 
-from chunker import ChunkOpts, Chunker, chunking_method
+from chunker import ChunkOpts, Chunker
 
 # If you want to attempt to use the format option with ollama.
 # Not currently in use as the models seem to be very iffy when trying to produce consistent JSON.
@@ -433,7 +431,7 @@ Here are the chunks:
         return json_format
     
     
-    def gen_important_events(self, lines_per_chunk:int = 50):
+    def gen_important_events(self):
         """
         Generates a list of important events using the instance's transcript
     
@@ -498,7 +496,7 @@ Here are the chunks:
 
         return all_segments
 
-    def gen_important_events_by_query(self, filter_list: list[str], lines_per_chunk=30, max_query=5):
+    def gen_important_events_by_query(self, filter_list: list[str], max_query=5):
         chunks = self.chunker.chunk(text=self.text, key=self.meeting_chunk_key, opts=self.chunk_opts)
         # query 5 chunks per filter
         query_res = self.get_queried_chunks(chunks=chunks, filter_list=filter_list, max_query=max_query)
@@ -512,7 +510,17 @@ Here are the chunks:
         
         
     def gen_important_events_by_double_query(self, filter_list: list[str], init_lines_per_chunk=100, last_lines_per_chunk=25):
-        chunks = self.chunker.chunk(text=self.text, key=self.meeting_chunk_key, opts=self.chunk_opts)
+        init_opts: ChunkOpts = {
+                'method': 'fixed',
+                'delim': '\n',
+                'lines_per_chunk': init_lines_per_chunk
+                }
+        last_opts: ChunkOpts = {
+                'method': 'fixed',
+                'delim': '\n',
+                'lines_per_chunk': last_lines_per_chunk
+                }
+        chunks = self.chunker.chunk(text=self.text, key=self.meeting_chunk_key, opts=init_opts)
         
         max_query = math.ceil(len(filter_list) / 2)
         
@@ -526,7 +534,7 @@ Here are the chunks:
         double_filtered_chunks = []
         for q_chunk in queried_chunks:
             # break down queried chunks into smaller chunks
-            small_chunks = self.chunker.chunk(text=q_chunk, key=str(hash(q_chunk)), opts=self.chunk_opts)
+            small_chunks = self.chunker.chunk(text=q_chunk, key=str(hash(q_chunk)), opts=last_opts)
             
             # query these smaller chunks
             max_small_query = math.ceil(len(small_chunks) / 2)
@@ -542,7 +550,7 @@ Here are the chunks:
         return self.gen_important_events_from_summaries(summaries=summaries)
     
     
-    def get_important_events_by_cluster_centroids(self, lines_per_chunk=30, n_clusters=12):
+    def get_important_events_by_cluster_centroids(self, n_clusters=12):
         chunks = self.chunker.chunk(text=self.text, key=self.meeting_chunk_key, opts=self.chunk_opts)
         
         centroid_chunks = self.get_centroid_chunks(chunks=chunks, n_clusters=n_clusters)
