@@ -1,5 +1,8 @@
 import math
 import chromadb
+from langchain_community.document_loaders import JSONLoader
+from langchain_experimental.text_splitter import SemanticChunker
+from langchain_ollama import OllamaEmbeddings
 from ollama import chat
 from ollama import ChatResponse
 import ollama
@@ -7,6 +10,8 @@ import ollama
 import numpy
 
 from sklearn.cluster import KMeans
+
+from chunker import Chunker
 
 # If you want to attempt to use the format option with ollama.
 # Not currently in use as the models seem to be very iffy when trying to produce consistent JSON.
@@ -38,22 +43,36 @@ class MeetingSummary:
     cur_select_model = summary_models["llama-70b"]
     cur_emb_model = embedding_models["qwen-4b"]    
 
-    transcript:str
+    def __init__(self, meeting_json_path:str, chunk_sum_model: str = summary_models["llama-3b"], fin_select_model: str = summary_models["llama-70b"], emb_model: str = embedding_models["qwen-4b"]):
+        loader = JSONLoader(
+                file_path=meeting_json_path,
+                jq_schema=".segments[]",
+                content_key="text",
+                metadata_func=self._meeting_metadata_func)
 
-    def __init__(self, transcript: str, chunk_sum_model: str = summary_models["llama-3b"], fin_select_model: str = summary_models["llama-70b"], emb_model: str = embedding_models["qwen-4b"]):
-        self.transcript = transcript
+        docs = loader.load()
+        self.text = ""
+        for i, doc in enumerate(docs):
+            self.text += f"|{i}|: "
+            self.text += doc.page_content
+            self.text += "\n"
+
         self.client = chromadb.Client()
         self.client.create_collection(name="chunks")
         self.cur_select_model = chunk_sum_model
         self.cur_select_model = fin_select_model
         self.cur_emb_model = emb_model
 
-    @classmethod
-    def from_file_path(cls, file_path: str, chunk_sum_model: str = summary_models["llama-3b"], fin_select_model: str = summary_models["llama-70b"], emb_model: str = embedding_models["qwen-4b"]):
-        t = ""
-        with open(file_path, 'r', encoding='utf-8') as file:
-            t += file.read()
-        return cls(transcript=t, chunk_sum_model=chunk_sum_model, fin_select_model=fin_select_model, emb_model=emb_model)
+        self.chunker = Chunker(emb_model=emb_model)
+        self.meeting_chunk_key = str(hash(self.text))
+        print(f"key {self.meeting_chunk_key}")
+
+    def _meeting_metadata_func(self, record: dict, metadata: dict) -> dict:
+        metadata["start"] = record.get("start") or 0
+        metadata["end"] = record.get("end") or 0
+        metadata["speaker"] = record.get("speaker") or ""
+
+        return metadata
 
     def get_meeting_asr_segmented_prompt(self, agenda_json, chunk):
         return f"""
@@ -194,21 +213,33 @@ Here are the chunks:
 """.strip()
 
     
-    def chunk_transcript_file(self, transcript:str|None=None, lines_per_chunk=30):
-        t = transcript or self.transcript
-        i = 0
-        c_id = 0
-        lines = t.split('\n\n')
+    def _seconds_to_srt_str(self, seconds: float) -> str:
+        hours = math.floor(seconds / 3600)
+        seconds -= hours * 3600
+        minutes = math.floor(seconds / 60)
+        seconds -= minutes * 60
+        
+        seconds_rd = math.floor(seconds)
+        seconds -= seconds_rd
 
-        chunks = []
-        while i < len(lines):
-            chunk = lines[i:i+lines_per_chunk]
-            chunk_str = "\n\n".join(chunk)
-            chunks.append(chunk_str)
-            i += lines_per_chunk
-            c_id += 1
-        print(f'Created {c_id} chunks')
-        return chunks
+        ms = int(seconds * 1000)
+        
+        return f"{hours:0>2d}:{minutes:0>2d}:{seconds_rd:0>2d},{ms:0>3d}"
+
+        # t = transcript or self.transcript
+        # i = 0
+        # c_id = 0
+        # lines = t.split('\n\n')
+        #
+        # chunks = []
+        # while i < len(lines):
+        #     chunk = lines[i:i+lines_per_chunk]
+        #     chunk_str = "\n\n".join(chunk)
+        #     chunks.append(chunk_str)
+        #     i += lines_per_chunk
+        #     c_id += 1
+        # print(f'Created {c_id} chunks')
+        # return chunks
         
     
     def embed_list(self, str_list: list[str]):
@@ -423,7 +454,7 @@ Here are the chunks:
         #     file_content = file.read()
         #     agenda += file_content
             
-        chunks = self.chunk_transcript_file(lines_per_chunk=lines_per_chunk)
+        chunks = self.chunker.semantic_chunk(self.text, self.meeting_chunk_key)
         print("Chunked transcript\n")
         summaries = self.gen_chunks_summaries(chunks=chunks)
         print("Summarized chunks\n")
@@ -432,7 +463,7 @@ Here are the chunks:
     def gen_meeting_asr_segmentation(self, json_agenda, json_minutes, lines_per_chunk=30):
         all_segments = []
        
-        chunks = self.chunk_transcript_file(lines_per_chunk=lines_per_chunk)
+        chunks = self.chunker.semantic_chunk(self.text, self.meeting_chunk_key)
         
         for chunk_idx, chunk in enumerate(chunks):
             print(f"processing chunk {chunk_idx + 1}/{len(chunks)}")
@@ -466,7 +497,7 @@ Here are the chunks:
         return all_segments
 
     def gen_important_events_by_query(self, filter_list: list[str], lines_per_chunk=30, max_query=5):
-        chunks = self.chunk_transcript_file(lines_per_chunk=lines_per_chunk)
+        chunks = self.chunker.semantic_chunk(self.text, self.meeting_chunk_key)
         # query 5 chunks per filter
         query_res = self.get_queried_chunks(chunks=chunks, filter_list=filter_list, max_query=max_query)
         np_res_arr = numpy.array(query_res)
@@ -479,7 +510,7 @@ Here are the chunks:
         
         
     def gen_important_events_by_double_query(self, filter_list: list[str], init_lines_per_chunk=100, last_lines_per_chunk=25):
-        chunks = self.chunk_transcript_file(lines_per_chunk=init_lines_per_chunk)
+        chunks = self.chunker.semantic_chunk(self.text, self.meeting_chunk_key)
         
         max_query = math.ceil(len(filter_list) / 2)
         
@@ -493,7 +524,7 @@ Here are the chunks:
         double_filtered_chunks = []
         for q_chunk in queried_chunks:
             # break down queried chunks into smaller chunks
-            small_chunks = self.chunk_transcript_file(transcript=q_chunk, lines_per_chunk=last_lines_per_chunk)
+            small_chunks = self.chunker.semantic_chunk(q_chunk, key=str(hash(q_chunk)))
             
             # query these smaller chunks
             max_small_query = math.ceil(len(small_chunks) / 2)
@@ -510,7 +541,7 @@ Here are the chunks:
     
     
     def get_important_events_by_cluster_centroids(self, lines_per_chunk=30, n_clusters=12):
-        chunks = self.chunk_transcript_file(lines_per_chunk=lines_per_chunk)
+        chunks = self.chunker.semantic_chunk(self.text, self.meeting_chunk_key)
         
         centroid_chunks = self.get_centroid_chunks(chunks=chunks, n_clusters=n_clusters)
         summaries = self.gen_chunks_summaries(chunks=centroid_chunks)
