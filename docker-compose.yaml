@@ -19,6 +19,7 @@ services:
       - "8000:8000"
     environment:
       DB_CONN: ${DB_CONN}
+      PYTHONPATH: /app
     develop:
       watch:
         - action: sync

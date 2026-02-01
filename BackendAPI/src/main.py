@@ -3,6 +3,8 @@ from fastapi.middleware.cors import CORSMiddleware
 import psycopg
 import os
 
+from src.models import MeetingsData, MeetingInfo
+
 app = FastAPI()
 app.add_middleware(
     CORSMiddleware,
@@ -14,8 +16,19 @@ app.add_middleware(
 
 db_conn_str = os.getenv("DB_CONN") or ""
 
+@app.get("/")
+def root():
+    return {"message": "Hello World"}
 
-@app.get("/getMeetings")
+@app.get("/dbTestConnection")
+def db_test_connection():
+    try:
+        with psycopg.connect(db_conn_str) as conn:
+            return {"message": "Connection okay"} 
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"\nUnexpected error: {str(e)}")
+
+@app.get("/getMeetings", response_model=MeetingsData)
 def get_meetings():
     try:
         with psycopg.connect(db_conn_str) as conn:
@@ -23,9 +36,11 @@ def get_meetings():
                 cur.execute("""
                 SELECT get_meetings_json();
                 """)
-                res = cur.fetchone() or []
-                rows = res[0]
-                return rows
+                res = cur.fetchone() or None
+        if res is None:
+            raise HTTPException(status_code=404, detail="No meetings found")  
+                    
+        return { "meetings": res[0] }
 
     except psycopg.OperationalError as e:
         raise HTTPException(status_code=503, detail=f"Database connection failed: {e.pgerror or str(e)}`")
@@ -40,70 +55,31 @@ def get_meetings():
         raise HTTPException(status_code=500, detail=f"Unexpected error: {str(e)}")
 
 
-@app.get("/getMeetingInfo/{meeting_id}")
+@app.get("/getMeetingInfo/{meeting_id}", response_model=MeetingInfo)
 def getMeetingInfo(meeting_id: int):
-    # Connect to an existing database
-    with psycopg.connect(db_conn_str) as conn:
+    try:
+        with psycopg.connect(db_conn_str) as conn:
+            with conn.cursor() as cur:
+                cur.execute("""
+                    SELECT get_meeting_json(%s);
+                    """,
+                    (meeting_id,))
+                
+                res = cur.fetchone() or None
 
-        # Open a cursor to perform database operations
-        with conn.cursor() as cur:
-            # Execute a command: this creates a new table
-            cur.execute("""
-                SELECT get_meeting_json(%s);
-                """,
-                (meeting_id,))
-            
-            res = cur.fetchone() or []
-            return res[0]
+        if res is None:
+            raise HTTPException(status_code=404, detail="No meetings found")  
 
+        return res[0]
 
-# Test and example code: 
+    except psycopg.OperationalError as e:
+        raise HTTPException(status_code=503, detail=f"Database connection failed: {e.pgerror or str(e)}`")
 
-# @app.get("/")
-# def root():
-#     return {"message": "Hello World"}
+    except psycopg.ProgrammingError as e:
+        raise HTTPException(status_code=400, detail=f"SQL error: {e.pgerror or str(e)}")
 
-# @app.get("/items/{item_id}")
-# def read_item(item_id: int):
-#     return {"item_id": item_id}
+    except psycopg.Error as e:
+        raise HTTPException(status_code=500, detail=f"Database error: {e.pgerror or str(e)}")
 
-@app.get("/test")
-def test():
-    # Connect to an existing database
-    with psycopg.connect(db_conn_str) as conn:
-
-        # Open a cursor to perform database operations
-        with conn.cursor() as cur:
-            # Execute a command: this creates a new table
-            cur.execute("""
-                SELECT * FROM public."Meetings"
-                    ORDER BY "ID" ASC 
-                """)
-            
-            rows = cur.fetchall()
-            return {"data": rows}
-
-            # Pass data to fill a query placeholders and let Psycopg perform
-            # the correct conversion (no SQL injections!)
-            # cur.execute(
-            #     "INSERT INTO test (num, data) VALUES (%s, %s)",
-            #     (100, "abc'def"))
-
-            # Query the database and obtain data as Python objects.
-            # cur.execute("SELECT * FROM test")
-            # print(cur.fetchone())
-            # will print (1, 100, "abc'def")
-
-            # You can use `cur.executemany()` to perform an operation in batch
-            # cur.executemany(
-            #     "INSERT INTO test (num) values (%s)",
-            #     [(33,), (66,), (99,)])
-
-            # You can use `cur.fetchmany()`, `cur.fetchall()` to return a list
-            # of several records, or even iterate on the cursor
-            # cur.execute("SELECT id, num FROM test order by num")
-            # for record in cur:
-            #     print(record)
-
-            # Make the changes to the database persistent
-            conn.commit()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Unexpected error: {str(e)}")
