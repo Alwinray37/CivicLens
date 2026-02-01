@@ -3,6 +3,8 @@ from fastapi.middleware.cors import CORSMiddleware
 import psycopg
 import os
 
+from src.models import MeetingsData, MeetingInfo
+
 app = FastAPI()
 app.add_middleware(
     CORSMiddleware,
@@ -14,8 +16,19 @@ app.add_middleware(
 
 db_conn_str = os.getenv("DB_CONN") or ""
 
+@app.get("/")
+def root():
+    return {"message": "Hello World"}
 
-@app.get("/getMeetings")
+@app.get("/dbTestConnection")
+def db_test_connection():
+    try:
+        with psycopg.connect(db_conn_str) as conn:
+            return {"message": "Connection okay"} 
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"\nUnexpected error: {str(e)}")
+
+@app.get("/getMeetings", response_model=MeetingsData)
 def get_meetings():
     try:
         with psycopg.connect(db_conn_str) as conn:
@@ -23,9 +36,11 @@ def get_meetings():
                 cur.execute("""
                 SELECT get_meetings_json();
                 """)
-                res = cur.fetchone() or []
-                rows = res[0]
-                return rows
+                res = cur.fetchone() or None
+        if res is None:
+            raise HTTPException(status_code=404, detail="No meetings found")  
+                    
+        return { "meetings": res[0] }
 
     except psycopg.OperationalError as e:
         raise HTTPException(status_code=503, detail=f"Database connection failed: {e.pgerror or str(e)}`")
@@ -40,22 +55,31 @@ def get_meetings():
         raise HTTPException(status_code=500, detail=f"Unexpected error: {str(e)}")
 
 
-@app.get("/getMeetingInfo/{meeting_id}")
+@app.get("/getMeetingInfo/{meeting_id}", response_model=MeetingInfo)
 def getMeetingInfo(meeting_id: int):
-    # Connect to an existing database
-    with psycopg.connect(db_conn_str) as conn:
+    try:
+        with psycopg.connect(db_conn_str) as conn:
+            with conn.cursor() as cur:
+                cur.execute("""
+                    SELECT get_meeting_json(%s);
+                    """,
+                    (meeting_id,))
+                
+                res = cur.fetchone() or None
 
-        # Open a cursor to perform database operations
-        with conn.cursor() as cur:
-            # Execute a command: this creates a new table
-            cur.execute("""
-                SELECT get_meeting_json(%s);
-                """,
-                (meeting_id,))
-            
-            res = cur.fetchone() or []
-            return res[0]
+        if res is None:
+            raise HTTPException(status_code=404, detail="No meetings found")  
 
-@app.get("/")
-def root():
-    return {"message": "Hello World"}
+        return res[0]
+
+    except psycopg.OperationalError as e:
+        raise HTTPException(status_code=503, detail=f"Database connection failed: {e.pgerror or str(e)}`")
+
+    except psycopg.ProgrammingError as e:
+        raise HTTPException(status_code=400, detail=f"SQL error: {e.pgerror or str(e)}")
+
+    except psycopg.Error as e:
+        raise HTTPException(status_code=500, detail=f"Database error: {e.pgerror or str(e)}")
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Unexpected error: {str(e)}")
