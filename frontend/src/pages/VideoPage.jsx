@@ -21,6 +21,7 @@ export default function VideoPage() {
     // data associated with the video needed for ReactPlayer
     const videoQuery = useQuery({ queryKey: ['videos', id], queryFn: fetchVideoData });
 
+    // reference to the video player
     const playerRef = useRef(null);
 
     async function fetchVideoData() {
@@ -40,10 +41,11 @@ export default function VideoPage() {
         }
     }
 
+    // function to handle time selection from VideoInfoCard
     const handleTimeSelect = (sec) => {
         if(playerRef.current && sec >= 0) {
             // set the time of the video
-            playerRef.current.currentTime = sec;
+            playerRef.current.seekTo(sec);
         }
     }
 
@@ -76,7 +78,13 @@ export default function VideoPage() {
                                 src={videoQuery.data.meeting.VideoURL}
                                 title={videoQuery.data.meeting.Title}
 
-                                controls
+                                controls={true}
+                                config={{
+                                    youtube: {
+                                        playerVars: { modestbranding: 1, rel: 0, showinfo: 0 },
+                                    },
+                                }}
+
                                 style={{
                                     minWidth: "300px",
                                     width: "100%",
