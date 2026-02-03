@@ -18,9 +18,6 @@ export default function VideoPage() {
     // id of the video being viewed
     const { id } = useParams();
 
-    // data associated with the video needed for ReactPlayer
-    const videoQuery = useQuery({ queryKey: ['videos', id], queryFn: fetchVideoData });
-
     // reference to the video player
     const playerRef = useRef(null);
 
@@ -40,6 +37,10 @@ export default function VideoPage() {
             return data;
         }
     }
+
+    // data associated with the video needed for ReactPlayer
+    const videoQuery = useQuery({ queryKey: ['videos', id], queryFn: fetchVideoData });
+
 
     // function to handle time selection from VideoInfoCard
     const handleTimeSelect = (sec) => {
