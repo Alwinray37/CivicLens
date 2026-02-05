@@ -74,7 +74,7 @@ export default function CatalogPage() {
 
     if(catalogQuery.status === "success") {
         // filter the data from dummydata, retrieve only the videos that have a videoUrl
-        filteredList = catalogQuery.data.filter(video => {
+        filteredList = catalogQuery.data.meetings.filter(video => {
             if (video.VideoUrl === null) return false;
             // no tags yet
             // const tagMatch = filterTag ? (video.tags || []).includes(filterTag) : true;
