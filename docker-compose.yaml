@@ -3,7 +3,7 @@ services:
   db:
     image: postgres:17
     container_name: CivicLensDB
-    restart: always
+    restart: unless-stopped
     ports:
       - "5431:5432"
     environment:
@@ -29,5 +29,13 @@ services:
         - action: rebuild
           path: ./BackendAPI/requirements.txt
           target: /app/requirements.txt
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "80:80"
+    depends_on:
+      - api
 volumes:
   pgdata:
