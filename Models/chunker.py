@@ -59,6 +59,9 @@ class Chunker:
 
 
     def fixed_chunk(self, text:str, key:str, delim:str, lines_per_chunk:int, overlap:int=0):
+        if lines_per_chunk == 0:
+            return [text]
+
         overlap = overlap % lines_per_chunk
 
         keyed_chunks = self.chunk_store.get(key)
