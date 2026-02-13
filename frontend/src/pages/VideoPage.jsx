@@ -1,108 +1,89 @@
-import dummysummaries from '@assets/dummysummaries.json'
-
 import { useParams } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
-import ReactPlayer from 'react-player';
+import { useRef } from 'react';
 
 import LoadingSpinner from "@components/icons/LoadingSpinner";
-
+import ErrorMessage from "@components/ErrorMessage";
 import Chatbot from "@components/Chatbot";
-import { useRef } from 'react';
 import VideoInfoCard from '@components/VideoInfoCard';
+import VideoPlayer from '@components/VideoPlayer';
+
+import { useVideoData } from '@hooks/useVideoData';
 import { getTimezoneDate } from '@util/time';
 
-const MEETING_ENDPOINT = "http://127.0.0.1:8000/getMeetingInfo";
-
-// display videos alongside its transcript, agenda, bookmarks, and a chatbot
+/**
+ * VideoPage displays videos alongside transcript, agenda, bookmarks, and a chatbot
+ */
 export default function VideoPage() {
-    // id of the video being viewed
     const { id } = useParams();
-
-    // data associated with the video needed for ReactPlayer
-    const videoQuery = useQuery({ queryKey: ['videos', id], queryFn: fetchVideoData });
-
     const playerRef = useRef(null);
+    const videoQuery = useVideoData(id);
 
-    async function fetchVideoData() {
-        // would call api here in real implementation
-        const res = await fetch(`${MEETING_ENDPOINT}/${id}`);
-        if(!res.ok) throw new Error("Server error");
-        const data = await res.json();
-        
-        // TEMPORARY
-        // INSERT SUMMARY DUMMY DATA
-        // data.summaries = dummysummaries;
-
-        if(!data) {
-            throw new Error("Meeting not found");
-        } else {
-            return data;
-        }
-    }
-
-    const handleTimeSelect = (sec) => {
-        if(playerRef.current && sec >= 0) {
-            // set the time of the video
-            playerRef.current.currentTime = sec;
-        }
-    }
-
-
-    // calculate date with timezone offset
-    const dateObj = videoQuery.status === "success"
-                    ? new Date(videoQuery.data.meeting.Date)
-                    : null;
-
-    const timezoneDateObj = getTimezoneDate(dateObj);
-    return (
+    // Early returns for loading and error states
+    if (videoQuery.isPending) {
+        return (
             <div className="container">
-                {
-                videoQuery.isPending ?
                 <LoadingSpinner />
-                : videoQuery.isError ?
-                <div>An error occurred: {videoQuery.error.message}</div>
-                :
-                <>
-                <div className="row mb-1">
-                    <h2 className="text-start">{videoQuery.data.meeting.Title} - {timezoneDateObj.toLocaleDateString()}</h2>
-                </div>
-                <div className="row gap-3 mb-3">
-                    <div className="col-lg-8">
-                        {
-                        videoQuery.data.meeting.VideoURL ?
-                        <div className="rounded shadow overflow-hidden">
-                            <ReactPlayer 
-                                ref={playerRef}
-                                src={videoQuery.data.meeting.VideoURL}
-                                title={videoQuery.data.meeting.Title}
-
-                                controls
-                                style={{
-                                    minWidth: "300px",
-                                    width: "100%",
-                                    height: "auto",
-                                    aspectRatio: "16 / 9",
-                                }}
-                            />
-                        </div>
-                        :
-                        <div className="my-3">No video could be found for this meeting</div>
-                        }
-                    </div>
-                    <div className="col">
-                        <Chatbot />
-                    </div>
-                </div>
-                <div className="row">
-                    <div className="col">
-                        <VideoInfoCard 
-                            videoData={videoQuery.data}
-                            onTimeSelect={handleTimeSelect}
-                        />
-                    </div>
-                </div>
-                </>
-                }
             </div>
-    )
+        );
+    }
+
+    if (videoQuery.isError) {
+        return (
+            <div className="container">
+                <ErrorMessage error={videoQuery.error} />
+            </div>
+        );
+    }
+
+    const { meeting } = videoQuery.data;
+    const timezoneDateObj = getTimezoneDate(new Date(meeting.Date));
+
+    /**
+     * Handles time selection from VideoInfoCard
+     * @param {number} sec - Time in seconds to seek to
+     */
+    const handleTimeSelect = (sec) => {
+        if (playerRef.current && sec >= 0) {
+            // Access the API from the player element
+            const player = playerRef.current.api || playerRef.current;
+            if (player && typeof player.seekTo === 'function') {
+                player.seekTo(sec, 'seconds');
+            } else if (player && player.currentTime !== undefined) {
+                // Fallback for native HTML5 video element
+                player.currentTime = sec;
+            }
+        }
+    };
+
+    return (
+        <div className="container">
+            <div className="row mb-1">
+                <h2 className="text-start">
+                    {meeting.Title} - {timezoneDateObj.toLocaleDateString()}
+                </h2>
+            </div>
+            
+            <div className="row gap-3 mb-3">
+                <div className="col-lg-8">
+                    <VideoPlayer 
+                        ref={playerRef}
+                        videoURL={meeting.VideoURL}
+                        title={meeting.Title}
+                    />
+                </div>
+                <div className="col">
+                    <Chatbot />
+                </div>
+            </div>
+            
+            <div className="row">
+                <div className="col">
+                    <VideoInfoCard 
+                        videoData={videoQuery.data}
+                        onTimeSelect={handleTimeSelect}
+                    />
+                </div>
+            </div>
+        </div>
+    );
 }

@@ -8,7 +8,7 @@ import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import LoadingSpinner from '@components/icons/LoadingSpinner';
 
-const CATALOG_ENDPOINT = "http://127.0.0.1:8000/getMeetings";
+const CATALOG_ENDPOINT = import.meta.env.VITE_CATALOG_ENDPOINT;
 
 export default function CatalogPage() {
     const [dateOrder, setDateOrder] = useState('desc');
@@ -74,7 +74,7 @@ export default function CatalogPage() {
 
     if(catalogQuery.status === "success") {
         // filter the data from dummydata, retrieve only the videos that have a videoUrl
-        filteredList = catalogQuery.data.filter(video => {
+        filteredList = catalogQuery.data.meetings.filter(video => {
             if (video.VideoUrl === null) return false;
             // no tags yet
             // const tagMatch = filterTag ? (video.tags || []).includes(filterTag) : true;

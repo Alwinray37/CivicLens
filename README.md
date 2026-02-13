@@ -7,7 +7,14 @@ Group Members:
 - Thomas Scott
 - Nikita Ulianov
 
-## Run Backend
+## Run frontend
+```bash
+npm run dev
 ```
+
+## Run Backend
+```bash
 docker compose up --watch
 ```
+Ensure docker container is running
+If issue getting data, delete containers and run the bash command in root ^ 

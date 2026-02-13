@@ -40,7 +40,7 @@ const Navbar = () => {
         <nav className="" >
             <div className="d-flex gap-3 logo align-items-center">
                 <div >
-                    <Link to="/">CivicLens</Link>
+                    <Link to="/"><img src="/src/assets/images/logo lrg.png" alt="CivicLens Logo" style={{ height: "30px" }}></img> CivicLens</Link>
                 </div>
                     {theme === "light" ?
                 <button 
