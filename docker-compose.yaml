@@ -1,6 +1,7 @@
 services:
   db:
-    image: postgres:17
+    image: pgvector/pgvector:pg17
+    container_name: CivicLensDB
     restart: unless-stopped
     environment:
       POSTGRES_PASSWORD: ${DB_PASSWORD}

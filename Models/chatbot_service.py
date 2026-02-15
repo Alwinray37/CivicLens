@@ -1,19 +1,30 @@
-from langchain_community.document_loaders import JSONLoader
-from langchain_community.vectorstores import Chroma
+from langchain_core.vectorstores import VectorStore
+from langchain_postgres import PGVectorStore, PGEngine
 from langchain_core.documents import Document
-from langchain_core.embeddings import Embeddings
-from langchain_experimental.text_splitter import SemanticChunker
-from langchain_ollama import OllamaEmbeddings
+from langchain_ollama.embeddings import OllamaEmbeddings
 from ollama import ChatResponse, chat
-
-from chunker import Chunker
-from meeting_summary import MeetingSummary
 
 # THIS IS POC, NEEDS TO BE IMPLEMENTED IN BACKEND
 class ChatbotService:
-    def __init__(self, db_url:str, answer_model:str):
-        self.conn = None # Initialize db connection here
+    def __init__(self, vstore:VectorStore, answer_model:str):
+        self.vstore = vstore
         self.answer_model = answer_model
+
+
+    @classmethod
+    def create(cls, db_url:str, table_name:str, embedding_model:str, answer_model:str):
+        pgengine = PGEngine.from_connection_string(db_url)
+        vstore = PGVectorStore.create_sync(
+                engine=pgengine,
+                table_name=table_name,
+                embedding_service= OllamaEmbeddings(model=embedding_model),
+                id_column="ChunkID",
+                metadata_columns=["meeting_id", "ChunkNum", "StartTime", "EndTime", "Content"],
+                embedding_column="Embedding",
+                content_column="Content"
+                )
+        
+        return cls(vstore, answer_model)
 
 
     def answer(self, question:str, meeting_id:int):
@@ -32,19 +43,11 @@ class ChatbotService:
         return metadata
 
     def _retrieve_docs(self, question:str, meeting_id:int):
-        # we don't have embeddings stored in db at the moment, this POC will just
-        # embed an example meeting
-        # MeetingSummary already handles the logic for extracting text from the meeting JSON
-        m_sum = MeetingSummary('ASR_Whisperx/RegularCityCouncil-9_12_25.json')
-        embeddings = OllamaEmbeddings(model="qwen3-embedding:4b")
-        sc = SemanticChunker(embeddings=embeddings)
-
-        docs = sc.create_documents(texts=[m_sum.text])
-
-        self.vstore = Chroma.from_documents(docs,embeddings)
-        self.vstore = self.vstore.as_retriever(search_kwargs={"k":8})
-
-        return self.vstore.invoke(input=question)
+        return self.vstore.similarity_search(
+                query=question,
+                filter={"meeting_id": { "$eq": meeting_id }},
+                k=8,
+                )
 
 
     def _augment(self, question:str, docs:list[Document]):
