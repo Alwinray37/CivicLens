@@ -1,4 +1,6 @@
+from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.vectorstores import VectorStore
+from langchain_ollama import ChatOllama
 from langchain_postgres import PGVectorStore, PGEngine
 from langchain_core.documents import Document
 from langchain_ollama.embeddings import OllamaEmbeddings
@@ -6,25 +8,32 @@ from ollama import ChatResponse, chat
 
 # THIS IS POC, NEEDS TO BE IMPLEMENTED IN BACKEND
 class ChatbotService:
-    def __init__(self, vstore:VectorStore, answer_model:str):
+    def __init__(self, vstore:VectorStore, chat_model:BaseChatModel):
         self.vstore = vstore
-        self.answer_model = answer_model
+        self.chat_model = chat_model
 
 
     @classmethod
-    def create(cls, db_url:str, table_name:str, embedding_model:str, answer_model:str):
+    def create(cls, db_url:str, table_name:str, embedding_model:str, answer_model:str, ollama_url:str|None=None):
         pgengine = PGEngine.from_connection_string(db_url)
         vstore = PGVectorStore.create_sync(
                 engine=pgengine,
                 table_name=table_name,
-                embedding_service= OllamaEmbeddings(model=embedding_model),
+                embedding_service= OllamaEmbeddings(model=embedding_model, base_url=ollama_url),
                 id_column="ChunkID",
                 metadata_columns=["meeting_id", "ChunkNum", "StartTime", "EndTime", "Content"],
                 embedding_column="Embedding",
                 content_column="Content"
                 )
         
-        return cls(vstore, answer_model)
+        llm = ChatOllama(
+                model=answer_model,
+                validate_model_on_init=True,
+                base_url=ollama_url,
+                temperature=0,
+                )
+        
+        return cls(vstore, llm)
 
 
     def answer(self, question:str, meeting_id:int):
@@ -46,7 +55,7 @@ class ChatbotService:
         return self.vstore.similarity_search(
                 query=question,
                 filter={"meeting_id": { "$eq": meeting_id }},
-                k=8,
+                k=10,
                 )
 
 
@@ -76,15 +85,6 @@ Answer:
 
 
     def _generate(self, prompt:str):
-            ch_response: ChatResponse = chat(model=self.answer_model, messages=[
-                {
-                    'role': 'user',
-                    'content': prompt,
-                    'options': {
-                        'temperature': 0,
-                    }
-                }
-            ]
-            )
+            ch_response = self.chat_model.invoke(prompt)
 
-            return ch_response['message']['content']
+            return ch_response.content
