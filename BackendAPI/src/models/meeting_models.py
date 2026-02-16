@@ -40,3 +40,8 @@ class MeetingInfo(BaseModel):
     meeting: MeetingData
     documents: Optional[str] = None
     summaries: List[MeetingSummary]
+
+class ChatResponse(BaseModel):
+    model_config = ConfigDict(populate_by_name=True)
+
+    response: str = Field(alias="Response")

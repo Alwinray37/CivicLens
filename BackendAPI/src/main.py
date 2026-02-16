@@ -3,7 +3,9 @@ from fastapi.middleware.cors import CORSMiddleware
 import psycopg
 import os
 
+from src.chatbot_service import ChatbotService
 from src.models import MeetingsData, MeetingInfo
+from src.models.meeting_models import ChatResponse
 
 app = FastAPI()
 app.add_middleware(
@@ -15,6 +17,15 @@ app.add_middleware(
 )
 
 db_conn_str = os.getenv("DB_CONN") or ""
+db_pgv_conn_str = os.getenv("DB_PGV_CONN") or ""
+ollam_conn_str = os.getenv("OLLAMA_CONN") or ""
+
+chat_service = ChatbotService.create(db_url=db_pgv_conn_str, 
+                                   answer_model="llama3.1:8b", 
+                                   table_name="MeetingChunks", 
+                                   embedding_model="qwen3-embedding:4b",
+                                   ollama_url=ollam_conn_str,
+                                   )
 
 @app.get("/")
 def root():
@@ -83,3 +94,15 @@ def getMeetingInfo(meeting_id: int):
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Unexpected error: {str(e)}")
+
+
+@app.get("/chat/{meeting_id}", response_model=ChatResponse)
+def chat(meeting_id: int, query: str):
+    try:
+        ans = chat_service.answer(query, meeting_id)
+        if not isinstance(ans, str):
+            raise Exception("Response in incorrect format")
+        return ChatResponse(Response=ans)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Unexpected error: {str(e)}")
+
