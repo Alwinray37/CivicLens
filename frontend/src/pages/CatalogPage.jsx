@@ -8,7 +8,18 @@ import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import LoadingSpinner from '@components/icons/LoadingSpinner';
 
-const CATALOG_ENDPOINT = import.meta.env.VITE_CATALOG_ENDPOINT;
+const MEETING_ENDPOINT = import.meta.env.VITE_MEETING_ENDPOINT;
+
+// Construct CATALOG_ENDPOINT from MEETING_ENDPOINT if VITE_CATALOG_ENDPOINT is not defined
+let CATALOG_ENDPOINT = import.meta.env.VITE_CATALOG_ENDPOINT;
+if (!CATALOG_ENDPOINT && MEETING_ENDPOINT) {
+    let baseEndpoint = MEETING_ENDPOINT;
+    // Format endpoint as proper URL if it's just an IP address
+    if (!baseEndpoint.startsWith('http://') && !baseEndpoint.startsWith('https://')) {
+        baseEndpoint = `http://${baseEndpoint}:8000`;
+    }
+    CATALOG_ENDPOINT = `${baseEndpoint}/getMeetings`;
+}
 
 export default function CatalogPage() {
     const [dateOrder, setDateOrder] = useState('desc');
