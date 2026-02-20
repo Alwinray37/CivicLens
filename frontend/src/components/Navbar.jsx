@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+import logo from '@assets/images/logo lrg.png';
 
 import DarkModeIcon from './icons/DarkModeIcon';
 import LightModeIcon from './icons/LightModeIcon';
@@ -40,7 +41,7 @@ const Navbar = () => {
         <nav className="" >
             <div className="d-flex gap-3 logo align-items-center">
                 <div >
-                    <Link to="/"><img src="/src/assets/images/logo lrg.png" alt="CivicLens Logo" style={{ height: "30px", borderRadius: "5px" }}></img> CivicLens</Link>
+                    <Link to="/"><img src={logo} alt="CivicLens Logo" style={{ height: "30px", borderRadius: "5px" }}></img> CivicLens</Link>
                 </div>
                     {theme === "light" ?
                 <button 
