@@ -18,9 +18,9 @@ a {
   text-align: center;
 
   overflow: hidden;
-  --color-primary: #062C3D;
-  --color-secondary: #DFBFB3;
-  --color-bg: whitesmoke;
+  --color-primary: #692B36;
+  --color-secondary: #EC825D;
+  --color-bg: white;
 }
 
 .main {
@@ -47,7 +47,7 @@ nav{
   justify-content: space-between;
 
   background-color: var(--color-bg);
-  color: #032c3c;
+  color: var(--color-primary);
   /* box-shadow: 2px 2px 5px rgba(0,0,0,0.1); */
 
   padding: 1rem 2rem;
@@ -76,8 +76,8 @@ nav li, nav ul, nav a{
 .video-card{
   border-radius: 10px;
   padding: 1rem;
-  background-color: rgba(255, 255, 255, 0.25);
-  border: 1px solid var(--color-secondary);
+  background-color: rgba(236, 130, 93, 0.1);
+  border: 2px solid var(--color-secondary);
 }
 
 .video-card button{
