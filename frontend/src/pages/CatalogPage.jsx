@@ -47,7 +47,7 @@ export default function CatalogPage() {
         }
     }
 
-    let filteredList;
+    let filteredList = [];
 
     // Static list of tags related to civic meetings (used until API provides tags)
     const allTags = [
@@ -72,9 +72,17 @@ export default function CatalogPage() {
         "Citizen Comments"
     ];
 
-    if(catalogQuery.status === "success") {
+    if(catalogQuery.status === "success" && catalogQuery.data) {
+        // Get the meetings array - could be catalogQuery.data.meetings or catalogQuery.data directly
+        const meetingsData = catalogQuery.data.meetings || catalogQuery.data;
+        
+        if (!Array.isArray(meetingsData)) {
+            console.error('Expected meetings array, got:', meetingsData);
+            return;
+        }
+        
         // filter the data from dummydata, retrieve only the videos that have a videoUrl
-        filteredList = catalogQuery.data.meetings.filter(video => {
+        filteredList = meetingsData.filter(video => {
             if (video.VideoUrl === null) return false;
             // no tags yet
             // const tagMatch = filterTag ? (video.tags || []).includes(filterTag) : true;
