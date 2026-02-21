@@ -1,6 +1,6 @@
 # This is a basic workflow to help you get started with Actions
 
-name: CI
+name: Unit Tests
 
 # Controls when the workflow will run
 # on all branches, with pushes and pull_requests
@@ -49,11 +49,18 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Install dependencies
+      - name: Install Dependencies
+        working-directory: BackendAPI
         run: pip install -r requirements.txt
 
-      - name: Run tests
+      - name: Run DB Create Scripts
+        working-directory: DB
+        env:
+          PGPASSWORD: test_password
+        run: psql -h localhost -U test_user -d test_db -f create_script.sql
+
+      - name: Run API Tests
+        working-directory: BackendAPI
         env:
           DB_CONN: postgresql://test_user:test_password@localhost:5432/test_db
         run: pytest tests/ -v
-          #echo test, and deploy your project.
