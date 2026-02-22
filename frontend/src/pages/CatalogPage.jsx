@@ -83,7 +83,7 @@ export default function CatalogPage() {
         
         // filter the data from dummydata, retrieve only the videos that have a videoUrl
         filteredList = meetingsData.filter(video => {
-            if (video.VideoUrl === null) return false;
+            if (video.VideoURL === null) return false;
             // no tags yet
             // const tagMatch = filterTag ? (video.tags || []).includes(filterTag) : true;
             const tagMatch = true; // TEMP
