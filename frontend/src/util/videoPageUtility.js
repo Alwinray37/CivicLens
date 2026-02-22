@@ -5,18 +5,7 @@
  * @throws {Error} If the request fails or meeting is not found
  */
 export async function fetchVideoData(id) {
-    let endpoint = import.meta.env.VITE_MEETING_ENDPOINT;
-    
-    if (!endpoint) {
-        throw new Error("VITE_MEETING_ENDPOINT is not defined in environment variables");
-    }
-
-    // Format endpoint as proper URL if it's just an IP address
-    if (!endpoint.startsWith('http://') && !endpoint.startsWith('https://')) {
-        endpoint = `http://${endpoint}:8000`;
-    }
-
-    const res = await fetch(`${endpoint}/getMeetingInfo/${id}`);
+    const res = await fetch(`${window.location.origin}/getMeetingInfo/${id}`);
     
     if (!res.ok) {
         throw new Error("Server error");
