@@ -15,6 +15,9 @@ app.add_middleware(
 )
 
 db_conn_str = os.getenv("DB_CONN") or ""
+if not db_conn_str:
+    db_password = os.getenv("DB_PASSWORD", "")
+    db_conn_str = f"host=db dbname=postgres user=postgres password={db_password}"
 
 @app.get("/")
 def root():
