@@ -18,7 +18,8 @@ services:
     ports:
       - "8000:8000"
     environment:
-      DB_CONN: ${DB_CONN:-host=db dbname=postgres user=postgres password=${DB_PASSWORD}}
+      DB_CONN: ${DB_CONN:-}
+      DB_PASSWORD: ${DB_PASSWORD}
       PYTHONPATH: /app
     depends_on:
       - db
