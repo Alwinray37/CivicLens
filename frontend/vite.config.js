@@ -8,6 +8,15 @@ export default defineConfig({
     build: {
         target: 'esnext',
     },
+    server: {
+        proxy: {
+            '/api': {
+                target: process.env.VITE_API_ORIGIN || 'http://localhost:8000',
+                changeOrigin: true,
+                rewrite: (path) => path.replace(/^\/api/, ''),
+            },
+        },
+    },
     resolve: {
         alias: {
             '@': path.resolve(__dirname, './src'),

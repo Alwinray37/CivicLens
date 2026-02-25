@@ -8,7 +8,7 @@ import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import LoadingSpinner from '@components/icons/LoadingSpinner';
 
-const CATALOG_ENDPOINT = `${window.location.origin}/api/getMeetings`;
+const CATALOG_ENDPOINT = '/api/getMeetings';
 
 export default function CatalogPage() {
     const [dateOrder, setDateOrder] = useState('desc');
@@ -39,11 +39,17 @@ export default function CatalogPage() {
                 throw new Error("Server error");
             }
 
+            const contentType = res.headers.get('content-type') || '';
+            if (!contentType.includes('application/json')) {
+                const preview = (await res.text()).slice(0, 120);
+                throw new Error(`Expected JSON response but got ${contentType || 'unknown content type'}: ${preview}`);
+            }
+
             const data = await res.json();
             console.log('CatalogPage - fetchCatalogData response:', data);
             return data;
         } catch(err) {
-            throw new Error(err);
+            throw new Error(err instanceof Error ? err.message : String(err));
         }
     }
 

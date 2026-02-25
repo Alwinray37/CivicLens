@@ -5,10 +5,16 @@
  * @throws {Error} If the request fails or meeting is not found
  */
 export async function fetchVideoData(id) {
-    const res = await fetch(`${window.location.origin}/api/getMeetingInfo/${id}`);
+    const res = await fetch(`/api/getMeetingInfo/${id}`);
     
     if (!res.ok) {
         throw new Error("Server error");
+    }
+
+    const contentType = res.headers.get('content-type') || '';
+    if (!contentType.includes('application/json')) {
+        const preview = (await res.text()).slice(0, 120);
+        throw new Error(`Expected JSON response but got ${contentType || 'unknown content type'}: ${preview}`);
     }
     
     const data = await res.json();
