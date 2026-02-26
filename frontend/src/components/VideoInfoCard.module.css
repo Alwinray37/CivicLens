@@ -10,6 +10,16 @@
     border-radius: 10px;
     overflow: hidden;
 }
+
+.tabs:global(.nav-pills) {
+    --bs-nav-pills-link-active-bg: var(--color-secondary);
+    --bs-nav-pills-link-active-color: var(--color-primary);
+}
+
+.tabs :global(.nav-link) {
+    color: var(--color-primary);
+}
+
 .navItem{
     /* background-color: var(--color-primary); */
     flex: 1;
