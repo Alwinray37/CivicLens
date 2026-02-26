@@ -63,4 +63,5 @@ jobs:
         working-directory: BackendAPI
         env:
           DB_CONN: postgresql://test_user:test_password@localhost:5432/test_db
+          PYTHONPATH: ${{ github.workspace }}/BackendAPI
         run: pytest tests/ -v
