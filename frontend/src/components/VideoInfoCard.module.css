@@ -4,4 +4,24 @@
             calc(r * 0.9) 
             calc(g * 0.9) 
             calc(b * 0.9)); 
+
+    display: flex;
+    gap: 0;
+    border-radius: 10px;
+    overflow: hidden;
 }
+.navItem{
+    /* background-color: var(--color-primary); */
+    flex: 1;
+}
+/* .navLink{
+    background-color: none;
+    border: 1px solid black;
+}
+.navItem button{
+    background-color: var(--color-primary);
+    color: white;
+}
+.navItem button.active {
+    background-color: var(--color-secondary);
+} */

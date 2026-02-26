@@ -11,9 +11,15 @@
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+
+  --color-primary: #062C3D;
+  --color-secondary: #DFBFB3;
+/* 
   --color-primary: #692B36;
-  --color-secondary: #EC825D; 
+  --color-secondary: #EC825D;  */
+
 }
+
 
 a {
   font-weight: 500;
