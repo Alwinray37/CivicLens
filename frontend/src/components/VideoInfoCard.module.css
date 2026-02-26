@@ -13,7 +13,7 @@
 
 .tabs:global(.nav-pills) {
     --bs-nav-pills-link-active-bg: var(--color-secondary);
-    --bs-nav-pills-link-active-color: var(--color-primary);
+    --bs-nav-pills-link-active-color: white;
 }
 
 .tabs :global(.nav-link) {
