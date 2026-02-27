@@ -11,19 +11,22 @@
     overflow: hidden;
 }
 
+/* nav container */
 .tabs:global(.nav-pills) {
     --bs-nav-pills-link-active-bg: var(--color-secondary);
     --bs-nav-pills-link-active-color: white;
 }
-
-.tabs :global(.nav-link) {
-    color: var(--color-primary);
-}
-
+/* nav item | button (link) container */
 .navItem{
     /* background-color: var(--color-primary); */
     flex: 1;
 }
+/* nav Item button/link */
+.tabs :global(.nav-link) {
+    color: var(--color-primary);
+}
+
+
 /* .navLink{
     background-color: none;
     border: 1px solid black;
