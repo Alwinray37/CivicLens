@@ -24,6 +24,11 @@
 /* nav Item button/link */
 .tabs :global(.nav-link) {
     color: var(--color-primary);
+    font-weight: bold;
+}
+.tabs :global(.nav-link:hover) {
+    background-color: var(--color-secondary-light);
+    color: black;
 }
 
 
