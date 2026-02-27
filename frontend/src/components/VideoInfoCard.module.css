@@ -1,18 +1,7 @@
-.tabs {
-    background-color: 
-        color(from var(--bs-tertiary-bg) srgb 
-            calc(r * 0.9) 
-            calc(g * 0.9) 
-            calc(b * 0.9)); 
 
-    display: flex;
-    gap: 0;
-    border-radius: 10px;
-    overflow: hidden;
-}
 
 /* nav container */
-.tabs:global(.nav-pills) {
+#infoTabContainer {
     --bs-nav-pills-link-active-bg: var(--color-secondary);
     --bs-nav-pills-link-active-color: white;
 }
@@ -22,26 +11,14 @@
     flex: 1;
 }
 /* nav Item button/link */
-.tabs :global(.nav-link) {
+li .navItemLink {
     color: var(--color-primary);
     font-weight: bold;
 }
-.tabs :global(.nav-link:hover) {
+li .navItemLink:hover {
     background-color: var(--color-secondary-light);
-    color: black;
+    color: var(--color-primary);
 }
-
-
-/* .navLink{
-    background-color: none;
-    border: 1px solid black;
-}
-.navItem button{
+li .active{
     background-color: var(--color-primary);
-    color: white;
 }
-.navItem button.active {
-    background-color: var(--color-secondary);
-} */
-
-/* hi */
