@@ -18,16 +18,18 @@ export default function VideoInfoCard({
     onTimeSelect
 }) {
     return (
+        // VideoInfo Component 
         <div className="bg-body-secondary rounded p-0 shadow-sm ">
-            <ul className={`nav nav-pills p-2 shadow-sm isolate rounded-top d-flex justify-content-center ${styles.tabs}`} id="video-info-tab" role="tablist">
+            {/* Navbar for video info tabs */}
+            <ul className={`nav nav-pills p-2 shadow-sm isolate rounded-top d-flex justify-content-center gap-2 ${styles.tabs}`} id="video-info-tab" role="tablist">
                 <li className={styles.navItem} role="presentation">
-                    <button className={`${bs_btn_clslst} active ${styles.navLink}`} id="video-summary-tab" data-bs-toggle="pill" data-bs-target="#video-summary" type="button" role="tab" aria-controls="video-summary" aria-selected="true">Summary</button>
+                    <button className={`${bs_btn_clslst} active ${styles.navItemLink}`} id="video-summary-tab" data-bs-toggle="pill" data-bs-target="#video-summary" type="button" role="tab" aria-controls="video-summary" aria-selected="true">Summary</button>
                 </li>
                 <li className={styles.navItem} role="presentation">
-                    <button className={`${bs_btn_clslst} ${styles.navLink}`} id="video-agenda-tab" data-bs-toggle="pill" data-bs-target="#video-agenda" type="button" role="tab" aria-controls="video-agenda" aria-selected="false">Agenda</button>
+                    <button className={`${bs_btn_clslst} ${styles.navItemLink}`} id="video-agenda-tab" data-bs-toggle="pill" data-bs-target="#video-agenda" type="button" role="tab" aria-controls="video-agenda" aria-selected="false">Agenda</button>
                 </li>
                 <li className={styles.navItem} role="presentation">
-                    <button className={bs_btn_clslst} id="video-transcript-tab" data-bs-toggle="pill" data-bs-target="#video-transcript" type="button" role="tab" aria-controls="video-transcript" aria-selected="false" >Transcript</button>
+                    <button className={`${bs_btn_clslst} ${styles.navItemLink}`} id="video-transcript-tab" data-bs-toggle="pill" data-bs-target="#video-transcript" type="button" role="tab" aria-controls="video-transcript" aria-selected="false" >Transcript</button>
                 </li>
             </ul>
             <div className="tab-content overflow-hidden rounded-bottom" id="video-tabContent">
