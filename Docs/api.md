@@ -17,7 +17,7 @@ Retrieves detailed information for a specific meeting by its unique integer ID. 
 
 ### Signature
 
-```
+```javascript
 GET /getMeetingInfo/{meeting_id}
 ```
 
