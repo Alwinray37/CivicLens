@@ -61,9 +61,32 @@ curl -X GET "http://<host>/getMeetingInfo/42" \
 **Response (200 OK):**
 ```json
 {
-  "id": 42,
-  "title": "Weekly Standup",
-  "date": "2024-03-01T09:00:00"
+  "meeting": {
+    "id": 42,
+    "title": "Weekly Standup",
+    "date": "2024-03-01T09:00:00"
+    "videoURL": "..."
+  },
+  "summaries": [
+    {
+      "id": 23,
+      "title": "Standup Intro",
+      "summary": "Members discussed...",
+      "startTime": "00:09:11,500"
+    },
+    ...
+  ],
+  "agenda": [
+    {
+      "id": 35,
+      "fileNumber": "22-0403-S3",
+      "itemNumber": 1,
+      "orderNumber": 1,
+      "title": "Roll Call...",
+      "description": "Speakers...",
+    },
+    ...
+  ]
 }
 ```
 > Note: The exact fields in the response depend on the `MeetingInfo` model definition in `src/models.py`.
@@ -128,7 +151,15 @@ curl -X GET "http://<host>/getMeetings" -H "Accept: application/json"
 **Response (200 OK):**
 ```json
 {
-  "meetings": [ ... ]
+  "meetings": [
+    {
+      "id": 42,
+      "title": "Weekly Standup",
+      "date": "2024-03-01T09:00:00"
+      "videoURL": "..."
+    },
+    ...
+  ]
 }
 ```
 
