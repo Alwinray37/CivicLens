@@ -4,6 +4,14 @@
 
 ---
 
+## Who This Guide Is For
+
+This guide is for anyone interested in understanding local civic meetings more easily.
+
+While CivicLens is open to all users, it is especially useful for people with busy schedules who still want to stay involved in civic matters. To support that, CivicLens curates bite-sized information based on the meeting you select, so you can get key takeaways quickly.
+
+---
+
 ## Browsing the Home Page
 
 When you visit CivicLens, the home page displays a catalog of available civic meetings. Each listing shows key details about the meeting to help you decide what to watch.
@@ -54,6 +62,13 @@ The chatbot uses the meeting's content to answer your questions, so it's most he
 - **Use the Agenda tab** to jump to the parts of the meeting that matter most to you.
 - **Ask the chatbot** if you're looking for something specific; it's faster than reading through the full transcript.
 - **Use the Transcript tab** if you need to quote or verify something said during the meeting.
+
+---
+
+## Troubleshooting Tips
+
+- If a page is not loading, try refreshing the page.
+- If you encounter errors or unexpected outcomes, send a message to the CivicLens team.
 
 ---
 
