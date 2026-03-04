@@ -1,39 +1,22 @@
-.tabs {
-    background-color: 
-        color(from var(--bs-tertiary-bg) srgb 
-            calc(r * 0.9) 
-            calc(g * 0.9) 
-            calc(b * 0.9)); 
-
-    display: flex;
-    gap: 0;
-    border-radius: 10px;
-    overflow: hidden;
-}
-
-.tabs:global(.nav-pills) {
+/* nav container */
+#infoTabContainer {
     --bs-nav-pills-link-active-bg: var(--color-secondary);
     --bs-nav-pills-link-active-color: white;
 }
-
-.tabs :global(.nav-link) {
-    color: var(--color-primary);
-}
-
+/* nav item | button (link) container */
 .navItem{
     /* background-color: var(--color-primary); */
     flex: 1;
 }
-/* .navLink{
-    background-color: none;
-    border: 1px solid black;
+/* nav Item button/link */
+li .navItemLink {
+    color: var(--color-primary);
+    font-weight: bold;
 }
-.navItem button{
+li .navItemLink:hover {
+    background-color: var(--color-secondary-light);
+    color: var(--color-primary);
+}
+li .active{
     background-color: var(--color-primary);
-    color: white;
 }
-.navItem button.active {
-    background-color: var(--color-secondary);
-} */
-
-/* hi */
