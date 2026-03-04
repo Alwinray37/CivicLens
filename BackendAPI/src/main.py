@@ -20,6 +20,10 @@ db_conn_str = os.getenv("DB_CONN") or ""
 db_pgv_conn_str = os.getenv("DB_PGV_CONN") or ""
 ollam_conn_str = os.getenv("OLLAMA_CONN") or ""
 
+if not db_conn_str:
+    db_password = os.getenv("DB_PASSWORD", "")
+    db_conn_str = f"host=db dbname=postgres user=postgres password={db_password}"
+
 chat_service = ChatbotService.create(db_url=db_pgv_conn_str, 
                                    answer_model="llama3.1:8b", 
                                    table_name="MeetingChunks", 
@@ -39,7 +43,7 @@ def db_test_connection():
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"\nUnexpected error: {str(e)}")
 
-@app.get("/getMeetings", response_model=MeetingsData)
+@app.get("/getMeetings", response_model=MeetingsData, response_model_by_alias=True)
 def get_meetings():
     try:
         with psycopg.connect(db_conn_str) as conn:
@@ -48,25 +52,23 @@ def get_meetings():
                 SELECT get_meetings_json();
                 """)
                 res = cur.fetchone() or None
-        if res is None:
-            raise HTTPException(status_code=404, detail="No meetings found")  
-                    
-        return { "meetings": res[0] }
 
     except psycopg.OperationalError as e:
-        raise HTTPException(status_code=503, detail=f"Database connection failed: {e.pgerror or str(e)}`")
+        raise HTTPException(status_code=503, detail=f"Database connection failed: {str(e)}")
 
     except psycopg.ProgrammingError as e:
-        raise HTTPException(status_code=400, detail=f"SQL error: {e.pgerror or str(e)}")
+        raise HTTPException(status_code=400, detail=f"SQL error: {str(e)}")
 
     except psycopg.Error as e:
-        raise HTTPException(status_code=500, detail=f"Database error: {e.pgerror or str(e)}")
+        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
 
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Unexpected error: {str(e)}")
+    if res is None:
+        raise HTTPException(status_code=404, detail="No meetings found")  
+                
+    return { "meetings": res[0] }
 
 
-@app.get("/getMeetingInfo/{meeting_id}", response_model=MeetingInfo)
+@app.get("/getMeetingInfo/{meeting_id}", response_model=MeetingInfo, response_model_by_alias=True)
 def getMeetingInfo(meeting_id: int):
     try:
         with psycopg.connect(db_conn_str) as conn:
@@ -78,23 +80,19 @@ def getMeetingInfo(meeting_id: int):
                 
                 res = cur.fetchone() or None
 
-        if res is None:
-            raise HTTPException(status_code=404, detail="No meetings found")  
-
-        return res[0]
-
     except psycopg.OperationalError as e:
-        raise HTTPException(status_code=503, detail=f"Database connection failed: {e.pgerror or str(e)}`")
+        raise HTTPException(status_code=503, detail=f"Database connection failed: {str(e)}")
 
     except psycopg.ProgrammingError as e:
-        raise HTTPException(status_code=400, detail=f"SQL error: {e.pgerror or str(e)}")
+        raise HTTPException(status_code=400, detail=f"SQL error: {str(e)}")
 
     except psycopg.Error as e:
-        raise HTTPException(status_code=500, detail=f"Database error: {e.pgerror or str(e)}")
+        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
 
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Unexpected error: {str(e)}")
+    if res is None:
+        raise HTTPException(status_code=404, detail="No meetings found")  
 
+    return res[0]
 
 @app.get("/chat/{meeting_id}", response_model=ChatResponse)
 def chat(meeting_id: int, query: str):

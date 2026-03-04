@@ -5,16 +5,16 @@
  * @throws {Error} If the request fails or meeting is not found
  */
 export async function fetchVideoData(id) {
-    const endpoint = import.meta.env.VITE_MEETING_ENDPOINT;
-    
-    if (!endpoint) {
-        throw new Error("VITE_MEETING_ENDPOINT is not defined in environment variables");
-    }
-
-    const res = await fetch(`${endpoint}/${id}`);
+    const res = await fetch(`/api/getMeetingInfo/${id}`);
     
     if (!res.ok) {
         throw new Error("Server error");
+    }
+
+    const contentType = res.headers.get('content-type') || '';
+    if (!contentType.includes('application/json')) {
+        const preview = (await res.text()).slice(0, 120);
+        throw new Error(`Expected JSON response but got ${contentType || 'unknown content type'}: ${preview}`);
     }
     
     const data = await res.json();

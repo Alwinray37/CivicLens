@@ -8,7 +8,7 @@ import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import LoadingSpinner from '@components/icons/LoadingSpinner';
 
-const CATALOG_ENDPOINT = import.meta.env.VITE_CATALOG_ENDPOINT;
+const CATALOG_ENDPOINT = '/api/getMeetings';
 
 export default function CatalogPage() {
     const [dateOrder, setDateOrder] = useState('desc');
@@ -39,15 +39,21 @@ export default function CatalogPage() {
                 throw new Error("Server error");
             }
 
+            const contentType = res.headers.get('content-type') || '';
+            if (!contentType.includes('application/json')) {
+                const preview = (await res.text()).slice(0, 120);
+                throw new Error(`Expected JSON response but got ${contentType || 'unknown content type'}: ${preview}`);
+            }
+
             const data = await res.json();
             console.log('CatalogPage - fetchCatalogData response:', data);
             return data;
         } catch(err) {
-            throw new Error(err);
+            throw new Error(err instanceof Error ? err.message : String(err));
         }
     }
 
-    let filteredList;
+    let filteredList = [];
 
     // Static list of tags related to civic meetings (used until API provides tags)
     const allTags = [
@@ -72,10 +78,18 @@ export default function CatalogPage() {
         "Citizen Comments"
     ];
 
-    if(catalogQuery.status === "success") {
+    if(catalogQuery.status === "success" && catalogQuery.data) {
+        // Get the meetings array - could be catalogQuery.data.meetings or catalogQuery.data directly
+        const meetingsData = catalogQuery.data.meetings || catalogQuery.data;
+        
+        if (!Array.isArray(meetingsData)) {
+            console.error('Expected meetings array, got:', meetingsData);
+            return;
+        }
+        
         // filter the data from dummydata, retrieve only the videos that have a videoUrl
-        filteredList = catalogQuery.data.meetings.filter(video => {
-            if (video.VideoUrl === null) return false;
+        filteredList = meetingsData.filter(video => {
+            if (video.VideoURL === null) return false;
             // no tags yet
             // const tagMatch = filterTag ? (video.tags || []).includes(filterTag) : true;
             const tagMatch = true; // TEMP

@@ -1,0 +1,25 @@
+name: Build and Deploy
+
+on:
+  push:
+    branches: [ "development" ]
+
+jobs:
+  deploy:
+    runs-on: [self-hosted, linux]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Stop running containers
+        run: |
+          docker compose down || true
+
+      - name: Build containers
+        run: |
+          docker compose build
+
+      - name: Start containers
+        run: |
+          docker compose up -d --remove-orphans
