@@ -17,12 +17,14 @@ app.add_middleware(
 )
 
 db_conn_str = os.getenv("DB_CONN") or ""
-db_pgv_conn_str = os.getenv("DB_PGV_CONN") or ""
 ollam_conn_str = os.getenv("OLLAMA_CONN") or ""
 
 if not db_conn_str:
     db_password = os.getenv("DB_PASSWORD", "")
     db_conn_str = f"host=db dbname=postgres user=postgres password={db_password}"
+
+split_index = db_conn_str.find(':')
+db_pgv_conn_str = db_conn_str[0:split_index] + "+asyncpg" + db_conn_str[split_index:]
 
 chat_service = ChatbotService.create(db_url=db_pgv_conn_str, 
                                    answer_model="llama3.1:8b", 

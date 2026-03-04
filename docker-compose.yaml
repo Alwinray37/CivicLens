@@ -20,7 +20,6 @@ services:
     environment:
       DB_CONN: ${DB_CONN:-}
       DB_PASSWORD: ${DB_PASSWORD}
-      DB_PGV_CONN: ${DB_PGV_CONN}
       OLLAMA_CONN: ${OLLAMA_CONN}
       PYTHONPATH: /app
     depends_on:
