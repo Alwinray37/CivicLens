@@ -15,8 +15,8 @@ services:
       context: ./BackendAPI
     restart: unless-stopped
     environment:
-      DB_CONN: ${DB_CONN}
-      DB_PGV_CONN: ${DB_PGV_CONN}
+      DB_CONN: ${DB_CONN:-}
+      DB_PASSWORD: ${DB_PASSWORD}
       OLLAMA_CONN: ${OLLAMA_CONN}
       PYTHONPATH: /app
     depends_on:
