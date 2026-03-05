@@ -22,4 +22,4 @@ jobs:
 
       - name: Start containers
         run: |
-          docker compose up -d --remove-orphans
+          docker compose up -d --force-recreate --remove-orphans
