@@ -22,6 +22,7 @@
 import os
 import subprocess
 import requests
+from pydub import AudioSegment
 from pytubefix import YouTube
 from pytubefix.cli import on_progress
 
@@ -62,8 +63,10 @@ def Convert_M4A_to_MP3(input_file, output_file = None):
     try:
         if output_file is None:
             output_file = input_file.replace(".m4a", ".mp3")
+        
+        input_sound = AudioSegment.from_file(input_file, format="m4a")
+        input_sound.export(output_file, format="mp3")
 
-        subprocess.call(['ffmpeg', '-i', input_file, output_file])
         return output_file
     except Exception as e:
         print(f"An error occured: {e}")
