@@ -17,7 +17,8 @@ app.add_middleware(
 )
 
 db_conn_str = os.getenv("DB_CONN") or ""
-ollam_conn_str = os.getenv("OLLAMA_CONN") or ""
+
+ollama_conn_str = os.getenv("OLLAMA_CONN") or "http://localhost:11434"
 
 <<<<<<< HEAD
 if not db_conn_str:
@@ -30,11 +31,13 @@ ollam_conn_str = os.getenv("OLLAMA_CONN") or ""
 split_index = db_conn_str.find(':')
 db_pgv_conn_str = db_conn_str[0:split_index] + "+asyncpg" + db_conn_str[split_index:]
 
+answer_model = os.getenv("ANSWER_MODEL") or "smollm:135m"
+embedding_model = os.getenv("EMBED_MODEL") or "all-minilm:22m"
 chat_service = ChatbotService.create(db_url=db_pgv_conn_str, 
-                                   answer_model="llama3.1:8b", 
+                                   answer_model=answer_model, 
                                    table_name="MeetingChunks", 
-                                   embedding_model="qwen3-embedding:4b",
-                                   ollama_url=ollam_conn_str,
+                                   embedding_model=embedding_model,
+                                   ollama_url=ollama_conn_str,
                                    )
 >>>>>>> 1553dde (Integrate ChatbotService into backend (/chat) and add ollama docker service)
 

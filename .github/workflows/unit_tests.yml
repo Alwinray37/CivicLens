@@ -35,6 +35,10 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
+      ollama:
+        image: ollama/ollama:0.16.0
+        ports:
+          - 11434:11434
         
         
 
@@ -59,11 +63,17 @@ jobs:
           PGPASSWORD: test_password
         run: psql -h localhost -U test_user -d test_db -f create_script.sql
 
+      - name: Install Ollama Model
+        working-directory: BackendAPI
+        run: |
+          curl http://localhost:11434/api/pull -d '{ "model": "smollm:135m" }'
+
       - name: Run API Tests
         working-directory: BackendAPI
         env:
           DB_CONN: postgresql://test_user:test_password@localhost:5432/test_db
           PYTHONPATH: ${{ github.workspace }}/BackendAPI
+          OLLAMA_CONN: http://localhost:11434
         run: pytest tests/ -v
 
   frontend-test:
