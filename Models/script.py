@@ -6,7 +6,9 @@
 # Call meeting link, grab last json record from the array, comitteeId: 1 is for City Council Meeting, ignore "-SAP" since spanish
 # Meeting link: https://lacity.primegov.com/api/v2/PublicPortal/ListArchivedMeetings?year={year} 
 
+# ✓
 # use pytube to download video
+
 # agenda items link: https://lacity.primegov.com/Public/CompiledDocument?meetingTemplateId={templateId}&compileOutputType={compileoutputtype}
 
 # call models to get the transcript data
@@ -18,7 +20,7 @@
 # delete extra files generated - mp3, jsons, and etc
 
 import os
-import ffmpeg
+import subprocess
 import requests
 from pytubefix import YouTube
 from pytubefix.cli import on_progress
@@ -56,9 +58,12 @@ def Download_Youtube_Video(video_url):
         print(f"An error occured: {e}")
         raise
 
-def Convert_M4A_to_MP3(input_file, output_file):
+def Convert_M4A_to_MP3(input_file, output_file = None):
     try:
-        ffmpeg.input(input_file).output(output_file, codec='libmp3lame', q=4).run(quiet=True, overwrite_output=True)
+        if output_file is None:
+            output_file = input_file.replace(".m4a", ".mp3")
+
+        subprocess.call(['ffmpeg', '-i', input_file, output_file])
         return output_file
     except Exception as e:
         print(f"An error occured: {e}")
@@ -71,11 +76,17 @@ print(f"Getting YouTube video")
 video_url = latest_meeting["videoUrl"]
 
 print(f"Starting Youtube video download")
-m4a_audio_file = Download_Youtube_Video(video_url)
+#m4a_audio_file = Download_Youtube_Video(video_url)
 print(f"Download complete")
 
+#TEMP
+m4a_audio_file = os.path.join(os.getcwd(), "Regular City Council - 3626.m4a")
+#TEMP
+
+print(os.path.exists(m4a_audio_file))
+
 print(f"Converting M4A to MP3")
-mp3_audio_file = Convert_M4A_to_MP3(m4a_audio_file, "temp_mp3_audio.mp3")
+mp3_audio_file = Convert_M4A_to_MP3(m4a_audio_file)
 print(f"Conversion complete")
 
 print(latest_meeting)
