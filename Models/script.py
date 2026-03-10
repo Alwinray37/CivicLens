@@ -1,0 +1,60 @@
+# City council meetings Tuesday, Wednesday and Friday at 10:00 am
+
+# Argparse command for server? 
+
+# ✓
+# Call meeting link, grab last json record from the array, comitteeId: 1 is for City Council Meeting, ignore "-SAP" since spanish
+# Meeting link: https://lacity.primegov.com/api/v2/PublicPortal/ListArchivedMeetings?year={year} 
+
+# use pytube to download video
+# agenda items link: https://lacity.primegov.com/Public/CompiledDocument?meetingTemplateId={templateId}&compileOutputType={compileoutputtype}
+
+# call models to get the transcript data
+# get the pdf agenda and parse through it
+
+# call embedding model to get embedding data
+# generate sql table script for static db generation
+
+# delete extra files generated - mp3, jsons, and etc
+
+import ffmpeg
+import requests
+from pytubefix import YouTube
+from pytubefix.cli import on_progress
+
+MEETING_YEAR = 2026 #temp, maybe argparse idk lol
+
+COUNCIL_MEETINGS_ID = 1
+NO_SAP = "SAP"
+CITY_COUNCIL_URL = f"https://lacity.primegov.com/api/v2/PublicPortal/ListArchivedMeetings?year={MEETING_YEAR}"
+
+def Grab_Meetings():
+    try:
+        response = requests.get(CITY_COUNCIL_URL)
+
+        if response.status_code == 200:
+            meetings_data = response.json()
+
+            council_meetings = list(filter(lambda meeting: meeting["meetingTypeId"] == COUNCIL_MEETINGS_ID and meeting["title"] not in NO_SAP, meetings_data))
+
+            return council_meetings
+
+    except Exception as e:
+        print(f"An error occured: {e}")
+
+latest_meeting = Grab_Meetings()[-1]
+
+video_url = latest_meeting["videoUrl"]
+
+yt = YouTube(video_url, on_progress_callback=on_progress)
+print(f"Got YouTube video\nTitle: {yt.title}")
+
+audio_stream = yt.streams.get_audio_only()
+
+audio_stream.download()
+
+print(f"Download complete")
+
+#FFMPEG CONVERT M4A to MP3
+
+print(latest_meeting)
