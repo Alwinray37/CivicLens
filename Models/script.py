@@ -17,6 +17,7 @@
 
 # delete extra files generated - mp3, jsons, and etc
 
+import os
 import ffmpeg
 import requests
 from pytubefix import YouTube
@@ -41,20 +42,40 @@ def Grab_Meetings():
 
     except Exception as e:
         print(f"An error occured: {e}")
+        raise
 
+def Download_Youtube_Video(video_url):
+    try:
+        yt = YouTube(video_url, on_progress_callback=on_progress)
+        print(f"Got YouTube video\nTitle: {yt.title}")
+
+        audio_stream = yt.streams.get_audio_only()
+
+        return audio_stream.download()
+    except Exception as e:
+        print(f"An error occured: {e}")
+        raise
+
+def Convert_M4A_to_MP3(input_file, output_file):
+    try:
+        ffmpeg.input(input_file).output(output_file, codec='libmp3lame', q=4).run(quiet=True, overwrite_output=True)
+        return output_file
+    except Exception as e:
+        print(f"An error occured: {e}")
+        raise
+
+print(f"Getting meetings")
 latest_meeting = Grab_Meetings()[-1]
 
+print(f"Getting YouTube video")
 video_url = latest_meeting["videoUrl"]
 
-yt = YouTube(video_url, on_progress_callback=on_progress)
-print(f"Got YouTube video\nTitle: {yt.title}")
-
-audio_stream = yt.streams.get_audio_only()
-
-audio_stream.download()
-
+print(f"Starting Youtube video download")
+m4a_audio_file = Download_Youtube_Video(video_url)
 print(f"Download complete")
 
-#FFMPEG CONVERT M4A to MP3
+print(f"Converting M4A to MP3")
+mp3_audio_file = Convert_M4A_to_MP3(m4a_audio_file, "temp_mp3_audio.mp3")
+print(f"Conversion complete")
 
 print(latest_meeting)
