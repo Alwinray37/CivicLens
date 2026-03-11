@@ -26,6 +26,7 @@ services:
       PYTHONPATH: /app
     depends_on:
       - db
+      - ollama
     develop:
       watch:
         - action: sync
@@ -45,7 +46,12 @@ services:
       - api
 
   ollama:
-    image: ollama/ollama:0.16.0
+    build:
+      context: ./Ollama
+      dockerfile: Dockerfile
+      args:
+        ANSWER_MODEL: llama3.1:8b
+        EMBED_MODEL: qwen3-embedding:4b
     ports:
       - "4341:11434"
     volumes:
