@@ -2,8 +2,13 @@ import { useEffect, useRef, useState } from 'react';
 import styles from './Chatbot.module.css';
 
 import ChatbotMessage from './ChatbotMessage';
+import { useMutation } from '@tanstack/react-query';
 
-export default function Chatbot() {
+const CHAT_ENDPOINT = '/api/chat'
+
+export default function Chatbot({
+    meetingId,
+}) {
     /* 
         * messages: {
             * type: "outgoing" | "incoming"
@@ -13,6 +18,37 @@ export default function Chatbot() {
     */
     const [messages, setMessages] = useState([]);
     const [messageInput, setMessageInput] = useState("");
+    const chatQuery = useMutation({
+        mutationKey: [meetingId],
+        mutationFn: fetchChatbot,
+        onMutate: (query) => sendMessage(query, "outgoing"),
+        onSuccess: (answer) => sendMessage(answer.Response, "incoming"),
+        retry: 2,
+    });
+    console.log(chatQuery);
+
+    async function fetchChatbot(query) {
+        console.log(meetingId, typeof meetingId);
+        const res = await fetch(`${CHAT_ENDPOINT}/${meetingId}?query=${query}`);
+
+        if (!res.ok) {
+            throw new Error("Server error");
+        }
+
+        const contentType = res.headers.get('content-type') || '';
+        if (!contentType.includes('application/json')) {
+            const preview = (await res.text()).slice(0, 120);
+            throw new Error(`Expected JSON response but got ${contentType || 'unknown content type'}: ${preview}`);
+        }
+        
+        const data = await res.json();
+        
+        if (!data) {
+            throw new Error("Meeting does not have chat enabled");
+        }
+        
+        return data;
+    }
 
     // ref of the div the contains the messages
     const messageContainerRef = useRef(null);
@@ -26,22 +62,25 @@ export default function Chatbot() {
     }
 
     // sends a message to the chatbot
-    const sendMessage = (message) => {
+    const sendMessage = (message, type) => {
         const trimmedMessage = message.trim();
         if(trimmedMessage.length === 0) return;
 
         setMessages((curMessages) => [...curMessages, {
-            type: "outgoing",
+            type,
             message: trimmedMessage,
         }]);
-        setMessageInput("");
+
+
+        if(type === "outgoing") setMessageInput("");
+        
         scrollToBottom();
     }
 
     // handles user keystrokes in the chatbot input field
     const handleMessageKeyDown = (e) => {
         if(e.key === "Enter") {
-            sendMessage(messageInput);
+            chatQuery.mutate(messageInput);
         }
     }
 
@@ -89,7 +128,7 @@ export default function Chatbot() {
                 <button className="btn btn-outline-secondary" 
                     type="button" 
                     id="chatbot-send-btn"
-                    onClick={() => sendMessage(messageInput)}
+                    onClick={() => chatQuery.mutate(messageInput)}
                 >Ask</button>
             </div>
         </div>
