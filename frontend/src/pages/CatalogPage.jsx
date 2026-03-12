@@ -78,61 +78,6 @@ export default function CatalogPage() {
         "Citizen Comments"
     ];
 
-    const tagKeywordMap = {
-        "Budget": ["budget", "finance", "fiscal", "appropriation"],
-        "Zoning": ["zoning", "zone", "rezoning"],
-        "Land Use": ["land use", "parcel", "site plan"],
-        "Planning": ["planning", "master plan", "development plan"],
-        "Transportation": ["transportation", "traffic", "transit", "road"],
-        "Public Works": ["public works", "infrastructure", "maintenance"],
-        "Parks & Recreation": ["park", "recreation", "trail"],
-        "Housing": ["housing", "residential", "affordable housing"],
-        "Economic Development": ["economic", "business", "downtown", "investment"],
-        "Public Safety": ["public safety", "emergency", "safety"],
-        "Police": ["police", "law enforcement"],
-        "Fire Department": ["fire", "fire department"],
-        "Environmental": ["environment", "sustainability", "climate", "air", "water"],
-        "Utilities": ["utility", "utilities", "water", "sewer", "electric"],
-        "Education": ["education", "school", "students"],
-        "Procurement": ["procurement", "contract", "bid", "rfp"],
-        "Ordinance": ["ordinance", "municipal code"],
-        "Resolution": ["resolution"],
-        "Citizen Comments": ["citizen comments", "public comment", "open forum"]
-    };
-
-    // Quick client-side tag extraction until backend tags are available.
-    const getVideoTags = (video) => {
-        const searchableContent = [video.Title, video.Description, video.Agenda]
-            .filter(Boolean)
-            .join(' ')
-            .toLowerCase();
-
-        const matchedTags = allTags.filter((tag) => {
-            const keywords = tagKeywordMap[tag] || [];
-            return keywords.some((keyword) => searchableContent.includes(keyword));
-        });
-
-        if (matchedTags.length >= 3) {
-            return matchedTags.slice(0, 3);
-        }
-
-        // Deterministic per-video fallback so different cards get different tags.
-        const seedSource = `${video.MeetingID || ''}-${video.Date || ''}-${video.Title || ''}`;
-        const seed = seedSource.split('').reduce((acc, ch) => acc + ch.charCodeAt(0), 0);
-
-        const tags = [...matchedTags];
-        let offset = 0;
-        while (tags.length < 3 && offset < allTags.length) {
-            const nextTag = allTags[(seed + offset * 7) % allTags.length];
-            if (!tags.includes(nextTag)) {
-                tags.push(nextTag);
-            }
-            offset += 1;
-        }
-
-        return tags.slice(0, 3);
-    };
-
     if(catalogQuery.status === "success" && catalogQuery.data) {
         // Get the meetings array - could be catalogQuery.data.meetings or catalogQuery.data directly
         const meetingsData = catalogQuery.data.meetings || catalogQuery.data;
@@ -145,13 +90,15 @@ export default function CatalogPage() {
         // filter the data from dummydata, retrieve only the videos that have a videoUrl
         filteredList = meetingsData.filter(video => {
             if (video.VideoURL === null) return false;
-            const videoTags = getVideoTags(video);
-            const tagMatch = filterTag ? videoTags.includes(filterTag) : true;
+            // no tags yet
+            // const tagMatch = filterTag ? (video.tags || []).includes(filterTag) : true;
+            const tagMatch = true; // TEMP
             // Search in title or tags
             const searchLower = search.toLowerCase();
             const titleMatch = video.Title.toLowerCase().includes(searchLower);
-            const tagsMatch = videoTags.some(tag => tag.toLowerCase().includes(searchLower));
-            const searchMatch = search ? (titleMatch || tagsMatch) : true;
+            // const tagsMatch = (video.tags || []).some(tag => tag.toLowerCase().includes(searchLower));
+            // const searchMatch = search ? (titleMatch || tagsMatch) : true;
+            const searchMatch = search ? titleMatch : true;
             return tagMatch && searchMatch;
         })
         .sort((a, b) => { // Sort by date
@@ -167,7 +114,6 @@ export default function CatalogPage() {
         // add thumbnail links to filteredList
         filteredList = filteredList.map(video => {
             const newVidObj = {...video};
-            newVidObj.tags = getVideoTags(newVidObj);
             // create URL object to access search params easier
             const videoURL = new URL(newVidObj.VideoURL);
             // get 'v' search param, which is the YouTube video ID
@@ -234,7 +180,7 @@ export default function CatalogPage() {
                         <div className="video-card d-flex flex-row-reverse " 
                             key={video.MeetingID}
                         >
-                            <button className={`col-4 ${styles.thumbnailBtn}`} title={video.Title} onClick={() => handleButtonClick(video.MeetingID, video.VideoURL)}>
+                            <button className={`col-4 ${styles.thumbnailBtn}`} title={video.title} onClick={() => handleButtonClick(video.MeetingID, video.VideoURL)}>
                                 <img src={video.ThumbnailURL} />
                                 <span className={`${styles.playIcon}`} role="img" aria-label="Play" >
                                     <i className="fa-solid fa-circle-play"></i>
@@ -246,9 +192,9 @@ export default function CatalogPage() {
                                     <p>{video.Date}</p>
                                 </div>
                                 <div className="d-flex flex-wrap gap-1">
-                                    {(video.tags || []).map((tag) => (
-                                        <span key={`${video.MeetingID}-${tag}`} className={`rounded p-1 px-2 text-dark ${styles.tag}`}>{tag}</span>
-                                    ))}
+                                    <span className={`rounded p-1 px-2 text-dark ${styles.tag}`}>tag</span>
+                                    <span className={`rounded p-1 px-2 text-dark ${styles.tag}`}>tag</span>
+                                    <span className={`rounded p-1 px-2 text-dark ${styles.tag}`}>tag</span>
                                 </div>
                                 {/* <p className="description">{video.description}</p> */}
                                 {/* <button className='btn btn-primary'>Watch</button> */}
