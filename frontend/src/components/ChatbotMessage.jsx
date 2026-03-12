@@ -16,7 +16,10 @@ export default function ChatbotMessage({
                         ? "justify-content-end pe-2" 
                         : "justify-content-start ps-2"} 
                     w-100`}>
-            <span className={`shadow-sm rounded-1 py-1 px-2 my-1 d-inline-block chatbot-message ${type === 'outgoing' ? 'chatbot-message-outgoing' : 'chatbot-message-incoming'}`}>
+            <span 
+            className={`shadow-sm rounded-1 py-1 px-2 my-1 d-inline-block text-body-secondary ${styles.chatbotMessage}`}
+            data-type={type}
+            >
                 {message}
             </span>
         </div>
