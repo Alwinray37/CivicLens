@@ -17,7 +17,7 @@ DROP TABLE IF EXISTS public."DocumentTypes" CASCADE;
 DROP TABLE IF EXISTS public."AgendaItems" CASCADE;
 DROP TABLE IF EXISTS public."Summaries" CASCADE;
 DROP TABLE IF EXISTS public."Meetings" CASCADE;
-DROP TABLE IF EXISTS public."MeetingEmbeddings" CASCADE;
+DROP TABLE IF EXISTS public."MeetingChunks" CASCADE;
 
 -- ========== TABLES ==========
 
