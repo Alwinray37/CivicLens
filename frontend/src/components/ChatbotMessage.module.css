@@ -1,4 +1,11 @@
 .chatbotMessage {
     max-width: 75%;
+    background-color: var(--bs-tertiary-bg);
 }
 
+.chatbotMessage[data-type="incoming"] {
+    /* tmp colors */
+    background-color: oklch(from var(--bs-tertiary-bg) calc(l * 0.92) c h);
+
+    color: oklch(from currentColor calc(l * 0.8) c h) !important;
+}

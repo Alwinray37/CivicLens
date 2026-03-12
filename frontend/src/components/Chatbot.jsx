@@ -25,10 +25,8 @@ export default function Chatbot({
         onSuccess: (answer) => sendMessage(answer.Response, "incoming"),
         retry: 2,
     });
-    console.log(chatQuery);
 
     async function fetchChatbot(query) {
-        console.log(meetingId, typeof meetingId);
         const res = await fetch(`${CHAT_ENDPOINT}/${meetingId}?query=${query}`);
 
         if (!res.ok) {
