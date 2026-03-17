@@ -79,7 +79,7 @@ print(f"Getting YouTube video")
 video_url = latest_meeting["videoUrl"]
 
 print(f"Starting Youtube video download")
-#m4a_audio_file = Download_Youtube_Video(video_url)
+m4a_audio_file = Download_Youtube_Video(video_url)
 print(f"Download complete")
 
 #TEMP
