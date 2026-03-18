@@ -1,5 +1,5 @@
 import requests
-from pipeline.orchestrator import PipelineStage
+from pipeline.stage import PipelineStage
 from pipeline.exceptions import PipelineError
 
 class MeetingFetcher(PipelineStage):

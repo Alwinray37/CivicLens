@@ -1,13 +1,13 @@
 import requests
 from pipeline.exceptions import PipelineError
 
-from pipeline.orchestrator import PipelineStage
+from pipeline.stage import PipelineStage
 
 class PdfDownloader(PipelineStage):
     AGENDA = "Agenda"
   
     def validate(self, input_data):
-        matching_docs = [d for d in input_data["documentlist"] if d["templateName"] == self.AGENDA]
+        matching_docs = [d for d in input_data["documentList"] if d["templateName"] == self.AGENDA]
 
         if not matching_docs:
             return False
@@ -16,13 +16,13 @@ class PdfDownloader(PipelineStage):
     
     def execute(self, intput_data):
 
-        agendaInfo = [d for d in intput_data["documentlist"] if d["templateName"] == self.AGENDA][0]
+        agendaInfo = [d for d in intput_data["documentList"] if d["templateName"] == self.AGENDA][0]
 
         templateId = agendaInfo["templateId"]
         compileOutputType = agendaInfo["compileOutputType"]
 
-        agenda_path = f"agenda_{intput_data['id']}.pdf"
-
+        agenda_path = self.config.temp_dir / f"agenda_{intput_data['id']}.pdf"
+        
         AGENDA_URL = f"https://lacity.primegov.com/Public/CompiledDocument?meetingTemplateId={templateId}&compileOutputType={compileOutputType}"
 
         try:

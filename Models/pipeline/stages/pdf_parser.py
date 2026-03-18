@@ -4,7 +4,7 @@ from utils.pdf_extraction import PdfExtraction
 from utils.json_helper import JsonHelper
 
 from pipeline.exceptions import PipelineError
-from pipeline.orchestrator import PipelineStage
+from pipeline.stage import PipelineStage
 
 class PdfParser(PipelineStage):
     def __init__(self, config):
@@ -40,9 +40,9 @@ class PdfParser(PipelineStage):
         return True
     
     def execute(self, intput_data):
-        self.pdf_file_path = intput_data
+        self.pdf_file_path = Path(intput_data)
         
-        jsonFile = intput_data + ".json"
+        jsonFile = self.config.output_dir / f"{self.pdf_file_path.stem}_parsed.json"
         try:
             pdf_raw_text = PdfExtraction.extract_pdf_raw_text(intput_data)
             result = PdfExtraction.extract_minutes_structured(pdf_raw_text)

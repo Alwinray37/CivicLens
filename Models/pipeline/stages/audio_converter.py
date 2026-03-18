@@ -2,7 +2,7 @@ import os
 from pathlib import Path
 from pydub import AudioSegment
 
-from pipeline.orchestrator import PipelineStage
+from pipeline.stage import PipelineStage
 from pipeline.exceptions import PipelineError
 
 class AudioConverter(PipelineStage):
@@ -45,8 +45,7 @@ class AudioConverter(PipelineStage):
         try:
             self.m4a_file_path = intput_data
             
-            if output_file is None:
-                output_file = intput_data.replace(".m4a", ".mp3")
+            output_file = self.config.temp_dir / self.m4a_file_path.steam + ".mp3"
 
             input_sound = AudioSegment.from_file(intput_data, format="m4a")
             input_sound.export(output_file, format="mp3")
