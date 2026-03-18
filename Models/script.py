@@ -27,12 +27,12 @@ import requests
 import logging
 from pydub import AudioSegment
 
-# Using pytubefix because pytube is deprecated/broken
+# Using pytubefix because pytube is deprecated/brokens
 from pytubefix import YouTube 
 from pytubefix.cli import on_progress
 
-from json_helper import JsonHelper
-from pdf_extraction import PdfExtraction
+from utils.json_helper import JsonHelper
+from utils.pdf_extraction import PdfExtraction
 
 MEETING_YEAR = 2026 #temp, maybe argparse idk lol
 
