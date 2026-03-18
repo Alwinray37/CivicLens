@@ -9,10 +9,13 @@
 # ✓
 # use pytube to download video
 
+# ✓
 # agenda items link: https://lacity.primegov.com/Public/CompiledDocument?meetingTemplateId={templateId}&compileOutputType={compileoutputtype}
 
-# call models to get the transcript data
+# ✓
 # get the pdf agenda and parse through it
+
+# call models to get the transcript data
 
 # call embedding model to get embedding data
 # generate sql table script for static db generation
@@ -20,10 +23,12 @@
 # delete extra files generated - mp3, jsons, and etc
 
 import os
-import subprocess
 import requests
+import logging
 from pydub import AudioSegment
-from pytubefix import YouTube
+
+# Using pytubefix because pytube is deprecated/broken
+from pytubefix import YouTube 
 from pytubefix.cli import on_progress
 
 from json_helper import JsonHelper
@@ -36,9 +41,11 @@ NO_SAP = "SAP"
 AGENDA = "Agenda"
 CITY_COUNCIL_URL = f"https://lacity.primegov.com/api/v2/PublicPortal/ListArchivedMeetings?year={MEETING_YEAR}"
 
-def Grab_Meetings():
+logger = logging.getLogger(__name__)
+
+def grab_meetings():
     try:
-        response = requests.get(CITY_COUNCIL_URL)
+        response = requests.get(CITY_COUNCIL_URL, timeout=30)
 
         response.raise_for_status()
 
@@ -47,17 +54,16 @@ def Grab_Meetings():
         council_meetings = list(filter(lambda meeting: meeting["meetingTypeId"] == COUNCIL_MEETINGS_ID 
                                         and meeting["title"] not in NO_SAP 
                                         and meeting["videoUrl"]
-                                        and filter(lambda document: document["templateName"] == AGENDA
-                                                    , meeting["documentList"])
+                                        and any(doc["templateName"] == AGENDA for doc in meeting["documentList"])
                                         , meetings_data))
 
         return council_meetings
 
-    except Exception as e:
+    except requests.HTTPError as e:
         print(f"An error occured: {e}")
         raise
 
-def Download_Youtube_Video(video_url):
+def download_youtube_video(video_url):
     try:
         yt = YouTube(video_url, on_progress_callback=on_progress)
         print(f"Got YouTube video\nTitle: {yt.title}")
@@ -69,7 +75,11 @@ def Download_Youtube_Video(video_url):
         print(f"An error occured: {e}")
         raise
 
-def Download_PDF(meeting):
+def download_pDF(meeting):
+    matching_docs = [d for d in meeting["documentList"] if d["templateName"] == AGENDA]
+    if not matching_docs:
+        raise ValueError(f"No agenda document found for meeting {meeting['id']}")
+
     agendaInfo = list(filter(lambda document: document["templateName"] == AGENDA, 
                          meeting["documentList"]))[0]
 
@@ -80,7 +90,7 @@ def Download_PDF(meeting):
 
     AGENDA_URL = f"https://lacity.primegov.com/Public/CompiledDocument?meetingTemplateId={templateId}&compileOutputType={compileOutputType}"
     try:
-        response = requests.get(AGENDA_URL, stream=True)
+        response = requests.get(AGENDA_URL, stream=True, timeout=30)
 
         response.raise_for_status()
 
@@ -94,7 +104,7 @@ def Download_PDF(meeting):
         print(f"An error occured: {e}")
         raise
 
-def Convert_M4A_to_MP3(input_file, output_file = None):
+def convert_m4a_to_mp3(input_file, output_file = None):
     try:
         if output_file is None:
             output_file = input_file.replace(".m4a", ".mp3")
@@ -107,34 +117,36 @@ def Convert_M4A_to_MP3(input_file, output_file = None):
         print(f"An error occured: {e}")
         raise
 
-print(f"Getting meetings")
-last_meeting = Grab_Meetings()[-1]
+if __name__ == "__main__":
+    try:
+        logger.info("Getting meetings...")
+        last_meeting = grab_meetings()[-1]
 
-print(f"Getting YouTube video")
-video_url = last_meeting["videoUrl"]
+        logger.info("Getting YouTube video")
+        video_url = last_meeting["videoUrl"]
 
-print(f"Starting Youtube video download")
-#m4a_audio_file = Download_Youtube_Video(video_url)
-print(f"Download complete")
+        logger.info("Starting Youtube video download")
+        m4a_audio_file = download_youtube_video(video_url)
+        logger.info("Download complete")
 
-#TEMP
-#m4a_audio_file = os.path.join(os.getcwd(), "Regular City Council - 3626.m4a")
-#TEMP
+        #TEMP
+        #m4a_audio_file = os.path.join(os.getcwd(), "Regular City Council - 3626.m4a")
+        #TEMP
 
-#print(os.path.exists(m4a_audio_file))
+        logger.info("Converting M4A to MP3")
+        mp3_audio_file = convert_m4a_to_mp3(m4a_audio_file)
+        logger.info("Conversion complete")
 
-print(f"Converting M4A to MP3")
-#mp3_audio_file = Convert_M4A_to_MP3(m4a_audio_file)
-print(f"Conversion complete")
+        logger.info("Getting Downloading Agenda PDf")
+        agenda_file = download_pDF(last_meeting)
+        logger.info("Downloaded Agenda PDF")
 
-print(f"Getting Downloading Agenda PDf")
-agenda_file = Download_PDF(last_meeting)
-print(f"Downloaded Agenda PDF")
+        logger.info("Parsing PDF Agenda items to JSON")
+        pdf_raw_text = PdfExtraction.extract_pdf_raw_text(agenda_file)
+        result = PdfExtraction.extract_minutes_structured(pdf_raw_text)
+        JsonHelper.write_json_data(agenda_file + ".json", result)    
+        logger.info("Parsing complete from PDF to JSON")
 
-print(f"Parsing PDF Agenda items to JSON")
-pdf_raw_text = PdfExtraction.extract_pdf_raw_text(agenda_file)
-result = PdfExtraction.extract_minutes_structured(pdf_raw_text)
-JsonHelper.write_json_data(agenda_file + ".json", result)    
-print(f"Parsing complete from PDF to JSON")
-
-print(last_meeting)
+        logger.info(last_meeting)
+    except Exception as e:
+        logger.critical(f"Pipeline failed: {e}")
