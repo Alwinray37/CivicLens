@@ -4,9 +4,7 @@ from langchain_ollama import ChatOllama
 from langchain_postgres import PGVectorStore, PGEngine
 from langchain_core.documents import Document
 from langchain_ollama.embeddings import OllamaEmbeddings
-from ollama import ChatResponse, chat
 
-# THIS IS POC, NEEDS TO BE IMPLEMENTED IN BACKEND
 class ChatbotService:
     def __init__(self, vstore:VectorStore, chat_model:BaseChatModel):
         self.vstore = vstore
