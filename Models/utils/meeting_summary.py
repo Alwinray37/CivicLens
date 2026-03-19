@@ -10,7 +10,7 @@ import numpy
 
 from sklearn.cluster import KMeans
 
-from chunker import ChunkOpts, Chunker
+from utils.chunker import ChunkOpts, Chunker
 
 # If you want to attempt to use the format option with ollama.
 # Not currently in use as the models seem to be very iffy when trying to produce consistent JSON.

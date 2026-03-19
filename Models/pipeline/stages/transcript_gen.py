@@ -2,6 +2,7 @@ import os
 import torch
 import subprocess
 
+from pathlib import Path
 from pipeline.exceptions import PipelineError
 from pipeline.stage import PipelineStage
 
@@ -58,7 +59,10 @@ class TranscriptGen(PipelineStage):
         if result.returncode != 0:
             raise PipelineError(f"WhisperX failed")
 
-        return result
+        input_path = Path(intput_data)
+        json_file = Path(self.config.temp_dir) / f"{input_path.stem}.json"
+
+        return str(json_file)
     
     def cleanup(self):
         """No clean up, keep all the files"""

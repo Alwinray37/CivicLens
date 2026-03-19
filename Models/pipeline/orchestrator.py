@@ -26,6 +26,11 @@ class PipelineOrchestrator:
             #get latest meeting
             meeting = meetings[-1]
 
+            #agenda_pdf_file = PdfDownloader(self.config).run(meeting)
+            #agenda_json_file = PdfParser(self.config).run(agenda_pdf_file)
+
+            agenda_json_file = str(self.config.temp_dir / "agenda_17962_parsed.json")
+
             #m4a_audio_file = VideoDownloader(self.config).run(meeting)
 
             #TEMP            
@@ -37,10 +42,18 @@ class PipelineOrchestrator:
 
             #transcript = TranscriptGen(self.config).run(mp3_audio_file)
 
+            transcript_json_file = str(self.config.temp_dir / "RegularCityCouncil-31326.json")
 
+            summary_dict = {
+                "files": [transcript_json_file, agenda_json_file],
+                "options": {
+                    "lines_per_chunk": 50,
+                    "overlap": 5,
+                    "max_query": 5,
+                    },
+            }
 
-            agenda_pdf_file = PdfDownloader(self.config).run(meeting)
-            agenda_json_file = PdfParser(self.config).run(agenda_pdf_file)
+            summary_json_file = SummaryGen(self.config).run(summary_dict)            
 
             #TODO add audio file processing
 
