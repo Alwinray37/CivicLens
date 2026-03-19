@@ -1,25 +1,28 @@
+name: CivicLens
 services:
   db:
     image: pgvector/pgvector:pg17
     container_name: CivicLensDB
     restart: unless-stopped
+    ports:
+      - "5431:5432"
     environment:
       POSTGRES_PASSWORD: ${DB_PASSWORD}
     volumes:
       - pgdata:/var/lib/postgresql/data
       - ./DB/create_script.sql:/docker-entrypoint-initdb.d/create_script.sql
-    networks:
-      - backend
   api:
     build:
       context: ./BackendAPI
-    restart: unless-stopped
+    container_name: CivicLensAPI
+    ports:
+      - "8000:8000"
     environment:
       DB_CONN: ${DB_CONN:-}
       DB_PASSWORD: ${DB_PASSWORD}
-      OLLAMA_CONN: ${OLLAMA_CONN}
-      ANSWER_MODEL: llama3.1:8b
-      EMBED_MODEL: qwen3-embedding:4b
+      OLLAMA_CONN: ${OLLAMA_CONN:-http://ollama:11434}
+      ANSWER_MODEL: ${ANSWER_MODEL:-llama3.1:8b}
+      EMBED_MODEL: ${EMBED_MODEL:-qwen3-embedding:4b}
       PYTHONPATH: /app
     depends_on:
       - db
@@ -37,9 +40,8 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-      args:
-        VITE_BASE_PATH: ${VITE_BASE_PATH:-/}
-    restart: unless-stopped
+    ports:
+      - "80:80"
     depends_on:
       - api
 
@@ -47,11 +49,12 @@ services:
     build:
       context: ./Ollama
       dockerfile: Dockerfile
-      args:
-        ANSWER_MODEL: llama3.1:8b
-        EMBED_MODEL: qwen3-embedding:4b
     ports:
       - "4341:11434"
+    environment:
+      # you can configure models here or in .env
+      ANSWER_MODEL: ${ANSWER_MODEL:-llama3.1:8b}
+      EMBED_MODEL: ${EMBED_MODEL:-qwen3-embedding:4b}
     volumes:
       - ollamadata:/root/.ollama
     restart: always

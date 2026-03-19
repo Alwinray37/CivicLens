@@ -11,6 +11,11 @@
     # COPY --chown=app:app . .
     COPY ./src ./src
 
+    COPY ./entrypoint.sh /entrypoint.sh
+    RUN chmod +x /entrypoint.sh
+
+    ENTRYPOINT [ "/entrypoint.sh" ]
+
     EXPOSE 8000
 
     WORKDIR /app/src
