@@ -21,7 +21,7 @@ from huggingface_hub import login
 
 from tqdm import tqdm
 
-from meeting_summary import MeetingSummary
+from utils.meeting_summary import MeetingSummary
 from utils.pdf_extraction import PdfExtraction
 
 JSON_INFO = 'info.json'

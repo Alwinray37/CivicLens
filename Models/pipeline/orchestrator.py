@@ -9,6 +9,7 @@ from pipeline.stages.audio_converter import AudioConverter
 from pipeline.stages.pdf_downloader import PdfDownloader
 from pipeline.stages.pdf_parser import PdfParser
 from pipeline.stages.transcript_gen import TranscriptGen
+from pipeline.stages.summary_gen import SummaryGen
 
 class PipelineOrchestrator:
     def __init__(self, config: PipelineConfig):
@@ -34,7 +35,9 @@ class PipelineOrchestrator:
 
             #mp3_audio_file = AudioConverter(self.config).run(m4a_audio_file)
 
-            transcript = TranscriptGen(self.config).run(mp3_audio_file)
+            #transcript = TranscriptGen(self.config).run(mp3_audio_file)
+
+
 
             agenda_pdf_file = PdfDownloader(self.config).run(meeting)
             agenda_json_file = PdfParser(self.config).run(agenda_pdf_file)
