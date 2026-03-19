@@ -26,6 +26,7 @@ class PipelineOrchestrator:
             #get latest meeting
             meeting = meetings[-1]
 
+            #TEMP   
             #agenda_pdf_file = PdfDownloader(self.config).run(meeting)
             #agenda_json_file = PdfParser(self.config).run(agenda_pdf_file)
 
@@ -33,14 +34,14 @@ class PipelineOrchestrator:
 
             #m4a_audio_file = VideoDownloader(self.config).run(meeting)
 
-            #TEMP            
+               
             #m4a_audio_file = str(self.config.temp_dir / "RegularCityCouncil-31326.m4a")
             mp3_audio_file = str(self.config.temp_dir / "RegularCityCouncil-31326.mp3")
-            #TEMP
-
+            
             #mp3_audio_file = AudioConverter(self.config).run(m4a_audio_file)
 
             #transcript = TranscriptGen(self.config).run(mp3_audio_file)
+            #TEMP
 
             transcript_json_file = str(self.config.temp_dir / "RegularCityCouncil-31326.json")
 
