@@ -26,6 +26,6 @@ from pipeline.config import PipelineConfig
 from pipeline.orchestrator import PipelineOrchestrator
 
 if __name__ == "__main__":
-    config = PipelineConfig(meeting_year=2026)
+    config = PipelineConfig(meeting_year=2026, enable_cleanup=False)
     orchestrator = PipelineOrchestrator(config)
     orchestrator.execute()

@@ -1,3 +1,4 @@
+from pathlib import Path
 from pytubefix import YouTube 
 from pytubefix.cli import on_progress
 
@@ -18,7 +19,12 @@ class VideoDownloader(PipelineStage):
             audio_stream = yt.streams.get_audio_only()
             downloaded_path = audio_stream.download(output_path=str(self.config.temp_dir))
 
-            return str(downloaded_path)
+            path = Path(downloaded_path)
+            temp_name = path.name.replace(" ", "")
+            temp_path = path.parent / temp_name
+            path.rename(temp_path)
+
+            return str(temp_path)
         except Exception as e:
             raise PipelineError(f"Failed to download YouTube video: {e}")
     

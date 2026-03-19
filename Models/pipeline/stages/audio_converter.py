@@ -1,6 +1,5 @@
-import os
+import subprocess
 from pathlib import Path
-from pydub import AudioSegment
 
 from pipeline.stage import PipelineStage
 from pipeline.exceptions import PipelineError
@@ -45,11 +44,19 @@ class AudioConverter(PipelineStage):
         try:
             self.m4a_file_path = intput_data
             
-            output_file = self.config.temp_dir / self.m4a_file_path.steam + ".mp3"
+            output_file = intput_data.replace(".m4a", ".mp3")
 
-            input_sound = AudioSegment.from_file(intput_data, format="m4a")
-            input_sound.export(output_file, format="mp3")
+            command = [
+                "ffmpeg",
+                "-i", intput_data,
+                "-c:a", "libmp3lame",
+                "-q:a", "4",
+                output_file
+            ]
+            
+            subprocess.run(command, check=True)
 
+            self.logger.info(f"Successfully converted {intput_data} to {output_file}")
             return output_file
         except Exception as e:
             raise PipelineError(f"Failed converting M4A file to MP3: {e}")

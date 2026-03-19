@@ -6,6 +6,7 @@ class PipelineConfig:
     meeting_year: int = 2026
     council_meetings_id: int = 1
     api_timeout: int = 30
+    enable_cleanup: bool = True
     output_dir: Path = Path("output")
     temp_dir: Path = Path(".temp")
 

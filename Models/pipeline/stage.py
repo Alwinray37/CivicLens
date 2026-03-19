@@ -19,7 +19,7 @@ class PipelineStage(ABC):
         pass
 
     def cleanup(self):
-        """Optional: clean up resources after execution."""
+        """Optional: clean up resources after execution."""        
         pass
 
     def run(self, input_data: Any) -> Any:
@@ -37,4 +37,5 @@ class PipelineStage(ABC):
             self.logger.error(f"{self.__class__.__name__} failed: {e}")
             raise
         finally:
-            self.cleanup()
+            if self.config.enable_cleanup:
+                self.cleanup()
