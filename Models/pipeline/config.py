@@ -1,3 +1,4 @@
+import os
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -6,7 +7,10 @@ class PipelineConfig:
     meeting_year: int = 2026
     council_meetings_id: int = 1
     api_timeout: int = 30
+    compute_type: str = "float16"
+    batch_size: str = "16"
     enable_cleanup: bool = True
+    pyannote_token: str = os.getenv("PYANNOTE_TOKEN")
     output_dir: Path = Path("output")
     temp_dir: Path = Path(".temp")
 
