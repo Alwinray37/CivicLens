@@ -76,37 +76,40 @@ class SummaryGen(PipelineStage):
         return True
     
     def execute(self, intput_data):
-        summary_file, agenda_file = intput_data["files"][0], intput_data["files"][1]
+        try:
+            summary_file, agenda_file = intput_data["files"][0], intput_data["files"][1]
 
-        agenda_dic = JsonHelper.load_json_data(agenda_file)
+            agenda_dic = JsonHelper.load_json_data(agenda_file)
 
-        meeting_sum = MeetingSummary(meeting_json_path=summary_file,
-                                    chunk_sum_model=MeetingSummary.summary_models["llama-8b"], 
-                                    fin_select_model=MeetingSummary.summary_models["llama-8b"],
-                                    emb_model=MeetingSummary.embedding_models["qwen-4b"])
-        
-        meeting_sum.chunk_opts = {
-            'method': 'fixed',
-            'delim': '\n',
-            'lines_per_chunk': intput_data["options"]["lines_per_chunk"],
-            'overlap': intput_data["options"]["overlap"],
-        }
-        
-        filter_list = ['Policy', 'Civic', 'Voting']
-        filter_list = list(map(lambda a: a['title'], agenda_dic['items']))
-        additional_filters = ['Policy', 'Civic', 'Voting']
-        filter_list.extend(additional_filters)
-        important_events = meeting_sum.gen_important_events_by_query(filter_list=filter_list, 
-                                                                     max_query=intput_data["options"]["max_query"])
+            meeting_sum = MeetingSummary(meeting_json_path=summary_file,
+                                        chunk_sum_model=MeetingSummary.summary_models["llama-8b"], 
+                                        fin_select_model=MeetingSummary.summary_models["llama-8b"],
+                                        emb_model=MeetingSummary.embedding_models["qwen-4b"])
+            
+            meeting_sum.chunk_opts = {
+                'method': 'fixed',
+                'delim': '\n',
+                'lines_per_chunk': intput_data["options"]["lines_per_chunk"],
+                'overlap': intput_data["options"]["overlap"],
+            }
+            
+            filter_list = ['Policy', 'Civic', 'Voting']
+            filter_list = list(map(lambda a: a['title'], agenda_dic['items']))
+            additional_filters = ['Policy', 'Civic', 'Voting']
+            filter_list.extend(additional_filters)
+            important_events = meeting_sum.gen_important_events_by_query(filter_list=filter_list, 
+                                                                        max_query=intput_data["options"]["max_query"])
 
-        output_file = Path(summary_file)
-        temp_name = output_file.stem + "_Summary"
-        temp_path = output_file.parent / temp_name
-        output_file = str(Path(temp_path))
+            output_file = Path(summary_file)
+            temp_name = output_file.stem + "_Summary"
+            temp_path = output_file.parent / temp_name
+            output_file = str(Path(temp_path))
 
-        JsonHelper.write_json_data(output_file, important_events)
+            JsonHelper.write_json_data(output_file, important_events)
+        except Exception as e:
+            raise PipelineError(f"Failed on Summary Generation: {e}")
 
         return output_file
     
     def cleanup(self):
-        return super().cleanup()
+        pass
