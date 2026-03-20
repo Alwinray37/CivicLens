@@ -382,6 +382,11 @@ Here are the chunks:
         for event in splt_events:
             key_values = event.split("\n")
             event_obj = {}
+
+            #safe guard if summary does not have starttime, title, or summary
+            if len(key_values) < 3 or len(key_values) > 3:
+                continue
+
             for i, pair in enumerate(key_values):
                 value = pair.split(": ")[1]
                 if i == 0:

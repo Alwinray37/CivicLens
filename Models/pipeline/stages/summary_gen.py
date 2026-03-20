@@ -99,13 +99,14 @@ class SummaryGen(PipelineStage):
         important_events = meeting_sum.gen_important_events_by_query(filter_list=filter_list, 
                                                                      max_query=intput_data["options"]["max_query"])
 
-        summary_file = Path(summary_file)
-        summary_file.stem += "Summary"
-        s_path = str(summary_file)
+        output_file = Path(summary_file)
+        temp_name = output_file.stem + "_Summary"
+        temp_path = output_file.parent / temp_name
+        output_file = str(Path(temp_path))
 
-        JsonHelper.write_json_data(s_path, important_events)
+        JsonHelper.write_json_data(output_file, important_events)
 
-        return s_path
+        return output_file
     
     def cleanup(self):
         return super().cleanup()
