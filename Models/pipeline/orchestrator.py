@@ -10,6 +10,7 @@ from pipeline.stages.pdf_downloader import PdfDownloader
 from pipeline.stages.pdf_parser import PdfParser
 from pipeline.stages.transcript_gen import TranscriptGen
 from pipeline.stages.summary_gen import SummaryGen
+from pipeline.stages.chunk_gen import ChunkGen
 
 class PipelineOrchestrator:
     def __init__(self, config: PipelineConfig):
@@ -54,7 +55,11 @@ class PipelineOrchestrator:
                     },
             }
 
-            summary_json_file = SummaryGen(self.config).run(summary_dict)            
+            #summary_json_file = SummaryGen(self.config).run(summary_dict)            
+
+            transcript_json_file = str(self.config.temp_dir / "RegularCityCouncil-31326.json")
+
+            chunk_file = ChunkGen(self.config).run(transcript_json_file)
 
             #TODO add audio file processing
 

@@ -25,11 +25,27 @@ from utils.chunker import ChunkOpts, Chunker
 # class MeetingEvents(BaseModel):
 #     events: list[MeetingEvent]
 
-class MeetingSummary:
-
+class EmbedHelper:
     embedding_models = {
         "qwen-4b" : "qwen3-embedding:4b"
     }
+    
+    def __init__(self, embedding_model=embedding_models["qwen-4b"]):
+        self.embedding_model = embedding_model
+
+
+    def embed_list(self, str_list: list[str]):
+        embeddings = ollama.embed(
+            model=self.embedding_model,
+            input=str_list
+        )
+        
+        return embeddings['embeddings']
+
+
+class MeetingSummary:
+
+    embedding_models = EmbedHelper.embedding_models
 
     summary_models = {
         "llama-3b" : "llama3.2:3b",
@@ -65,6 +81,7 @@ class MeetingSummary:
         self.cur_select_model = chunk_sum_model
         self.cur_select_model = fin_select_model
         self.cur_emb_model = emb_model
+        self.embed_helper = EmbedHelper(embedding_model=emb_model)
 
         self.chunker = Chunker(emb_model=emb_model)
         self.meeting_chunk_key = str(hash(self.text))
@@ -230,17 +247,8 @@ Here are the chunks:
         return f"{hours:0>2d}:{minutes:0>2d}:{seconds_rd:0>2d},{ms:0>3d}"
         
     
-    def embed_list(self, str_list: list[str]):
-        embeddings = ollama.embed(
-            model=MeetingSummary.cur_emb_model,
-            input=str_list
-        )
-        
-        return embeddings['embeddings']
-        
-    
     def embed_and_cluster_chunks(self, chunks: list[str], n_clusters=7):
-        vectors = self.embed_list(str_list=chunks)
+        vectors = self.embed_helper.embed_list(str_list=chunks)
         clusters = KMeans(n_clusters=n_clusters, random_state=101).fit(vectors)
         print(f'Clustered chunks:\n{clusters.labels_}')
         return (vectors, clusters)
@@ -282,7 +290,7 @@ Here are the chunks:
     def get_queried_chunks(self, chunks: list[str]|None=None, ch_embeddings=None, filter_list: list[str]|None=None, fi_embeddings=None, max_query: int = 12):
         collection = self.client.get_collection("chunks")
         
-        chunk_embeddings = ch_embeddings or self.embed_list(str_list=chunks or [])
+        chunk_embeddings = ch_embeddings or self.embed_helper.embed_list(str_list=chunks or [])
         chunk_embeddings_ids = [str(index) for index, _ in enumerate(chunk_embeddings)]
         
         
@@ -292,7 +300,7 @@ Here are the chunks:
             documents=chunks
         )
         
-        filter_embeddings = fi_embeddings or self.embed_list(str_list=filter_list or [])
+        filter_embeddings = fi_embeddings or self.embed_helper.embed_list(str_list=filter_list or [])
         
         query_res = collection.query(
             query_embeddings=filter_embeddings,

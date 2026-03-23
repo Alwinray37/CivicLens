@@ -87,7 +87,7 @@ class SummaryGen(PipelineStage):
                                         emb_model=MeetingSummary.embedding_models["qwen-4b"])
             
             meeting_sum.chunk_opts = {
-                'method': 'fixed',
+                'method': 'semantic',
                 'delim': '\n',
                 'lines_per_chunk': intput_data["options"]["lines_per_chunk"],
                 'overlap': intput_data["options"]["overlap"],

@@ -1,8 +1,7 @@
 import os
 from utils.json_helper import JsonHelper
 from pipeline.stage import PipelineStage
-
-REQUIRED_CHUNK_KEYS = {"StartTime", "Title", "Summary"}
+from utils.meeting_summary import EmbedHelper
 
 class ChunkGen(PipelineStage):
     def validate(self, input_data):
@@ -23,7 +22,7 @@ class ChunkGen(PipelineStage):
             self.logger.error(f"Failed to load JSON from: {input_data}")
             return False
 
-        if not isinstance(data, list):
+        if not isinstance(data, dict):
             self.logger.error(f"JSON root must be a list, got {type(data)}")
             return False
 
@@ -31,25 +30,14 @@ class ChunkGen(PipelineStage):
             self.logger.error("JSON chunk list is empty")
             return False
 
-        for i, item in enumerate(data):
-            if not isinstance(item, dict):
-                self.logger.error(f"Item [{i}] must be a dict, got {type(item)}")
-                return False
-
-            missing = REQUIRED_CHUNK_KEYS - item.keys()
-            if missing:
-                self.logger.error(f"Item [{i}] is missing required keys: {missing}")
-                return False
-
-            for key in REQUIRED_CHUNK_KEYS:
-                if not isinstance(item[key], str):
-                    self.logger.error(f"Item [{i}]['{key}'] must be a string, got {type(item[key])}")
-                    return False
-
         return True
     
     def execute(self, intput_data):
         data = JsonHelper.load_json_data(intput_data)
+
+        embdeder = EmbedHelper()
+
+        print()
 
         raise NotImplementedError()
     
