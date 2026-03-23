@@ -11,6 +11,7 @@ import numpy
 from sklearn.cluster import KMeans
 
 from utils.chunker import ChunkOpts, Chunker
+from utils.embed_helper import EmbedHelper
 
 # If you want to attempt to use the format option with ollama.
 # Not currently in use as the models seem to be very iffy when trying to produce consistent JSON.
@@ -24,23 +25,6 @@ from utils.chunker import ChunkOpts, Chunker
 
 # class MeetingEvents(BaseModel):
 #     events: list[MeetingEvent]
-
-class EmbedHelper:
-    embedding_models = {
-        "qwen-4b" : "qwen3-embedding:4b"
-    }
-    
-    def __init__(self, embedding_model=embedding_models["qwen-4b"]):
-        self.embedding_model = embedding_model
-
-
-    def embed_list(self, str_list: list[str]):
-        embeddings = ollama.embed(
-            model=self.embedding_model,
-            input=str_list
-        )
-        
-        return embeddings['embeddings']
 
 
 class MeetingSummary:
@@ -231,6 +215,20 @@ Here are the chunks:
 [PASTE CHUNKS HERE]
 {newline.join(summaries)}
 """.strip()
+
+    def get_chunks(self, opts: ChunkOpts | None = None):
+        """
+        Returns transcript chunks using the provided chunk options,
+        or the instance default options when not provided.
+
+        Parameters:
+            opts (ChunkOpts | None): Optional chunking configuration.
+
+        Returns:
+            list[str]: Generated transcript chunks.
+        """
+        chunk_opts = opts or self.chunk_opts
+        return self.chunker.chunk(text=self.text, key=self.meeting_chunk_key, opts=chunk_opts)
 
     
     def _seconds_to_srt_str(self, seconds: float) -> str:
@@ -465,7 +463,7 @@ Here are the chunks:
         #     file_content = file.read()
         #     agenda += file_content
             
-        chunks = self.chunker.chunk(text=self.text, key=self.meeting_chunk_key, opts=self.chunk_opts)
+        chunks = self.get_chunks()
         print("Chunked transcript\n")
         summaries = self.gen_chunks_summaries(chunks=chunks)
         print("Summarized chunks\n")
@@ -474,7 +472,7 @@ Here are the chunks:
     def gen_meeting_asr_segmentation(self, json_agenda, json_minutes, lines_per_chunk=30):
         all_segments = []
        
-        chunks = self.chunker.chunk(text=self.text, key=self.meeting_chunk_key, opts=self.chunk_opts)
+        chunks = self.get_chunks()
         
         for chunk_idx, chunk in enumerate(chunks):
             print(f"processing chunk {chunk_idx + 1}/{len(chunks)}")
@@ -507,17 +505,44 @@ Here are the chunks:
 
         return all_segments
 
-    def gen_important_events_by_query(self, filter_list: list[str], max_query=5):
-        chunks = self.chunker.chunk(text=self.text, key=self.meeting_chunk_key, opts=self.chunk_opts)
-        # query 5 chunks per filter
-        query_res = self.get_queried_chunks(chunks=chunks, filter_list=filter_list, max_query=max_query)
+    def gen_important_events_by_query_data(self,
+                                           filter_list: list[str],
+                                           max_query=5,
+                                           chunks: list[str] | None = None,
+                                           chunk_embeddings=None):
+        """
+        Generates important events using query filtering and supports
+        optional precomputed chunks and chunk embeddings.
+
+        Parameters:
+            filter_list (list[str]): Query filters used to retrieve relevant chunks.
+            max_query (int): Maximum query results per filter.
+            chunks (list[str] | None): Optional precomputed transcript chunks.
+            chunk_embeddings (Any): Optional precomputed embeddings for chunks.
+
+        Returns:
+            list[dict[str, str]]: Important events JSON array.
+        """
+        selected_chunks = chunks or self.get_chunks()
+
+        query_res = self.get_queried_chunks(
+            chunks=selected_chunks,
+            ch_embeddings=chunk_embeddings,
+            filter_list=filter_list,
+            max_query=max_query,
+        )
         np_res_arr = numpy.array(query_res)
         
         # flatten and remove duplicates
         queried_chunks = set(np_res_arr.flatten())
         summaries = self.gen_chunks_summaries(chunks=queried_chunks)
-        
         return self.gen_important_events_from_summaries(summaries=summaries)
+
+    def gen_important_events_by_query(self, filter_list: list[str], max_query=5):
+        return self.gen_important_events_by_query_data(
+            filter_list=filter_list,
+            max_query=max_query,
+        )
         
         
     def gen_important_events_by_double_query(self, filter_list: list[str], init_lines_per_chunk=100, last_lines_per_chunk=25):
@@ -533,7 +558,7 @@ Here are the chunks:
                 'lines_per_chunk': last_lines_per_chunk,
                 "overlap": 0,
                 }
-        chunks = self.chunker.chunk(text=self.text, key=self.meeting_chunk_key, opts=init_opts)
+        chunks = self.get_chunks(opts=init_opts)
         
         max_query = math.ceil(len(filter_list) / 2)
         
@@ -564,7 +589,7 @@ Here are the chunks:
     
     
     def get_important_events_by_cluster_centroids(self, n_clusters=12):
-        chunks = self.chunker.chunk(text=self.text, key=self.meeting_chunk_key, opts=self.chunk_opts)
+        chunks = self.get_chunks()
         
         centroid_chunks = self.get_centroid_chunks(chunks=chunks, n_clusters=n_clusters)
         summaries = self.gen_chunks_summaries(chunks=centroid_chunks)

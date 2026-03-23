@@ -55,11 +55,18 @@ class PipelineOrchestrator:
                     },
             }
 
-            #summary_json_file = SummaryGen(self.config).run(summary_dict)            
+            chunk_input = {
+                "transcript_file": transcript_json_file,
+                "options": summary_dict["options"],
+                "chunk_artifact_file" : None
+            }
 
-            transcript_json_file = str(self.config.temp_dir / "RegularCityCouncil-31326.json")
+            chunk_file = ChunkGen(self.config).run(chunk_input)
 
-            chunk_file = ChunkGen(self.config).run(transcript_json_file)
+            #chunk_file = str(self.config.temp_dir / "RegularCityCouncil-31326_chunks_embeddings.json")
+
+            summary_dict["chunk_artifact_file"] = chunk_file
+            summary_json_file = SummaryGen(self.config).run(summary_dict)
 
             #TODO add audio file processing
 
