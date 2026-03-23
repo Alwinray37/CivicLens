@@ -63,8 +63,10 @@ class PipelineOrchestrator:
 
             chunk_file = ChunkGen(self.config).run(chunk_input)
 
+            #TEMP
             #chunk_file = str(self.config.temp_dir / "RegularCityCouncil-31326_chunks_embeddings.json")
-
+            #TEMP
+            
             summary_dict["chunk_artifact_file"] = chunk_file
             summary_json_file = SummaryGen(self.config).run(summary_dict)
 

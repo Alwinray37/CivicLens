@@ -101,7 +101,7 @@ class SummaryGen(PipelineStage):
                                                                         max_query=intput_data["options"]["max_query"])
 
             output_file = Path(summary_file)
-            temp_name = output_file.stem + "_Summary"
+            temp_name = output_file.stem + "_Summary.json"
             temp_path = output_file.parent / temp_name
             output_file = str(Path(temp_path))
 
