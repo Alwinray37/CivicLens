@@ -15,9 +15,12 @@
 # ✓
 # get the pdf agenda and parse through it
 
+# ✓
 # call models to get the transcript data
 
+# ✓
 # call embedding model to get embedding data
+
 # generate sql table script for static db generation
 
 # delete extra files generated - mp3, jsons, and etc
