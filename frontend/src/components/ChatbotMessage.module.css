@@ -3,9 +3,15 @@
     background-color: var(--bs-tertiary-bg);
 }
 
+.chatbotMessage:not([data-type="outgoing"]) {
+    color: oklch(from currentColor calc(l * 0.5) c h) !important;
+}
 .chatbotMessage[data-type="incoming"] {
     /* tmp colors */
     background-color: oklch(from var(--bs-tertiary-bg) calc(l * 0.92) c h);
+}
 
-    color: oklch(from currentColor calc(l * 0.8) c h) !important;
+.chatbotMessage[data-type="error"] {
+    /* tmp colors */
+    background-color: oklch(from red calc(l * 1.8) c h);
 }
