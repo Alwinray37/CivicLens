@@ -55,6 +55,7 @@ services:
       # you can configure models here or in .env
       ANSWER_MODEL: ${ANSWER_MODEL:-llama3.1:8b}
       EMBED_MODEL: ${EMBED_MODEL:-qwen3-embedding:4b}
+      OLLAMA_CONTEXT_LENGTH: 8192 # default 4096
     volumes:
       - ollamadata:/root/.ollama
     restart: always
