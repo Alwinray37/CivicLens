@@ -1,0 +1,16 @@
+# LA City Council Meeting Pipeline Configuration
+#
+# Copy this file to your working directory and edit as needed.
+# Any fields omitted here will use the defaults shown below.
+#
+# PYANNOTE_TOKEN must be set as an environment variable — do NOT put it here.
+
+# Directory where final SQL output files are written
+output_dir: "output"
+
+# Directory for intermediate/temporary files during processing
+temp_dir: ".temp"
+
+# Calendar year used when fetching meetings with --latest.
+# When using --date, the year is derived from the date automatically.
+meeting_year: 2026

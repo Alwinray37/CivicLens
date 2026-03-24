@@ -27,29 +27,27 @@ class PipelineOrchestrator:
 
             if not meetings:
                 raise PipelineError("No meetings found")
+
+            if self.config.target_date:
+                matched = [m for m in meetings if m["dateTime"][:10] == self.config.target_date]
+                if not matched:
+                    raise PipelineError(
+                        f"No meeting found for date {self.config.target_date}. "
+                        f"Available dates: {[m['dateTime'][:10] for m in meetings]}"
+                    )
+                meeting = matched[0]
+            else:
+                meeting = meetings[-1]
             
-            #get latest meeting
-            meeting = meetings[-1]
+            agenda_pdf_file = PdfDownloader(self.config).run(meeting)
+            agenda_json_file = PdfParser(self.config).run(agenda_pdf_file)            
 
-            #TEMP   
-            #agenda_pdf_file = PdfDownloader(self.config).run(meeting)
-            #agenda_json_file = PdfParser(self.config).run(agenda_pdf_file)
+            m4a_audio_file = VideoDownloader(self.config).run(meeting)
+           
+            mp3_audio_file = AudioConverter(self.config).run(m4a_audio_file)
 
-            agenda_json_file = str(self.config.temp_dir / "agenda_17962_parsed.json")
-
-            #m4a_audio_file = VideoDownloader(self.config).run(meeting)
-
-               
-            #m4a_audio_file = str(self.config.temp_dir / "RegularCityCouncil-31326.m4a")
-            mp3_audio_file = str(self.config.temp_dir / "RegularCityCouncil-31326.mp3")
+            transcript_json_file = TranscriptGen(self.config).run(mp3_audio_file)
             
-            #mp3_audio_file = AudioConverter(self.config).run(m4a_audio_file)
-
-            #transcript = TranscriptGen(self.config).run(mp3_audio_file)
-            #TEMP
-
-            transcript_json_file = str(self.config.temp_dir / "RegularCityCouncil-31326.json")
-
             summary_dict = {
                 "files": [transcript_json_file, agenda_json_file],
                 "chunk_artifact_file": None,
@@ -65,18 +63,10 @@ class PipelineOrchestrator:
                 "options": summary_dict["options"],                
             }
 
-            #chunk_file = ChunkGen(self.config).run(chunk_input)
+            chunk_file = ChunkGen(self.config).run(chunk_input)
 
-            #TEMP
-            chunk_file = str(self.config.temp_dir / "RegularCityCouncil-31326_chunks_embeddings.json")
-            #TEMP
-            
             summary_dict["chunk_artifact_file"] = chunk_file
-            #summary_json_file = SummaryGen(self.config).run(summary_dict)
-
-            #TEMP
-            summary_json_file = str(self.config.temp_dir / "RegularCityCouncil-31326_Summary.json")
-            #TEMP
+            summary_json_file = SummaryGen(self.config).run(summary_dict)
 
             meeting_info = {
                 "summary_file": summary_json_file,
@@ -88,8 +78,6 @@ class PipelineOrchestrator:
             meeting_data_file = CombineMeetingData(self.config).run(meeting_info)
 
             sql_file = SqlGen(self.config).run(meeting_data_file)
-
-            print()
 
         except PipelineError as e:
             self.logger.critical(f"Pipeline failed: {e}")
