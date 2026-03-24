@@ -37,7 +37,7 @@ class CombineMeetingData(PipelineStage):
     def execute(self, intput_data):
         agenda_items = JsonHelper.load_json_data(intput_data["agenda_file"])
         summaries = JsonHelper.load_json_data(intput_data["summary_file"])
-        chunk_data = JsonHelper.load_json_data(intput_data["chunk_file"])        
+        chunk_data = JsonHelper.load_json_data(intput_data["chunk_file"])
 
         meeting_data = {
             "title": "City Council Meeting",
@@ -45,10 +45,7 @@ class CombineMeetingData(PipelineStage):
             "video_url": intput_data["meeting"]["videoUrl"],
             "agenda_items": agenda_items,
             "summaries": summaries,
-            "chunk_data": {
-                "chunks": chunk_data["chunks"],
-                "embeddings": chunk_data["embeddings"]
-            },
+            "chunk_data": chunk_data["chunks_embeddings"],
         }
 
         output_path = str(Path(self.config.temp_dir / f"Final_{meeting_data['date']}_data.json"))

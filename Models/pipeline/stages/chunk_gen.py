@@ -64,15 +64,27 @@ class ChunkGen(PipelineStage):
             'overlap': options.get("overlap", 5),
         }
 
-        chunks = meeting_sum.get_chunks()
-        if len(chunks) == 0:
+        chunk_records = meeting_sum.get_chunk_records()
+        if len(chunk_records) == 0:
             raise ValueError("No chunks were generated from transcript")
+
+        chunks = [record["chunk"] for record in chunk_records]
 
         embedder = EmbedHelper(embedding_model=meeting_sum.cur_emb_model)
         vectors = embedder.embed_list(str_list=chunks)
 
-        if len(vectors) != len(chunks):
-            raise ValueError(f"Embedding count mismatch: {len(vectors)} vectors for {len(chunks)} chunks")
+        if len(vectors) != len(chunk_records):
+            raise ValueError(f"Embedding count mismatch: {len(vectors)} vectors for {len(chunk_records)} chunks")
+
+        chunks_embeddings = []
+        for record, vector in zip(chunk_records, vectors):
+            chunks_embeddings.append({
+                "chunknum": record["chunknum"],
+                "starttime": record["starttime"],
+                "endtime": record["endtime"],
+                "chunk": record["chunk"],
+                "embedding": vector,
+            })
 
         output_file = Path(transcript_file)
         artifact_name = output_file.stem + "_chunks_embeddings.json"
@@ -82,6 +94,7 @@ class ChunkGen(PipelineStage):
             "transcript_file": transcript_file,
             "chunk_opts": meeting_sum.chunk_opts,
             "embedding_model": meeting_sum.cur_emb_model,
+            "chunks_embeddings": chunks_embeddings,
             "chunks": chunks,
             "embeddings": vectors,
         }

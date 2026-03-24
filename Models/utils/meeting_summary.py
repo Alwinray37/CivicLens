@@ -230,6 +230,34 @@ Here are the chunks:
         chunk_opts = opts or self.chunk_opts
         return self.chunker.chunk(text=self.text, key=self.meeting_chunk_key, opts=chunk_opts)
 
+    def _extract_chunk_indices(self, chunk: str) -> list[int]:
+        return [int(index) for index in re.findall(r"\|(\d+)\|", chunk)]
+
+    def get_chunk_records(self, opts: ChunkOpts | None = None):
+        chunk_opts = opts or self.chunk_opts
+        chunks = self.get_chunks(opts=chunk_opts)
+
+        chunk_records = []
+        for chunk_index, chunk in enumerate(chunks, start=1):
+            indices = self._extract_chunk_indices(chunk)
+
+            valid_indices = [idx for idx in indices if 0 <= idx < len(self.docs)]
+            if valid_indices:
+                start_time = min(self.docs[idx].metadata.get("start", 0) for idx in valid_indices)
+                end_time = max(self.docs[idx].metadata.get("end", 0) for idx in valid_indices)
+            else:
+                start_time = 0
+                end_time = 0
+
+            chunk_records.append({
+                "chunknum": chunk_index,
+                "starttime": start_time,
+                "endtime": end_time,
+                "chunk": chunk,
+            })
+
+        return chunk_records
+
     
     def _seconds_to_srt_str(self, seconds: float) -> str:
         hours = math.floor(seconds / 3600)
