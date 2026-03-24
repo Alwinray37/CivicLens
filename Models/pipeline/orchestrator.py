@@ -87,7 +87,9 @@ class PipelineOrchestrator:
 
             meeting_data_file = CombineMeetingData(self.config).run(meeting_info)
 
-            SqlGen(self.config).run(meeting_data_file)
+            sql_file = SqlGen(self.config).run(meeting_data_file)
+
+            print()
 
         except PipelineError as e:
             self.logger.critical(f"Pipeline failed: {e}")
