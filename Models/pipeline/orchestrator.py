@@ -1,5 +1,7 @@
 import logging
 
+from utils.json_helper import JsonHelper
+
 from pipeline.config import PipelineConfig
 from pipeline.exceptions import PipelineError
 
@@ -11,6 +13,8 @@ from pipeline.stages.pdf_parser import PdfParser
 from pipeline.stages.transcript_gen import TranscriptGen
 from pipeline.stages.summary_gen import SummaryGen
 from pipeline.stages.chunk_gen import ChunkGen
+from pipeline.stages.combine_meeting_data import CombineMeetingData
+from pipeline.stages.sql_gen import SqlGen
 
 class PipelineOrchestrator:
     def __init__(self, config: PipelineConfig):
@@ -48,6 +52,7 @@ class PipelineOrchestrator:
 
             summary_dict = {
                 "files": [transcript_json_file, agenda_json_file],
+                "chunk_artifact_file": None,
                 "options": {
                     "lines_per_chunk": 50,
                     "overlap": 5,
@@ -56,21 +61,33 @@ class PipelineOrchestrator:
             }
 
             chunk_input = {
-                "transcript_file": transcript_json_file,
-                "options": summary_dict["options"],
-                "chunk_artifact_file" : None
+                "transcript_file": transcript_json_file,                                       
+                "options": summary_dict["options"],                
             }
 
-            chunk_file = ChunkGen(self.config).run(chunk_input)
+            #chunk_file = ChunkGen(self.config).run(chunk_input)
 
             #TEMP
-            #chunk_file = str(self.config.temp_dir / "RegularCityCouncil-31326_chunks_embeddings.json")
+            chunk_file = str(self.config.temp_dir / "RegularCityCouncil-31326_chunks_embeddings.json")
             #TEMP
             
             summary_dict["chunk_artifact_file"] = chunk_file
-            summary_json_file = SummaryGen(self.config).run(summary_dict)
+            #summary_json_file = SummaryGen(self.config).run(summary_dict)
 
-            #TODO add audio file processing
+            #TEMP
+            summary_json_file = str(self.config.temp_dir / "RegularCityCouncil-31326_Summary.json")
+            #TEMP
+
+            meeting_info = {
+                "summary_file": summary_json_file,
+                "agenda_file": agenda_json_file,
+                "chunk_file": chunk_file,
+                "meeting": meeting
+            }
+
+            meeting_data_file = CombineMeetingData(self.config).run(meeting_info)
+
+            SqlGen(self.config).run(meeting_data_file)
 
         except PipelineError as e:
             self.logger.critical(f"Pipeline failed: {e}")
