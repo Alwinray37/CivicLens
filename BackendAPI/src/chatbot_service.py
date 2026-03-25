@@ -5,7 +5,14 @@ from langchain_postgres import PGVectorStore, PGEngine
 from langchain_core.documents import Document
 from langchain_ollama.embeddings import OllamaEmbeddings
 
+class ChatbotException(Exception):
+    def __init__(self, message: str, status_code: int):
+        super().__init__(message)
+        self.status_code = status_code
+
 class ChatbotService:
+    MAX_QUESTION_LEN = 300
+
     def __init__(self, vstore:VectorStore, chat_model:BaseChatModel):
         self.vstore = vstore
         self.chat_model = chat_model
@@ -38,6 +45,9 @@ class ChatbotService:
         """
         Answer a question for a specific meeting
         """
+        if(len(question) > self.MAX_QUESTION_LEN):
+            raise ChatbotException("Question is too long", status_code=414)
+
         relevant_docs = self._retrieve_docs(question=question, meeting_id=meeting_id)
         prompt = self._augment(question=question, docs=relevant_docs)
         return self._generate(prompt=prompt)
@@ -63,16 +73,20 @@ You are an assistant that answers questions about a city council meeting.
 
 You are given:
 - A user question
-- A set of relevant excerpts from the meeting transcript
+- Relevant excerpts from the meeting transcript
 
 Rules:
 - Answer using ONLY the information in the excerpts
-- If the excerpts do not contain enough information, say "The meeting did not address this."
-- Do not speculate or add outside knowledge
+- Do NOT refer to excerpt numbers, chunk IDs, or any formatting of the input
+- Do NOT mention "excerpt", "chunk", or "transcript" in your answer
+- Write the answer as a natural response, as if explaining what happened in the meeting
+- Do NOT use markdown, bullet points, or special formatting
+- Use plain sentences only
 - Be concise and factual
-- Use plain language suitable for the general public
+- If the excerpts do not contain enough information, say:
+  "This was not discussed in the meeting."
 
-Meeting Excerpts:
+Meeting Text:
 {"\n".join([d.page_content for d in docs])}
 
 User Question:
