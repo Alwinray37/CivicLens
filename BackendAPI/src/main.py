@@ -5,7 +5,7 @@ import os
 
 from slowapi.errors import RateLimitExceeded
 
-from src.chatbot_service import ChatbotService
+from src.chatbot_service import ChatbotException, ChatbotService
 from src.models import MeetingsData, MeetingInfo
 from src.models.meeting_models import ChatResponse
 from slowapi import Limiter, _rate_limit_exceeded_handler
@@ -131,6 +131,10 @@ def chat(request: Request, meeting_id: int, query: str):
         if not isinstance(ans, str):
             raise Exception("Response in incorrect format")
         return ChatResponse(Response=ans)
+
+    except ChatbotException as e:
+        raise HTTPException(status_code=e.status_code, detail=e)
+
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Unexpected error: {str(e)}")
 
