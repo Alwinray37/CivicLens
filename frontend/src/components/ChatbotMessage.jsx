@@ -5,7 +5,7 @@ import styles from './ChatbotMessage.module.css';
     * props:
         * message: string
             * content of the chat
-        * type: "outgoing" | "incoming"
+        * type: "outgoing" | "incoming" | "error" | "pending"
                 * outgoing messages appear on right, outgoing appear on left
 */
 export default function ChatbotMessage({
@@ -22,7 +22,13 @@ export default function ChatbotMessage({
             className={`shadow-sm rounded-1 py-1 px-2 my-1 d-inline-block text-body-secondary ${styles.chatbotMessage}`}
             data-type={type}
             >
-                {message}
+                {
+                    type === "pending" 
+                    ? message.split('').map((c, i) => 
+                        <span key={i} className={styles.loadingChar}>{c}</span>
+                    )
+                    : message
+                }
             </span>
         </div>
     )
