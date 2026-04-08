@@ -12,8 +12,6 @@ from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.middleware import SlowAPIASGIMiddleware
 from slowapi.util import get_remote_address
 
-# global rate limit
-limiter = Limiter(key_func=(lambda: "global"))
 
 app = FastAPI()
 app.add_middleware(
@@ -23,9 +21,25 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"]
 )
+
+chatbot_limit_strat = os.getenv("CHATBOT_LIMIT_STRAT")
+
+match chatbot_limit_strat:
+    case "IP":
+        chatbot_limit_strat_fn = get_remote_address
+    case _:
+        # global rate limit
+        chatbot_limit_strat_fn = lambda: "global"
+
+chatbot_limit = os.getenv("CHATBOT_LIMIT") or "5/minute"
+
+
+limiter = Limiter(key_func=chatbot_limit_strat_fn)
+
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 app.add_middleware(SlowAPIASGIMiddleware)
+
 
 
 db_conn_str = os.getenv("DB_CONN") or ""
@@ -114,7 +128,7 @@ def getMeetingInfo(meeting_id: int):
 
 # request param is needed for slowapi limiter
 @app.get("/chat/{meeting_id}", response_model=ChatResponse)
-@limiter.limit("5/minute")
+@limiter.limit(chatbot_limit)
 def chat(request: Request, meeting_id: int, query: str):
     try:
         ans = chat_service.answer(query, meeting_id)
