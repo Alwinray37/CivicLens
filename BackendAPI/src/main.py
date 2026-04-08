@@ -11,6 +11,11 @@ from slowapi.util import get_remote_address
 from src.chatbot_service import ChatbotException, ChatbotService
 from src.models import MeetingsData, MeetingInfo
 from src.models.meeting_models import ChatResponse
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.middleware import SlowAPIASGIMiddleware
+from slowapi.util import get_remote_address
+
+from config_env import env
 
 
 app = FastAPI()
@@ -22,51 +27,10 @@ app.add_middleware(
     allow_headers=["*"]
 )
 
-chatbot_limit_strat = os.getenv("CHATBOT_LIMIT_STRAT")
-
-match chatbot_limit_strat:
-    case "IP":
-        chatbot_limit_strat_fn = get_remote_address
-    case _:
-        # global rate limit
-        chatbot_limit_strat_fn = lambda: "global"
-
-chatbot_limit = os.getenv("CHATBOT_LIMIT") or "5/minute"
-
-
-limiter = Limiter(key_func=chatbot_limit_strat_fn)
-
-app.state.limiter = limiter
+app.state.limiter = env.limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 app.add_middleware(SlowAPIASGIMiddleware)
 
-
-
-db_conn_str = os.getenv("DB_CONN") or ""
-db_password = os.getenv("DB_PASSWORD", "")
-
-if not db_conn_str:
-    db_conn_str = f"postgresql://postgres:{db_password}@db:5432/postgres"
-
-db_pgv_conn_str = os.getenv("DB_PGV_CONN") or ""
-if not db_pgv_conn_str:
-    if db_conn_str.startswith("postgresql://"):
-        db_pgv_conn_str = db_conn_str.replace("postgresql://", "postgresql+asyncpg://", 1)
-    elif db_conn_str.startswith("postgres://"):
-        db_pgv_conn_str = db_conn_str.replace("postgres://", "postgresql+asyncpg://", 1)
-    else:
-        raise RuntimeError("DB_CONN must be a PostgreSQL URL or DB_PGV_CONN must be provided for chatbot support")
-
-ollama_conn_str = os.getenv("OLLAMA_CONN") or "http://localhost:11434"
-
-answer_model = os.getenv("ANSWER_MODEL") or "smollm:135m"
-embedding_model = os.getenv("EMBED_MODEL") or "all-minilm:22m"
-chat_service = ChatbotService.create(db_url=db_pgv_conn_str, 
-                                   answer_model=answer_model, 
-                                   table_name="MeetingChunks", 
-                                   embedding_model=embedding_model,
-                                   ollama_url=ollama_conn_str,
-                                   )
 
 @app.get("/")
 def root():
@@ -75,7 +39,7 @@ def root():
 @app.get("/dbTestConnection")
 def db_test_connection():
     try:
-        with psycopg.connect(db_conn_str) as conn:
+        with psycopg.connect(env.db_conn) as conn:
             return {"message": "Connection okay"} 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"\nUnexpected error: {str(e)}")
@@ -83,7 +47,7 @@ def db_test_connection():
 @app.get("/getMeetings", response_model=MeetingsData, response_model_by_alias=True)
 def get_meetings():
     try:
-        with psycopg.connect(db_conn_str) as conn:
+        with psycopg.connect(env.db_conn) as conn:
             with conn.cursor() as cur:
                 cur.execute("""
                 SELECT get_meetings_json();
@@ -108,7 +72,7 @@ def get_meetings():
 @app.get("/getMeetingInfo/{meeting_id}", response_model=MeetingInfo, response_model_by_alias=True)
 def getMeetingInfo(meeting_id: int):
     try:
-        with psycopg.connect(db_conn_str) as conn:
+        with psycopg.connect(env.db_conn) as conn:
             with conn.cursor() as cur:
                 cur.execute("""
                     SELECT get_meeting_json(%s);
@@ -138,10 +102,10 @@ def getMeetingInfo(meeting_id: int):
 
 # request param is needed for slowapi limiter
 @app.get("/chat/{meeting_id}", response_model=ChatResponse)
-@limiter.limit(chatbot_limit)
+@env.limiter.limit(env.limit)
 def chat(request: Request, meeting_id: int, query: str):
     try:
-        ans = chat_service.answer(query, meeting_id)
+        ans = env.chat_service.answer(query, meeting_id)
         if not isinstance(ans, str):
             raise Exception("Response in incorrect format")
         return ChatResponse(Response=ans)

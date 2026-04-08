@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 name: CivicLens
 services:
   db:
@@ -72,3 +73,84 @@ services:
 volumes:
   pgdata:
   ollamadata:
+=======
+name: CivicLens
+services:
+  db:
+    image: pgvector/pgvector:pg17
+    container_name: CivicLensDB
+    restart: unless-stopped
+    ports:
+      - "5431:5432"
+    environment:
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./DB/create_script.sql:/docker-entrypoint-initdb.d/create_script.sql
+  api:
+    build:
+      context: ./BackendAPI
+    container_name: CivicLensAPI
+    ports:
+      - "8000:8000"
+    environment:
+      DB_CONN: ${DB_CONN:-}
+      DB_PASSWORD: ${DB_PASSWORD}
+      OLLAMA_CONN: ${OLLAMA_CONN:-http://ollama:11434}
+      ANSWER_MODEL: ${ANSWER_MODEL:-llama3.1:8b}
+      EMBED_MODEL: ${EMBED_MODEL:-qwen3-embedding:4b}
+
+      # IP or GLOBAL
+      CHATBOT_LIMIT_STRAT: ${CHATBOT_LIMIT_STRAT:-IP}
+
+      # slowapi format (num/interval)
+      CHATBOT_LIMIT: ${CHATBOT_LIMIT:-5/minute}
+
+      PYTHONPATH: /app
+    depends_on:
+      - db
+      - ollama
+    develop:
+      watch:
+        - action: sync
+          path: ./BackendAPI/src
+          target: /app/src
+          initial_sync: true
+        - action: rebuild
+          path: ./BackendAPI/requirements.txt
+          target: /app/requirements.txt
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "80:80"
+    depends_on:
+      - api
+
+  ollama:
+    build:
+      context: ./Ollama
+      dockerfile: Dockerfile
+    ports:
+      - "4341:11434"
+    environment:
+      # you can configure models here or in .env
+      ANSWER_MODEL: ${ANSWER_MODEL:-llama3.1:8b}
+      EMBED_MODEL: ${EMBED_MODEL:-qwen3-embedding:4b}
+      OLLAMA_CONTEXT_LENGTH: 8192 # default 4096
+    volumes:
+      - ollamadata:/root/.ollama
+    restart: always
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: ["gpu"]
+
+volumes:
+  pgdata:
+  ollamadata:
+>>>>>>> b5ed559 (Move env dependent backend variables to seperate file config_env)
