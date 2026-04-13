@@ -13,7 +13,7 @@ function App() {
 
 	return (
         <QueryClientProvider client={queryClient}>
-            <Router>
+            <Router basename={import.meta.env.BASE_URL.replace(/\/$/, '') || '/'}>
                 <div className="main">
                     <Navbar/>
                     

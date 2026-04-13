@@ -1,28 +1,27 @@
-name: CivicLens
 services:
   db:
     image: postgres:17
-    container_name: CivicLensDB
     restart: unless-stopped
-    ports:
-      - "5431:5432"
     environment:
       POSTGRES_PASSWORD: ${DB_PASSWORD}
     volumes:
       - pgdata:/var/lib/postgresql/data
       - ./DB/create_script.sql:/docker-entrypoint-initdb.d/create_script.sql
+    networks:
+      - backend
   api:
     build:
       context: ./BackendAPI
-    container_name: CivicLensAPI
-    ports:
-      - "8000:8000"
+    restart: unless-stopped
     environment:
       DB_CONN: ${DB_CONN:-}
       DB_PASSWORD: ${DB_PASSWORD}
       PYTHONPATH: /app
     depends_on:
       - db
+    networks:
+      - backend
+      - civiclens-public
     develop:
       watch:
         - action: sync
@@ -36,9 +35,19 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-    ports:
-      - "80:80"
+      args:
+        VITE_BASE_PATH: ${VITE_BASE_PATH:-/}
+    restart: unless-stopped
     depends_on:
       - api
+    networks:
+      - backend
+      - civiclens-public
 volumes:
   pgdata:
+    name: ${PGDATA_VOLUME_NAME:-}
+    external: ${PGDATA_VOLUME_EXTERNAL:-false}
+networks:
+  backend:
+  civiclens-public:
+    external: true

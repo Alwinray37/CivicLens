@@ -3,8 +3,14 @@ import react from '@vitejs/plugin-react'
 
 import path from 'path'
 
+const base = process.env.VITE_BASE_PATH || '/'
+if (!base.startsWith('/') || !base.endsWith('/')) {
+    throw new Error(`VITE_BASE_PATH must start and end with "/", got: ${base}`)
+}
+
 // https://vite.dev/config/
 export default defineConfig({
+    base,
     build: {
         target: 'esnext',
     },

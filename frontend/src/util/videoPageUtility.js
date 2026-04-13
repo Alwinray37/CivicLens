@@ -5,7 +5,7 @@
  * @throws {Error} If the request fails or meeting is not found
  */
 export async function fetchVideoData(id) {
-    const res = await fetch(`/api/getMeetingInfo/${id}`);
+    const res = await fetch(`${import.meta.env.BASE_URL}api/getMeetingInfo/${id}`);
     
     if (!res.ok) {
         throw new Error("Server error");
