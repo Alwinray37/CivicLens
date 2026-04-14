@@ -1,0 +1,26 @@
+name: Deploy CivicLens
+
+on:
+  push:
+    branches: [main, development]
+
+concurrency:
+  group: deploy-${{ github.ref_name }}
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+    env:
+      PROJECT:  ${{ github.ref_name == 'main' && 'civiclens-prod' || 'civiclens-dev' }}
+      ENV_FILE: ${{ github.ref_name == 'main' && '/home/overseer/config/civiclens-prod.env' || '/home/overseer/config/civiclens-dev.env' }}
+      COMPOSE_FILES: ${{ github.ref_name == 'main' && '-f docker-compose.yaml -f docker-compose.prod.yaml' || '-f docker-compose.yaml' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build and deploy
+        run: |
+          docker compose $COMPOSE_FILES -p "$PROJECT" --env-file "$ENV_FILE" up -d --build --remove-orphans
+
+      - name: Show status
+        run: docker compose -p "$PROJECT" ps

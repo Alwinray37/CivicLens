@@ -1,0 +1,27 @@
+.thumbnailBtn {
+    position: relative;
+
+    padding: 0;
+}
+
+.thumbnailBtn img {
+    max-width: 100%;
+
+    border-radius: inherit;
+}
+
+.playIcon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    position: absolute;
+    inset: 0;
+
+    font-size: 3rem;
+    color: white;
+}
+
+.tag {
+    background: var(--color-secondary);
+}

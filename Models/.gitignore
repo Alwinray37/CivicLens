@@ -1,0 +1,13 @@
+.env
+
+*.pdf
+*.mp3
+*.wav
+*.mp4
+*.jpg
+
+<<<<<<< HEAD
+__pycache__/
+=======
+__pycache__
+>>>>>>> e8034543124d34ab86c1de8ddbc2d47c67ea676a

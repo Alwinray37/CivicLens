@@ -1,0 +1,51 @@
+services:
+  db:
+    image: postgres:17
+    restart: unless-stopped
+    environment:
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./DB/create_script.sql:/docker-entrypoint-initdb.d/create_script.sql
+    networks:
+      - backend
+  api:
+    build:
+      context: ./BackendAPI
+    restart: unless-stopped
+    environment:
+      DB_CONN: ${DB_CONN:-}
+      DB_PASSWORD: ${DB_PASSWORD}
+      PYTHONPATH: /app
+    depends_on:
+      - db
+    networks:
+      - backend
+      - civiclens-public
+    develop:
+      watch:
+        - action: sync
+          path: ./BackendAPI/src
+          target: /app/src
+          initial_sync: true
+        - action: rebuild
+          path: ./BackendAPI/requirements.txt
+          target: /app/requirements.txt
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_BASE_PATH: ${VITE_BASE_PATH:-/}
+    restart: unless-stopped
+    depends_on:
+      - api
+    networks:
+      - backend
+      - civiclens-public
+volumes:
+  pgdata:
+networks:
+  backend:
+  civiclens-public:
+    external: true

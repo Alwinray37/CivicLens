@@ -1,0 +1,22 @@
+/* nav container */
+#infoTabContainer {
+    --bs-nav-pills-link-active-bg: var(--color-secondary);
+    --bs-nav-pills-link-active-color: white;
+}
+/* nav item | button (link) container */
+.navItem{
+    /* background-color: var(--color-primary); */
+    flex: 1;
+}
+/* nav Item button/link */
+li .navItemLink {
+    color: var(--color-primary);
+    font-weight: bold;
+}
+li .navItemLink:hover {
+    background-color: var(--color-secondary-light);
+    color: var(--color-primary);
+}
+li .active{
+    background-color: var(--color-primary);
+}
