@@ -45,8 +45,6 @@ services:
       - civiclens-public
 volumes:
   pgdata:
-    name: ${PGDATA_VOLUME_NAME:-}
-    external: ${PGDATA_VOLUME_EXTERNAL:-false}
 networks:
   backend:
   civiclens-public:
