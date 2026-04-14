@@ -8,7 +8,7 @@ import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import LoadingSpinner from '@components/icons/LoadingSpinner';
 
-const CATALOG_ENDPOINT = '/api/getMeetings';
+const CATALOG_ENDPOINT = `${import.meta.env.BASE_URL}api/getMeetings`;
 
 export default function CatalogPage() {
     const [dateOrder, setDateOrder] = useState('desc');
