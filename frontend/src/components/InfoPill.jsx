@@ -1,5 +1,3 @@
-import styles from './InfoPill.module.css';
-
 export default function InfoPill({
     title,
     content,
@@ -8,18 +6,18 @@ export default function InfoPill({
     ...rest
 }) {
     return (
-        <div className={`bg-body-tertiary shadow-sm rounded rounded-2 p-3 mx-2 text-start ${styles.infoItem}`}
+        <div className="app-surface-muted shadow-sm rounded rounded-2 p-3 mx-2 text-start info-item"
         {...rest}
         >
-            <span className="text-md text-body-secondary fw-bold d-block mb-1">{title}</span>
-            <span className="d-block text-body-secondary mb-1">{content}</span>
+            <span className="text-md info-item-title fw-bold d-block mb-1">{title}</span>
+            <span className="d-block info-item-content mb-1">{content}</span>
             {time &&
             <span 
-                className={`d-inline-block text-body-tertiary ${styles.time}`}
+                className="d-inline-block info-pill-time"
                 onClick={() => onTimeClick(time)}
             >
                 <span>{time.split(',').at(0)}</span>
-                <span className={`ms-2 text-sm text-info-emphasis ${styles.timeInfo}`}>Jump to time</span>
+                <span className="ms-2 text-sm text-info-emphasis info-pill-time-info">Jump to time</span>
             </span>
             }
         </div>
