@@ -45,17 +45,22 @@ export function buildThumbnailUrl(videoUrl) {
  * @param {Array} meetings
  * @param {string} search
  * @param {'asc'|'desc'} dateOrder
+ * @param {string} selectedTag
+ * @param {Record<string|number, Array<{id: string, label: string}>>} tagsByMeetingId
  * @returns {Array}
  */
-export function getFilteredCatalogMeetings(meetings, search, dateOrder) {
+export function getFilteredCatalogMeetings(meetings, search, dateOrder, selectedTag = '', tagsByMeetingId = {}) {
     const searchLower = search.trim().toLowerCase();
 
     return meetings
         .filter((video) => {
             if (!video?.VideoURL) return false;
-            if (!searchLower) return true;
 
-            return video.Title?.toLowerCase().includes(searchLower);
+            const titleMatches = !searchLower || video.Title?.toLowerCase().includes(searchLower);
+            const videoTags = tagsByMeetingId[video.MeetingID] || [];
+            const tagMatches = !selectedTag || videoTags.some((tag) => tag.id === selectedTag);
+
+            return titleMatches && tagMatches;
         })
         .sort((a, b) => {
             if (!a.Date || !b.Date) return 0;

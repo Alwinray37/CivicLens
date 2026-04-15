@@ -4,17 +4,21 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import LoadingSpinner from '@components/icons/LoadingSpinner';
+import { useCatalogTags } from '@hooks/useCatalogTags';
+import { TAG_DEFINITIONS } from '@util/tagDefinitions';
 import { fetchCatalogData, getFilteredCatalogMeetings, getMeetingsFromCatalog } from '@util/catalog';
 
 export default function CatalogPage() {
     const [dateOrder, setDateOrder] = useState('desc');
     const [search, setSearch] = useState('');
+    const [selectedTag, setSelectedTag] = useState('');
 
     const navigate = useNavigate();
 
     const catalogQuery = useQuery({ queryKey: ['catalog'], queryFn: fetchCatalogData });
     const meetings = catalogQuery.status === 'success' ? getMeetingsFromCatalog(catalogQuery.data) : [];
-    const filteredList = getFilteredCatalogMeetings(meetings, search, dateOrder);
+    const tagsByMeetingId = useCatalogTags(meetings);
+    const filteredList = getFilteredCatalogMeetings(meetings, search, dateOrder, selectedTag, tagsByMeetingId);
 
 
     // handle button click to open video page 
@@ -27,6 +31,8 @@ export default function CatalogPage() {
         <div className="container" id="video-list-page">
             <div className="heading d-flex align-items-center justify-content-between">
                 <h1>Civic Meetings</h1>
+
+                {/* filter component */}
                 <div className="filter d-flex gap-2">
                     <input
                         type="text"
@@ -46,7 +52,18 @@ export default function CatalogPage() {
                         <option value="desc">Newest First</option>
                         <option value="asc">Oldest First</option>
                     </select>
-                    <button className="btn btn-secondary" onClick={() => { setSearch(''); setDateOrder('desc'); }}>Clear</button>
+                    <select
+                        className="form-select"
+                        value={selectedTag}
+                        onChange={e => setSelectedTag(e.target.value)}
+                        style={{ maxWidth: '170px' }}
+                    >
+                        <option value="">All Tags</option>
+                        {TAG_DEFINITIONS.map((tag) => (
+                            <option key={tag.id} value={tag.id}>{tag.label}</option>
+                        ))}
+                    </select>
+                    <button className="btn btn-secondary" onClick={() => { setSearch(''); setDateOrder('desc'); setSelectedTag(''); }}>Clear</button>
                 </div>
             </div>
 
@@ -68,6 +85,15 @@ export default function CatalogPage() {
                                 <div>
                                     <h2 className="title">{video.Title}</h2>
                                     <p>{video.Date}</p>
+                                    {tagsByMeetingId[video.MeetingID]?.length > 0 && (
+                                        <div className="catalog-tag-list d-flex flex-wrap gap-2 mt-3">
+                                            {tagsByMeetingId[video.MeetingID].map((tag) => (
+                                                <span key={tag.id} className="catalog-tag">
+                                                    {tag.label}
+                                                </span>
+                                            ))}
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         </div>
