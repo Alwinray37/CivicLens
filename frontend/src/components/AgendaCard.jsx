@@ -24,7 +24,7 @@ export default function AgendaCard({
     onItemClick,
 }) {
     return (
-        <div className="container p-0 d-flex flex-column bg-body-secondary agenda-card">
+        <div className="container p-0 d-flex flex-column app-panel agenda-card">
             <div className="overflow-y-scroll py-2 d-flex flex-column gap-2 flex-grow-1 min-scrollbar">
                 {events.map((e, i) =>
                 <InfoPill

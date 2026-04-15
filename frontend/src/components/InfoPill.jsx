@@ -6,14 +6,14 @@ export default function InfoPill({
     ...rest
 }) {
     return (
-        <div className="bg-body-tertiary shadow-sm rounded rounded-2 p-3 mx-2 text-start info-item"
+        <div className="app-surface-muted shadow-sm rounded rounded-2 p-3 mx-2 text-start info-item"
         {...rest}
         >
-            <span className="text-md text-body-secondary fw-bold d-block mb-1">{title}</span>
-            <span className="d-block text-body-secondary mb-1">{content}</span>
+            <span className="text-md info-item-title fw-bold d-block mb-1">{title}</span>
+            <span className="d-block info-item-content mb-1">{content}</span>
             {time &&
             <span 
-                className="d-inline-block text-body-tertiary info-pill-time"
+                className="d-inline-block info-pill-time"
                 onClick={() => onTimeClick(time)}
             >
                 <span>{time.split(',').at(0)}</span>

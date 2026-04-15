@@ -55,10 +55,10 @@ export default function Chatbot() {
     }, [messages]);
 
     return (
-        <div className="container rounded text-start p-0 h-100 d-flex flex-column justify-content-between bg-body-secondary chatbot-wrapper">
-            <h4 className="border-bottom py-2 mx-2 mb-0 ps-1 pb-2 text-body-secondary fw-bold">Chatbot</h4>
+        <div className="container rounded text-start p-0 h-100 d-flex flex-column justify-content-between app-panel chatbot-wrapper">
+            <h4 className="chatbot-header border-bottom py-2 mx-2 mb-0 ps-1 pb-2 fw-bold">Chatbot</h4>
             <div 
-                className="d-flex flex-column flex-grow-1 overflow-y-scroll min-scrollbar my-1 text-body-secondary"
+                className="d-flex flex-column flex-grow-1 overflow-y-scroll min-scrollbar my-1 chatbot-messages"
                 ref={messageContainerRef}
             >
                 {
@@ -67,7 +67,7 @@ export default function Chatbot() {
                         <ChatbotMessage message={m.message} type={m.type} key={i}/>
                     )
                 :
-                    <div className="h-100 d-flex align-items-center justify-content-center text-body-tertiary">
+                    <div className="h-100 d-flex align-items-center justify-content-center empty-state-text">
                         <span>
                             Ask a question about the video
                         </span>
