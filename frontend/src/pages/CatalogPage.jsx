@@ -86,7 +86,13 @@ export default function CatalogPage() {
                             <div className='col text-start d-flex flex-column justify-content-between'>
                                 <div>
                                     <h2 className="title">{video.Title}</h2>
-                                    <p>{video.Date}</p>
+                                    <p>{video.Date ? new Date(video.Date).toLocaleDateString("en-US", {
+                                            year: "numeric",
+                                            month: "long",
+                                            day: "numeric",
+                                            }) : 'No date available'
+                                }
+                                    </p>
                                     {tagsByMeetingId[video.MeetingID]?.length > 0 && (
                                         <div className="catalog-tag-list d-flex flex-wrap gap-2 mt-3">
                                             {tagsByMeetingId[video.MeetingID].map((tag) => (
@@ -101,7 +107,7 @@ export default function CatalogPage() {
                         </div>
                     ))
                 ) : (
-                    <p>No meetings available</p>
+                    <h2>No meetings available</h2>
                 )}
             </div>
         </div>
