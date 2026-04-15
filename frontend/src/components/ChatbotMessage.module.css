@@ -1,4 +1,41 @@
 .chatbotMessage {
     max-width: 75%;
+    background-color: var(--bs-tertiary-bg);
 }
 
+.chatbotMessage:not([data-type="outgoing"]) {
+    /* tmp colors */
+    color: oklch(from currentColor calc(l * 0.5) c h) !important;
+    background-color: oklch(from var(--bs-tertiary-bg) calc(l * 0.92) c h);
+}
+
+.chatbotMessage[data-type="error"] {
+    /* tmp colors */
+    background-color: oklch(from red calc(l * 1.8) c h);
+}
+
+.loadingChar {
+    display: inline-block;
+    animation: pulse 1000ms infinite;
+    animation-timing-function: ease-in-out;
+
+    will-change: transform;
+    font-size: 2rem;
+    line-height: .3lh;
+    transform: translateY(-15%);
+}
+
+.loadingChar:nth-of-type(3n+2) {
+    animation-delay: 333ms;
+}
+
+.loadingChar:nth-of-type(3n) {
+    animation-delay: 666ms;
+}
+
+@keyframes pulse {
+    50% {
+        transform: scale(1.2) translateY(-50%);
+        padding: 0 .5px;
+    }
+}
