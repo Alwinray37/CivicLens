@@ -1,5 +1,3 @@
-import styles from './VideoInfoCard.module.css';
-
 import 'bootstrap';
 import TranscriptCard from '@components/TranscriptCard';
 import AgendaCard from '@components/AgendaCard';
@@ -20,15 +18,15 @@ export default function VideoInfoCard({
         // VideoInfo Component 
         <div className="bg-body-secondary rounded p-0 shadow-sm ">
             {/* Navbar for video info tabs */}
-            <ul id={styles.infoTabContainer} className={`nav nav-pills p-2 shadow-sm isolate rounded-top d-flex justify-content-center gap-2 ${styles.tabs}`} role="tablist">
-                <li className={styles.navItem} role="presentation">
-                    <button className={`${bs_btn_clslst} active ${styles.navItemLink}`} id="video-summary-tab" data-bs-toggle="pill" data-bs-target="#video-summary" type="button" role="tab" aria-controls="video-summary" aria-selected="true">Summary</button>
+            <ul id="info-tab-container" className="nav nav-pills p-2 shadow-sm isolate rounded-top d-flex justify-content-center gap-2 video-info-tabs" role="tablist">
+                <li className="video-info-nav-item" role="presentation">
+                    <button className={`${bs_btn_clslst} active video-info-nav-link`} id="video-summary-tab" data-bs-toggle="pill" data-bs-target="#video-summary" type="button" role="tab" aria-controls="video-summary" aria-selected="true">Summary</button>
                 </li>
-                <li className={styles.navItem} role="presentation">
-                    <button className={`${bs_btn_clslst} ${styles.navItemLink}`} id="video-agenda-tab" data-bs-toggle="pill" data-bs-target="#video-agenda" type="button" role="tab" aria-controls="video-agenda" aria-selected="false">Agenda</button>
+                <li className="video-info-nav-item" role="presentation">
+                    <button className={`${bs_btn_clslst} video-info-nav-link`} id="video-agenda-tab" data-bs-toggle="pill" data-bs-target="#video-agenda" type="button" role="tab" aria-controls="video-agenda" aria-selected="false">Agenda</button>
                 </li>
-                <li className={styles.navItem} role="presentation">
-                    <button className={`${bs_btn_clslst} ${styles.navItemLink}`} id="video-transcript-tab" data-bs-toggle="pill" data-bs-target="#video-transcript" type="button" role="tab" aria-controls="video-transcript" aria-selected="false" >Transcript</button>
+                <li className="video-info-nav-item" role="presentation">
+                    <button className={`${bs_btn_clslst} video-info-nav-link`} id="video-transcript-tab" data-bs-toggle="pill" data-bs-target="#video-transcript" type="button" role="tab" aria-controls="video-transcript" aria-selected="false" >Transcript</button>
                 </li>
             </ul>
             <div className="tab-content overflow-hidden rounded-bottom" id="video-tabContent">

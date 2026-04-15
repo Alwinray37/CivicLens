@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from 'react';
-import styles from './Chatbot.module.css';
 
 import ChatbotMessage from './ChatbotMessage';
 
@@ -56,8 +55,7 @@ export default function Chatbot() {
     }, [messages]);
 
     return (
-        <div className={"container rounded text-start p-0 h-100 d-flex flex-column justify-content-between bg-body-secondary "
-                        + styles.chatbotWrapper}>
+        <div className="container rounded text-start p-0 h-100 d-flex flex-column justify-content-between bg-body-secondary chatbot-wrapper">
             <h4 className="border-bottom py-2 mx-2 mb-0 ps-1 pb-2 text-body-secondary fw-bold">Chatbot</h4>
             <div 
                 className="d-flex flex-column flex-grow-1 overflow-y-scroll min-scrollbar my-1 text-body-secondary"

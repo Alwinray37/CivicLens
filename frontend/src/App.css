@@ -1,13 +1,3 @@
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
-a {
-  text-decoration: none !important;
-  /* color: inherit; */
-}
-
 #root {
   --c-bg-1: rgb(230, 245, 255);
   --nav-height: 3rem;
@@ -105,4 +95,133 @@ nav li, nav ul, nav a{
 
 .isolate {
     isolation: isolate;
+}
+
+.catalog-thumbnail-btn {
+    position: relative;
+    padding: 0;
+}
+
+.catalog-thumbnail-btn img {
+    max-width: 100%;
+    border-radius: inherit;
+}
+
+.catalog-play-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: absolute;
+    inset: 0;
+    font-size: 3rem;
+    color: white;
+}
+
+.transcript-card,
+.agenda-card,
+.bookmark-card,
+.summary-card {
+    max-height: 400px;
+}
+
+.transcript-item:hover,
+.info-item:hover {
+    box-shadow: 0 .25rem .5rem rgba(0, 0, 0, .15) !important;
+}
+
+.transcript-time {
+    width: 15%;
+}
+
+.transcript-text {
+    width: 85%;
+}
+
+.info-pill-time-info {
+    display: none;
+}
+
+.info-pill-time:hover {
+    color: var(--bs-info) !important;
+    cursor: pointer;
+    text-decoration: underline;
+    text-underline-offset: .1rem;
+}
+
+.info-pill-time:hover .info-pill-time-info {
+    display: inline-block;
+    animation-name: appear;
+    animation-duration: .1s;
+    animation-timing-function: ease-in-out;
+}
+
+.chatbot-wrapper {
+    min-height: 200px;
+    min-width: 250px;
+}
+
+.chatbot-message {
+    max-width: 75%;
+}
+
+#info-tab-container {
+    --bs-nav-pills-link-active-bg: var(--color-secondary);
+    --bs-nav-pills-link-active-color: white;
+}
+
+.video-info-nav-item {
+    flex: 1;
+}
+
+li .video-info-nav-link {
+    color: var(--color-primary);
+    font-weight: bold;
+}
+
+li .video-info-nav-link:hover {
+    background-color: var(--color-secondary-light);
+    color: var(--color-primary);
+}
+
+li .video-info-nav-link.active {
+    background-color: var(--color-primary);
+}
+
+.bookmark-description {
+    font-size: .8rem;
+}
+
+.loading-spinner {
+    width: 100%;
+    max-width: 300px;
+    max-height: 300px;
+    animation: loading-spin 0.75s linear infinite;
+}
+
+@keyframes appear {
+    0% {
+        opacity: 0;
+    }
+
+    100% {
+        opacity: 100%;
+    }
+}
+
+@keyframes loading-spin {
+    25% {
+        rotate: 90deg;
+    }
+
+    50% {
+        rotate: 220deg;
+    }
+
+    75% {
+        rotate: 300deg;
+    }
+
+    100% {
+        rotate: 360deg;
+    }
 }

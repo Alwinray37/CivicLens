@@ -1,5 +1,4 @@
 import InfoPill from '@components/InfoPill';
-import styles from './SummaryCard.module.css';
 
 import { srtTimeStrToSeconds } from "@util/time";
 
@@ -11,8 +10,7 @@ export default function SummaryCard({
     const sortedSummaries = summaries ? [...summaries].sort((a, b) => a.StartTime.localeCompare(b.StartTime)) : [];
 
     return (
-        <div className={"container p-0 d-flex flex-column bg-body-secondary "
-                        + styles.summaryCard}>
+        <div className="container p-0 d-flex flex-column bg-body-secondary summary-card">
             <div className="overflow-y-scroll py-2 d-flex flex-column gap-2 flex-grow-1 min-scrollbar">
                 {
                 sortedSummaries && sortedSummaries.length > 0 ?

@@ -1,6 +1,5 @@
 // Catalog Page Component
 // Lists available meeting recordings and routes users to the watch page.
-import styles from './CatalogPage.module.css';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
@@ -59,9 +58,9 @@ export default function CatalogPage() {
                         <div className="video-card d-flex flex-row-reverse " 
                             key={video.MeetingID}
                         >
-                            <button className={`col-4 ${styles.thumbnailBtn}`} title={video.title} onClick={() => handleButtonClick(video.MeetingID, video.VideoURL)}>
+                            <button className="col-4 catalog-thumbnail-btn" title={video.title} onClick={() => handleButtonClick(video.MeetingID, video.VideoURL)}>
                                 <img src={video.ThumbnailURL} />
-                                <span className={`${styles.playIcon}`} role="img" aria-label="Play" >
+                                <span className="catalog-play-icon" role="img" aria-label="Play" >
                                     <i className="fa-solid fa-circle-play"></i>
                                 </span>
                             </button>

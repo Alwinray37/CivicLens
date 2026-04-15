@@ -18,14 +18,20 @@
   --color-bg: #dfbfb385;
 }
 
+a,
+a:hover {
+  color: var(--color-secondary);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
 
 a {
   font-weight: 500;
-  color: var(--color-secondary);
-  text-decoration: inherit;
-}
-a:hover {
-  color: var(--color-secondary);
+  text-decoration: none !important;
 }
 
 body {
@@ -71,9 +77,6 @@ button:focus-visible {
   :root {
     color: var(--color-primary);
     background-color: white;
-  }
-  a:hover {
-    color: var(--color-secondary);
   }
   button {
     background-color: var(--color-secondary);
