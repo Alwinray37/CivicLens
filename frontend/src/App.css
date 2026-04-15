@@ -102,10 +102,13 @@ nav a {
   background-color: var(--color-card-bg);
   border: 2px solid var(--color-secondary);
   box-shadow: 0 16px 32px rgba(0, 0, 0, 0.08);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-.video-card button {
-  border-radius: 10px;
+.video-card:hover {
+  cursor: pointer;
+  transform: translate(-10px);
+  box-shadow: 10px 10px 20px 0 var(--color-card-hover-shadow);
 }
 
 .app-panel {
@@ -143,14 +146,15 @@ nav a {
   isolation: isolate;
 }
 
-.catalog-thumbnail-btn {
+.catalog-thumbnail {
   position: relative;
   padding: 0;
 }
 
-.catalog-thumbnail-btn img {
+.catalog-thumbnail img {
   max-width: 100%;
   border-radius: inherit;
+  border-radius: 10px;
 }
 
 .catalog-play-icon {

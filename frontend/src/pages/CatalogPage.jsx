@@ -72,15 +72,17 @@ export default function CatalogPage() {
                     <LoadingSpinner />
                 ) : filteredList.length > 0 ? (
                     filteredList.map((video) => (
+                        // video card component - displays video thumbnail, title, date, and tags
                         <div className="video-card d-flex flex-row-reverse " 
                             key={video.MeetingID}
+                            onClick={() => handleButtonClick(video.MeetingID, video.VideoURL)}
                         >
-                            <button className="col-4 catalog-thumbnail-btn" title={video.title} onClick={() => handleButtonClick(video.MeetingID, video.VideoURL)}>
+                            <div className="col-4 catalog-thumbnail" title={video.title}>
                                 <img src={video.ThumbnailURL} />
                                 <span className="catalog-play-icon" role="img" aria-label="Play" >
                                     <i className="fa-solid fa-circle-play"></i>
                                 </span>
-                            </button>
+                            </div>
                             <div className='col text-start d-flex flex-column justify-content-between'>
                                 <div>
                                     <h2 className="title">{video.Title}</h2>

@@ -22,6 +22,7 @@
   --color-border: rgba(105, 43, 54, 0.18);
   --color-nav-text: var(--color-primary);
   --color-card-bg: rgba(236, 130, 93, 0.1);
+  --color-card-hover-shadow: rgba(0, 0, 0, 0.508);
 }
 
 :root[data-theme='dark'] {
@@ -36,6 +37,7 @@
   --color-border: rgba(244, 208, 195, 0.18);
   --color-nav-text: #fff4ef;
   --color-card-bg: rgba(236, 130, 93, 0.16);
+  --color-card-hover-shadow: #EC825D;
 }
 
 a,
