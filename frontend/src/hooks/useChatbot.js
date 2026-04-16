@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useMutation } from '@tanstack/react-query';
 import { createMessage, fetchChatbot } from "@/util/chatbotUtility";
 
@@ -21,7 +21,35 @@ export function useChatbot(meetingId, clearInputFunc) {
         retry: 0,
     });
 
-    handleLoadingState();
+    useEffect(() => {
+        const loadingMessageIndex = messages.findIndex((m) => m.type === "pending");
+
+        if (!chatQuery.isPending) {
+            if (loadingMessageIndex === -1) return;
+
+            setMessages((cur) => [
+                ...cur.slice(0, loadingMessageIndex),
+                ...cur.slice(loadingMessageIndex + 1),
+            ]);
+            return;
+        }
+
+        if (loadingMessageIndex === -1) {
+            const pendingMessage = createMessage("pending");
+            if (pendingMessage) {
+                setMessages((cur) => [...cur, pendingMessage]);
+            }
+            return;
+        }
+
+        if (loadingMessageIndex !== messages.length - 1) {
+            setMessages((cur) => [
+                ...cur.slice(0, loadingMessageIndex),
+                ...cur.slice(loadingMessageIndex + 1),
+                cur[loadingMessageIndex],
+            ]);
+        }
+    }, [chatQuery.isPending, messages]);
 
     function handleMutation(query) {
         appendMessage(createMessage("outgoing", query));
@@ -44,27 +72,6 @@ export function useChatbot(meetingId, clearInputFunc) {
         setMessages(curMessages => [...curMessages, message]);
 
         if(message.type === "outgoing") clearInputFunc();
-    }
-
-    function handleLoadingState() {
-        const loadingMessageIndex = messages.findIndex((m) => m.type === "pending");
-
-        if(!chatQuery.isPending) {
-            if(loadingMessageIndex === -1) return;
-
-            setMessages(cur => [
-                            ...cur.slice(0, loadingMessageIndex),
-                            ...cur.slice(loadingMessageIndex + 1),
-                        ]);
-        } else if(loadingMessageIndex === -1) {
-            appendMessage(createMessage("pending"));
-        } else if(loadingMessageIndex !== messages.length - 1) {
-            setMessages(cur => [
-                ...cur.slice(0, loadingMessageIndex),
-                ...cur.slice(loadingMessageIndex + 1),
-                messages[loadingMessageIndex],
-            ]);
-        }
     }
 
     return [ messages, sendMessage ];

@@ -1,19 +1,17 @@
+import os
+import psycopg
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
-import psycopg
-import os
 
 from slowapi.errors import RateLimitExceeded
-
-from src.chatbot_service import ChatbotException, ChatbotService
-from src.models import MeetingsData, MeetingInfo
-from src.models.meeting_models import ChatResponse
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.middleware import SlowAPIASGIMiddleware
 from slowapi.util import get_remote_address
 
-# global rate limit
-limiter = Limiter(key_func=(lambda: "global"))
+from src.chatbot_service import ChatbotException, ChatbotService
+from src.models import MeetingsData, MeetingInfo
+from src.models.meeting_models import ChatResponse
+
 
 app = FastAPI()
 app.add_middleware(
@@ -23,25 +21,43 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"]
 )
+
+chatbot_limit_strat = os.getenv("CHATBOT_LIMIT_STRAT")
+
+match chatbot_limit_strat:
+    case "IP":
+        chatbot_limit_strat_fn = get_remote_address
+    case _:
+        # global rate limit
+        chatbot_limit_strat_fn = lambda: "global"
+
+chatbot_limit = os.getenv("CHATBOT_LIMIT") or "5/minute"
+
+
+limiter = Limiter(key_func=chatbot_limit_strat_fn)
+
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 app.add_middleware(SlowAPIASGIMiddleware)
 
 
+
 db_conn_str = os.getenv("DB_CONN") or ""
+db_password = os.getenv("DB_PASSWORD", "")
+
+if not db_conn_str:
+    db_conn_str = f"postgresql://postgres:{db_password}@db:5432/postgres"
+
+db_pgv_conn_str = os.getenv("DB_PGV_CONN") or ""
+if not db_pgv_conn_str:
+    if db_conn_str.startswith("postgresql://"):
+        db_pgv_conn_str = db_conn_str.replace("postgresql://", "postgresql+asyncpg://", 1)
+    elif db_conn_str.startswith("postgres://"):
+        db_pgv_conn_str = db_conn_str.replace("postgres://", "postgresql+asyncpg://", 1)
+    else:
+        raise RuntimeError("DB_CONN must be a PostgreSQL URL or DB_PGV_CONN must be provided for chatbot support")
 
 ollama_conn_str = os.getenv("OLLAMA_CONN") or "http://localhost:11434"
-
-<<<<<<< HEAD
-if not db_conn_str:
-    db_password = os.getenv("DB_PASSWORD", "")
-    db_conn_str = f"host=db dbname=postgres user=postgres password={db_password}"
-=======
-db_pgv_conn_str = os.getenv("DB_PGV_CONN") or ""
-ollam_conn_str = os.getenv("OLLAMA_CONN") or ""
-
-split_index = db_conn_str.find(':')
-db_pgv_conn_str = db_conn_str[0:split_index] + "+asyncpg" + db_conn_str[split_index:]
 
 answer_model = os.getenv("ANSWER_MODEL") or "smollm:135m"
 embedding_model = os.getenv("EMBED_MODEL") or "all-minilm:22m"
@@ -51,7 +67,6 @@ chat_service = ChatbotService.create(db_url=db_pgv_conn_str,
                                    embedding_model=embedding_model,
                                    ollama_url=ollama_conn_str,
                                    )
->>>>>>> 1553dde (Integrate ChatbotService into backend (/chat) and add ollama docker service)
 
 @app.get("/")
 def root():
@@ -111,20 +126,19 @@ def getMeetingInfo(meeting_id: int):
     except psycopg.Error as e:
         raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
 
-<<<<<<< HEAD
-    if res is None:
-        raise HTTPException(status_code=404, detail="No meetings found")  
-
-    return res[0]
-=======
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Unexpected error: {str(e)}")
+
+    if res is None:
+        raise HTTPException(status_code=404, detail="No meetings found")
+
+    return res[0]
 
 
 
 # request param is needed for slowapi limiter
 @app.get("/chat/{meeting_id}", response_model=ChatResponse)
-@limiter.limit("5/minute")
+@limiter.limit(chatbot_limit)
 def chat(request: Request, meeting_id: int, query: str):
     try:
         ans = chat_service.answer(query, meeting_id)
@@ -133,9 +147,7 @@ def chat(request: Request, meeting_id: int, query: str):
         return ChatResponse(Response=ans)
 
     except ChatbotException as e:
-        raise HTTPException(status_code=e.status_code, detail=e)
+        raise HTTPException(status_code=e.status_code, detail=str(e))
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Unexpected error: {str(e)}")
-
->>>>>>> 1553dde (Integrate ChatbotService into backend (/chat) and add ollama docker service)

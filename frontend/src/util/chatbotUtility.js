@@ -20,9 +20,12 @@ export function createMessage(type, messageText) {
 }
 
 export async function fetchChatbot(query, meetingId) {
-    if(query.length === 0) return;
+    const trimmedQuery = query.trim();
+    if(trimmedQuery.length === 0) {
+        throw new Error("Question cannot be empty.");
+    }
 
-    const res = await fetch(`${CHAT_ENDPOINT}/${meetingId}?query=${query}`);
+    const res = await fetch(`${CHAT_ENDPOINT}/${meetingId}?query=${encodeURIComponent(trimmedQuery)}`);
 
     if(res.status === TOO_MANY_REQUESTS) {
         throw new Error("Chatbot is currently overloaded, try asking again in a minute.");
