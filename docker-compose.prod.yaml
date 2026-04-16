@@ -6,6 +6,3 @@ volumes:
   pgdata:
     name: civiclens_pgdata
     external: true
-  ollamadata:
-    name: civiclens_ollamadata
-    external: true
