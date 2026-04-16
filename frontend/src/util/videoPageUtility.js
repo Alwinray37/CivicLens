@@ -1,3 +1,5 @@
+import { fetchJson } from '@util/api';
+
 /**
  * Fetches video meeting data from the API
  * @param {string|number} id - The meeting ID
@@ -5,24 +7,12 @@
  * @throws {Error} If the request fails or meeting is not found
  */
 export async function fetchVideoData(id) {
-    const res = await fetch(`${import.meta.env.BASE_URL}api/getMeetingInfo/${id}`);
-    
-    if (!res.ok) {
-        throw new Error("Server error");
-    }
+    const data = await fetchJson(`${import.meta.env.BASE_URL}api/getMeetingInfo/${id}`);
 
-    const contentType = res.headers.get('content-type') || '';
-    if (!contentType.includes('application/json')) {
-        const preview = (await res.text()).slice(0, 120);
-        throw new Error(`Expected JSON response but got ${contentType || 'unknown content type'}: ${preview}`);
-    }
-    
-    const data = await res.json();
-    
     if (!data) {
         throw new Error("Meeting not found");
     }
-    
+
     return data;
 }
 

@@ -77,6 +77,39 @@ npm run dev
 
 The frontend will run locally and connect to backend services started via Docker Compose.
 
+## Frontend Commands
+
+Run these commands from the `frontend/` directory.
+
+### Start the frontend dev server
+```bash
+npm run dev
+```
+
+### Run frontend unit tests
+```bash
+npm run test -- --run
+```
+
+This runs the Vitest unit tests under `frontend/tests/unit` once and exits, which matches how CI runs them.
+
+### Run the frontend integration-style regression test
+```bash
+npm run test:integration
+```
+
+This is separate from the unit test suite because it exercises the API-dependent regression test.
+
+### Lint the frontend
+```bash
+npm run lint
+```
+
+### Build the frontend
+```bash
+npm run build
+```
+
 ## Troubleshooting
 - Make sure Docker is running before starting backend services.
 - If data is not loading, remove containers and restart from repo root:

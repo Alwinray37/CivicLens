@@ -1,5 +1,3 @@
-import styles from './LoadingSpinner.module.css';
-
 export default function LoadingSpinner(){
     return (
 
@@ -7,7 +5,7 @@ export default function LoadingSpinner(){
             className="w-100 d-flex justify-content-center align-content-center"
         >
             <svg
-                className={styles.spinner}
+                className="loading-spinner"
                 xmlns="http://www.w3.org/2000/svg"
                 shapeRendering="geometricPrecision"
                 textRendering="geometricPrecision"

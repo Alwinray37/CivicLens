@@ -1,10 +1,6 @@
-import styles from './VideoInfoCard.module.css';
-
 import 'bootstrap';
-import TranscriptCard from '@components/TranscriptCard';
 import AgendaCard from '@components/AgendaCard';
 import SummaryCard from '@components/SummaryCard';
-import TimelineCard from '@components/TimelineCard';
 
 // bootstrap button class list for tabs
 let bs_btn_clslst = `
@@ -18,17 +14,20 @@ export default function VideoInfoCard({
 }) {
     return (
         // VideoInfo Component 
-        <div className="bg-body-secondary rounded p-0 shadow-sm ">
+        <div className="app-panel video-info-shell rounded p-0 shadow-sm">
             {/* Navbar for video info tabs */}
-            <ul id={styles.infoTabContainer} className={`nav nav-pills p-2 shadow-sm isolate rounded-top d-flex justify-content-center gap-2 ${styles.tabs}`} role="tablist">
-                <li className={styles.navItem} role="presentation">
-                    <button className={`${bs_btn_clslst} active ${styles.navItemLink}`} id="video-summary-tab" data-bs-toggle="pill" data-bs-target="#video-summary" type="button" role="tab" aria-controls="video-summary" aria-selected="true">Summary</button>
+            <ul id="info-tab-container" className="nav nav-pills p-2 isolate rounded-top d-flex justify-content-center gap-2 video-info-tabs" role="tablist">
+                <li className="video-info-nav-item" role="presentation">
+                    <button className={`${bs_btn_clslst} active video-info-nav-link`} id="video-summary-tab" data-bs-toggle="pill" data-bs-target="#video-summary" type="button" role="tab" aria-controls="video-summary" aria-selected="true">
+                        <span className="video-info-tab-eyebrow">Overview</span>
+                        <span className="video-info-tab-label">Summary</span>
+                    </button>
                 </li>
-                <li className={styles.navItem} role="presentation">
-                    <button className={`${bs_btn_clslst} ${styles.navItemLink}`} id="video-agenda-tab" data-bs-toggle="pill" data-bs-target="#video-agenda" type="button" role="tab" aria-controls="video-agenda" aria-selected="false">Agenda</button>
-                </li>
-                <li className={styles.navItem} role="presentation">
-                    <button className={`${bs_btn_clslst} ${styles.navItemLink}`} id="video-transcript-tab" data-bs-toggle="pill" data-bs-target="#video-transcript" type="button" role="tab" aria-controls="video-transcript" aria-selected="false" >Transcript</button>
+                <li className="video-info-nav-item" role="presentation">
+                    <button className={`${bs_btn_clslst} video-info-nav-link`} id="video-agenda-tab" data-bs-toggle="pill" data-bs-target="#video-agenda" type="button" role="tab" aria-controls="video-agenda" aria-selected="false">
+                        <span className="video-info-tab-eyebrow">Meeting Flow</span>
+                        <span className="video-info-tab-label">Agenda</span>
+                    </button>
                 </li>
             </ul>
             <div className="tab-content overflow-hidden rounded-bottom" id="video-tabContent">
@@ -49,28 +48,6 @@ export default function VideoInfoCard({
                          }
                      onItemClick={onTimeSelect}
                      />
-                </div>
-                <div className="tab-pane fade" id="video-transcript" role="tabpanel" aria-labelledby="video-transcript-tab" tabIndex={0}>
-                     <TranscriptCard 
-                         onItemClick={onTimeSelect}
-                         snippets={[
-                         {
-                             time: "2:57",
-                             content: "Lorem ipsum dolor sit amet, consectetur adipiscing elit",
-                         },
-                         {
-                             time: "5:57",
-                             content: "Lorem ipsum dolor sit amet, consectetur adipiscing elit",
-                         },
-                         {
-                             time: "10:57",
-                             content: "Lorem ipsum dolor sit amet, consectetur adipiscing elit",
-                         },
-                         {
-                             time: "20:00",
-                             content: "Lorem ipsum dolor sit amet, consectetur adipiscing elit",
-                         },
-                     ]}/>
                 </div>
             </div>
         </div>

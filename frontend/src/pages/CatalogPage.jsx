@@ -1,131 +1,24 @@
 // Catalog Page Component
-// this will list the video as cards for users to click on and watch
-// when clicked, it will take the user to the video watch page
-import dummydata from '@assets/dummydata.json';
-import styles from './CatalogPage.module.css';
-import { useState, useEffect } from 'react';
+// Lists available meeting recordings and routes users to the watch page.
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import LoadingSpinner from '@components/icons/LoadingSpinner';
-
-const CATALOG_ENDPOINT = `${import.meta.env.BASE_URL}api/getMeetings`;
+import { useCatalogTags } from '@hooks/useCatalogTags';
+import { TAG_DEFINITIONS } from '@util/tagDefinitions';
+import { fetchCatalogData, getFilteredCatalogMeetings, getMeetingsFromCatalog } from '@util/catalog';
 
 export default function CatalogPage() {
     const [dateOrder, setDateOrder] = useState('desc');
-    const [filterTag, setFilterTag] = useState('');
     const [search, setSearch] = useState('');
+    const [selectedTag, setSelectedTag] = useState('');
 
     const navigate = useNavigate();
 
     const catalogQuery = useQuery({ queryKey: ['catalog'], queryFn: fetchCatalogData });
-
-    // debug: log query state so we can inspect fetched payload
-    useEffect(() => {
-        console.log('CatalogPage - catalogQuery state:', {
-            isLoading: catalogQuery.isLoading,
-            isError: catalogQuery.isError,
-            data: catalogQuery.data,
-            error: catalogQuery.error,
-        });
-    }, [catalogQuery.isLoading, catalogQuery.isError, catalogQuery.data, catalogQuery.error]);
-
-    // fetches meetings in the catalog
-    async function fetchCatalogData() {
-        try {
-            const res = await fetch(CATALOG_ENDPOINT);
-            if(!res.ok) {
-                // tanstack requires data to be returned or
-                // an error to be thrown in the queryFn
-                throw new Error("Server error");
-            }
-
-            const contentType = res.headers.get('content-type') || '';
-            if (!contentType.includes('application/json')) {
-                const preview = (await res.text()).slice(0, 120);
-                throw new Error(`Expected JSON response but got ${contentType || 'unknown content type'}: ${preview}`);
-            }
-
-            const data = await res.json();
-            console.log('CatalogPage - fetchCatalogData response:', data);
-            return data;
-        } catch(err) {
-            throw new Error(err instanceof Error ? err.message : String(err));
-        }
-    }
-
-    let filteredList = [];
-
-    // Static list of tags related to civic meetings (used until API provides tags)
-    const allTags = [
-        "Budget",
-        "Zoning",
-        "Land Use",
-        "Planning",
-        "Transportation",
-        "Public Works",
-        "Parks & Recreation",
-        "Housing",
-        "Economic Development",
-        "Public Safety",
-        "Police",
-        "Fire Department",
-        "Environmental",
-        "Utilities",
-        "Education",
-        "Procurement",
-        "Ordinance",
-        "Resolution",
-        "Citizen Comments"
-    ];
-
-    if(catalogQuery.status === "success" && catalogQuery.data) {
-        // Get the meetings array - could be catalogQuery.data.meetings or catalogQuery.data directly
-        const meetingsData = catalogQuery.data.meetings || catalogQuery.data;
-        
-        if (!Array.isArray(meetingsData)) {
-            console.error('Expected meetings array, got:', meetingsData);
-            return;
-        }
-        
-        // filter the data from dummydata, retrieve only the videos that have a videoUrl
-        filteredList = meetingsData.filter(video => {
-            if (video.VideoURL === null) return false;
-            // no tags yet
-            // const tagMatch = filterTag ? (video.tags || []).includes(filterTag) : true;
-            const tagMatch = true; // TEMP
-            // Search in title or tags
-            const searchLower = search.toLowerCase();
-            const titleMatch = video.Title.toLowerCase().includes(searchLower);
-            // const tagsMatch = (video.tags || []).some(tag => tag.toLowerCase().includes(searchLower));
-            // const searchMatch = search ? (titleMatch || tagsMatch) : true;
-            const searchMatch = search ? titleMatch : true;
-            return tagMatch && searchMatch;
-        })
-        .sort((a, b) => { // Sort by date
-            if (!a.Date || !b.Date) return 0;
-            if (dateOrder === 'asc') {
-                return new Date(a.Date) - new Date(b.Date);
-            } else {
-                return new Date(b.Date) - new Date(a.Date);
-            }
-        });
-
-
-        // add thumbnail links to filteredList
-        filteredList = filteredList.map(video => {
-            const newVidObj = {...video};
-            // create URL object to access search params easier
-            const videoURL = new URL(newVidObj.VideoURL);
-            // get 'v' search param, which is the YouTube video ID
-            const ytVideoID = videoURL.searchParams.get('v');
-
-            // construct thumbnail URL (high quality 720p)
-            const thumbURL = `https://i.ytimg.com/vi/${ytVideoID}/hq720.jpg`;
-            newVidObj['ThumbnailURL'] = thumbURL;
-
-            return newVidObj;
-        });
-    }
+    const meetings = catalogQuery.status === 'success' ? getMeetingsFromCatalog(catalogQuery.data) : [];
+    const tagsByMeetingId = useCatalogTags(meetings);
+    const filteredList = getFilteredCatalogMeetings(meetings, search, dateOrder, selectedTag, tagsByMeetingId);
 
 
     // handle button click to open video page 
@@ -138,26 +31,17 @@ export default function CatalogPage() {
         <div className="container" id="video-list-page">
             <div className="heading d-flex align-items-center justify-content-between">
                 <h1>Civic Meetings</h1>
+
+                {/* filter component */}
                 <div className="filter d-flex gap-2">
                     <input
                         type="text"
                         className="form-control"
-                        placeholder="Search title or tags..."
+                        placeholder="Search title..."
                         value={search}
                         onChange={e => setSearch(e.target.value)}
                         style={{ maxWidth: '180px' }}
                     />
-                    <select
-                        className="form-select"
-                        value={filterTag}
-                        onChange={e => setFilterTag(e.target.value)}
-                        style={{ maxWidth: '140px' }}
-                    >
-                        <option value="">All Tags</option> {/* need to add tags when available */}
-                        {allTags.map(tag => (
-                            <option key={tag} value={tag}>{tag}</option>
-                        ))}
-                    </select>
                     {/* might change this to a toggle button */}
                     <select
                         className="form-select"
@@ -168,44 +52,63 @@ export default function CatalogPage() {
                         <option value="desc">Newest First</option>
                         <option value="asc">Oldest First</option>
                     </select>
-                    <button className="btn btn-secondary" onClick={() => { setSearch(''); setFilterTag(''); setDateOrder('desc'); }}>Clear</button>
+                    <select
+                        className="form-select"
+                        value={selectedTag}
+                        onChange={e => setSelectedTag(e.target.value)}
+                        style={{ maxWidth: '170px' }}
+                    >
+                        <option value="">All Tags</option>
+                        {TAG_DEFINITIONS.map((tag) => (
+                            <option key={tag.id} value={tag.id}>{tag.label}</option>
+                        ))}
+                    </select>
+                    <button className="btn btn-secondary" onClick={() => { setSearch(''); setDateOrder('desc'); setSelectedTag(''); }}>Clear</button>
                 </div>
             </div>
 
             <div className="video-card-list container">
-                {
-                filteredList ?
-                    filteredList.length > 0 ?
+                {catalogQuery.isLoading ? (
+                    <LoadingSpinner />
+                ) : filteredList.length > 0 ? (
                     filteredList.map((video) => (
+                        // video card component - displays video thumbnail, title, date, and tags
                         <div className="video-card d-flex flex-row-reverse " 
                             key={video.MeetingID}
+                            onClick={() => handleButtonClick(video.MeetingID, video.VideoURL)}
                         >
-                            <button className={`col-4 ${styles.thumbnailBtn}`} title={video.title} onClick={() => handleButtonClick(video.MeetingID, video.VideoURL)}>
+                            <div className="col-4 catalog-thumbnail" title={video.title}>
                                 <img src={video.ThumbnailURL} />
-                                <span className={`${styles.playIcon}`} role="img" aria-label="Play" >
+                                <span className="catalog-play-icon" role="img" aria-label="Play" >
                                     <i className="fa-solid fa-circle-play"></i>
                                 </span>
-                            </button>
+                            </div>
                             <div className='col text-start d-flex flex-column justify-content-between'>
                                 <div>
                                     <h2 className="title">{video.Title}</h2>
-                                    <p>{video.Date}</p>
+                                    <p>{video.Date ? new Date(video.Date).toLocaleDateString("en-US", {
+                                            year: "numeric",
+                                            month: "long",
+                                            day: "numeric",
+                                            }) : 'No date available'
+                                }
+                                    </p>
+                                    {tagsByMeetingId[video.MeetingID]?.length > 0 && (
+                                        <div className="catalog-tag-list d-flex flex-wrap gap-2 mt-3">
+                                            {tagsByMeetingId[video.MeetingID].map((tag) => (
+                                                <span key={tag.id} className="catalog-tag">
+                                                    {tag.label}
+                                                </span>
+                                            ))}
+                                        </div>
+                                    )}
                                 </div>
-                                <div className="d-flex flex-wrap gap-1">
-                                    <span className={`rounded p-1 px-2 text-dark ${styles.tag}`}>tag</span>
-                                    <span className={`rounded p-1 px-2 text-dark ${styles.tag}`}>tag</span>
-                                    <span className={`rounded p-1 px-2 text-dark ${styles.tag}`}>tag</span>
-                                </div>
-                                {/* <p className="description">{video.description}</p> */}
-                                {/* <button className='btn btn-primary'>Watch</button> */}
                             </div>
                         </div>
                     ))
-                    :
-                    <p>No meetings available</p>
-                :
-                <LoadingSpinner />
-                }
+                ) : (
+                    <h2>No meetings available</h2>
+                )}
             </div>
         </div>
     )

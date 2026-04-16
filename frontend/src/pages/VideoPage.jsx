@@ -11,7 +11,7 @@ import { useVideoData } from '@hooks/useVideoData';
 import { getTimezoneDate } from '@util/time';
 
 /**
- * VideoPage displays videos alongside transcript, agenda, bookmarks, and a chatbot
+ * VideoPage displays videos alongside meeting details and a chatbot
  */
 export default function VideoPage() {
     const { id } = useParams();

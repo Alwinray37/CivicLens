@@ -1,5 +1,3 @@
-import styles from './ChatbotMessage.module.css';
-
 /*
     * Message bubble for the chatbot
     * props:
@@ -18,14 +16,19 @@ export default function ChatbotMessage({
                         ? "justify-content-end pe-2" 
                         : "justify-content-start ps-2"} 
                     w-100`}>
-            <span 
-            className={`shadow-sm rounded-1 py-1 px-2 my-1 d-inline-block text-body-secondary ${styles.chatbotMessage}`}
-            data-type={type}
-            >
+            <span className={`shadow-sm rounded-1 py-1 px-2 my-1 d-inline-block chatbot-message 
+                ${
+                    type === 'outgoing' 
+                    ? 'chatbot-message-outgoing' 
+                    : type === 'error'
+                    ? 'chatbot-message-error'
+                    : 'chatbot-message-incoming'
+                }`
+            }>
                 {
                     type === "pending" 
                     ? message.split('').map((c, i) => 
-                        <span key={i} className={styles.loadingChar}>{c}</span>
+                        <span key={i} className="loading-char">{c}</span>
                     )
                     : message
                 }
