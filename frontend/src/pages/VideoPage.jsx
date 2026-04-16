@@ -72,7 +72,7 @@ export default function VideoPage() {
                     />
                 </div>
                 <div className="col">
-                    <Chatbot />
+                    <Chatbot meetingId={id}/>
                 </div>
             </div>
             

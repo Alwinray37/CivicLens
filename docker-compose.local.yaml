@@ -1,0 +1,10 @@
+# include:
+#   - ./docker-compose.yaml
+#
+services:
+  api:
+    ports:
+      - 8000:8000
+  frontend:
+    ports:
+      - 80:80

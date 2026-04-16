@@ -239,6 +239,17 @@ nav a {
 .chatbot-wrapper {
   min-height: 200px;
   min-width: 250px;
+
+  aspect-ratio: 8 / 5;
+}
+
+@media (min-width: 992px) {
+    .chatbot-wrapper {
+        /* aspect ratio enforces max height based on video player aspect ratio (for scrolling) */
+        /* video takes up 2/3 of width space and is 16/9 ratio, */
+        /* so chatbot should be half that width at 8/9 */
+        aspect-ratio: 8 / 9;
+    }
 }
 
 .chatbot-header {
@@ -257,6 +268,30 @@ nav a {
 .chatbot-message-incoming {
   background-color: var(--color-surface-muted);
   color: var(--color-text);
+}
+
+.chatbot-message-error {
+  background-color: color-mix(in srgb, #dc3545 16%, var(--color-surface));
+  color: var(--color-text);
+  border: 1px solid color-mix(in srgb, #dc3545 40%, var(--color-border));
+}
+
+.chatbot-message-pending {
+  background-color: color-mix(in srgb, var(--color-secondary) 12%, var(--color-surface));
+  color: var(--color-text-soft);
+}
+
+.chatbot-loading-char {
+  display: inline-block;
+  animation: chatbot-loading-pulse 1s ease-in-out infinite;
+}
+
+.chatbot-loading-char:nth-child(2) {
+  animation-delay: 0.12s;
+}
+
+.chatbot-loading-char:nth-child(3) {
+  animation-delay: 0.24s;
 }
 
 .video-info-shell {
@@ -371,6 +406,20 @@ li .video-info-nav-link.active .video-info-tab-eyebrow {
 
   100% {
     opacity: 100%;
+  }
+}
+
+@keyframes chatbot-loading-pulse {
+  0%,
+  80%,
+  100% {
+    opacity: 0.35;
+    transform: translateY(0);
+  }
+
+  40% {
+    opacity: 1;
+    transform: translateY(-1px);
   }
 }
 

@@ -1,17 +1,14 @@
 import { useEffect, useRef, useState } from 'react';
 
 import ChatbotMessage from './ChatbotMessage';
+import { useChatbot } from '@/hooks/useChatbot';
 
-export default function Chatbot() {
-    /* 
-        * messages: {
-            * type: "outgoing" | "incoming"
-                * outgoing messages appear on right, outgoing appear on left
-            * message: string
-        * }[]
-    */
-    const [messages, setMessages] = useState([]);
+export default function Chatbot({
+    meetingId,
+}) {
     const [messageInput, setMessageInput] = useState("");
+
+    const [messages, sendMessage] = useChatbot(meetingId, () => setMessageInput(""));
 
     // ref of the div the contains the messages
     const messageContainerRef = useRef(null);
@@ -19,22 +16,9 @@ export default function Chatbot() {
     // scrolls to bottom of messages
     const scrollToBottom = () => {
         messageContainerRef.current?.scroll({
-            behavior: "instant",
+            behavior: "smooth",
             top: messageContainerRef.current.scrollHeight,
         })
-    }
-
-    // sends a message to the chatbot
-    const sendMessage = (message) => {
-        const trimmedMessage = message.trim();
-        if(trimmedMessage.length === 0) return;
-
-        setMessages((curMessages) => [...curMessages, {
-            type: "outgoing",
-            message: trimmedMessage,
-        }]);
-        setMessageInput("");
-        scrollToBottom();
     }
 
     // handles user keystrokes in the chatbot input field
