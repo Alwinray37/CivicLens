@@ -1,12 +1,12 @@
 services:
   db:
-    image: pgvector/pgvector:pg17
+    build:
+      context: ./DB
     restart: unless-stopped
     environment:
       POSTGRES_PASSWORD: ${DB_PASSWORD}
     volumes:
       - pgdata:/var/lib/postgresql/data
-      - ./DB/create_script.sql:/docker-entrypoint-initdb.d/create_script.sql
     networks:
       - backend
   api:
