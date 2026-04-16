@@ -15,8 +15,9 @@ services:
       context: ./BackendAPI
     restart: unless-stopped
     environment:
-      DB_CONN: ${DB_CONN:-}
-      DB_PASSWORD: ${DB_PASSWORD}
+      DB_CONN: ${DB_CONN}
+      DB_PGV_CONN: ${DB_PGV_CONN}
+      OLLAMA_CONN: ${OLLAMA_CONN}
       PYTHONPATH: /app
     depends_on:
       - db
@@ -41,12 +42,22 @@ services:
     restart: unless-stopped
     depends_on:
       - api
-    networks:
-      - backend
-      - civiclens-public
+
+  ollama:
+    image: ollama/ollama:0.16.0
+    ports:
+      - "4341:11434"
+    volumes:
+      - ollamadata:/root/.ollama
+    restart: always
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: ["gpu"]
+
 volumes:
   pgdata:
-networks:
-  backend:
-  civiclens-public:
-    external: true
+  ollamadata:
