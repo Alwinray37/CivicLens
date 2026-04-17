@@ -167,6 +167,28 @@ nav a {
   color: white;
 }
 
+.tag-btn{
+  appearance: none;
+  padding: 0.25rem 0.5rem;
+  border-radius: 10px;
+  border: 1px solid var(--color-secondary);
+  background-color: transparent;
+  color: var(--color-text);
+}
+.tag-btn:hover {
+  background-color: var(--color-secondary);
+  color: #fff8f3;
+  border-color: var(--color-secondary);
+  cursor: pointer;
+  transform: translateY(-1px);
+}
+
+.tag-btn.active {
+  background-color: var(--color-secondary);
+  color: #fff8f3;
+  border-color: var(--color-secondary);
+}
+
 .catalog-tag-list {
   align-items: center;
 }
