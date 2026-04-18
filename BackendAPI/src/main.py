@@ -1,21 +1,25 @@
-from fastapi import FastAPI, HTTPException, Request
+from uuid import uuid4
+from fastapi import FastAPI, HTTPException, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 import psycopg
-import os
 
 from slowapi.errors import RateLimitExceeded
 
-from src.chatbot_service import ChatbotException, ChatbotService
+from src.chatbot_service import ChatbotException
 from src.models import MeetingsData, MeetingInfo
 from src.models.meeting_models import ChatResponse
-from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi import _rate_limit_exceeded_handler
 from slowapi.middleware import SlowAPIASGIMiddleware
-from slowapi.util import get_remote_address
 
 from config_env import env
+from middleware import SessionIdMiddleware
 
 
 app = FastAPI()
+
+
+app.add_middleware(SessionIdMiddleware)
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -96,7 +100,7 @@ def getMeetingInfo(meeting_id: int):
 # request param is needed for slowapi limiter
 @app.get("/chat/{meeting_id}", response_model=ChatResponse)
 @env.limiter.limit(env.limit)
-def chat(request: Request, meeting_id: int, query: str):
+def chat(request: Request, response: Response, meeting_id: int, query: str):
     try:
         ans = env.chat_service.answer(query, meeting_id)
         if not isinstance(ans, str):

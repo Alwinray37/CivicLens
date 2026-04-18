@@ -81,6 +81,12 @@ services:
             - driver: nvidia
               count: all
               capabilities: ["gpu"]
+
+  redis:
+    image: redis:8.4.2-alpine
+    networks:
+      - backend
+
 volumes:
   pgdata:
   ollamadata:
