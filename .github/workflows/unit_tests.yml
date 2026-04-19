@@ -66,7 +66,8 @@ jobs:
       - name: Install Ollama Model
         working-directory: BackendAPI
         run: |
-          curl http://localhost:11434/api/pull -d '{ "model": "smollm:135m" }'
+          curl http://localhost:11434/api/pull -d '{ "model": "smollm:135m" }' &&
+          curl http://localhost:11434/api/pull -d '{ "model": "all-minilm:22m" }'
 
       - name: Run API Tests
         working-directory: BackendAPI
