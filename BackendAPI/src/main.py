@@ -1,6 +1,7 @@
 from uuid import uuid4
 from fastapi import FastAPI, HTTPException, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
+from langchain_core.runnables import RunnableWithMessageHistory
 import psycopg
 
 from slowapi.errors import RateLimitExceeded
@@ -14,6 +15,11 @@ from slowapi.middleware import SlowAPIASGIMiddleware
 from config_env import env
 from middleware import SessionIdMiddleware
 
+# import redis
+# from redisvl.index import SearchIndex
+# from redisvl.query import FilterQuery
+# from redisvl.extensions.message_history import MessageHistory, SemanticMessageHistory
+# from redisvl.utils.vectorize import CustomVectorizer
 
 app = FastAPI()
 
@@ -97,19 +103,35 @@ def getMeetingInfo(meeting_id: int):
     return res[0]
 
 
+# chat_history = MessageHistory(name='chat_history')
+# chat_history = RedisChatMessageHistory(session_id='buh', ttl=300)
+
 # request param is needed for slowapi limiter
 @app.get("/chat/{meeting_id}", response_model=ChatResponse)
 @env.limiter.limit(env.limit)
 def chat(request: Request, response: Response, meeting_id: int, query: str):
+    # print(request.state)
+    # session_id = request.state.session_id
+    # print(f'session_id: {session_id}')
+
     try:
-        ans = env.chat_service.answer(query, meeting_id)
+        ans = env.chat_service.answer(query, meeting_id, 'burger')
         if not isinstance(ans, str):
             raise Exception("Response in incorrect format")
+        
+        # chat_history.add_messages([
+        #     { "role": "user", "content": query },
+        #     { "role": "llm",  "content": ans }
+        #     ],
+        #     session_tag=f'{session_id} {meeting_id}',
+        # )
         return ChatResponse(Response=ans)
 
     except ChatbotException as e:
+        print(e)
         raise HTTPException(status_code=e.status_code, detail=e)
 
     except Exception as e:
+        print(e)
         raise HTTPException(status_code=500, detail=f"Unexpected error: {str(e)}")
 

@@ -20,6 +20,11 @@ class SessionIdMiddleware:
         if scope["type"] != "http":
             return await self.app(scope, receive, send)
 
+        async def append_session_cookie():
+            message = await receive()
+            print(message)
+            return message
+
         async def send_with_extra_headers(message):
             if message["type"] == "http.response.start":
                 response_headers = MutableHeaders(scope=message)
@@ -27,7 +32,9 @@ class SessionIdMiddleware:
                 cookies = get_cookies(scope)
                 session_id = cookies.get('session_id') or str(uuid4())
                 response_headers.append('Set-Cookie', f'session_id={session_id}; Path=/')
+                scope.setdefault('state', {})['session_id'] = session_id
+                scope['session_id'] = session_id
 
             await send(message)
 
-        await self.app(scope, receive, send_with_extra_headers)
+        await self.app(scope, append_session_cookie, send_with_extra_headers)
