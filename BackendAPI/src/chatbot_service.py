@@ -77,7 +77,7 @@ class ChatbotService:
 
 
         relevant_docs = self._retrieve_docs(question=question, meeting_id=meeting_id)
-        prompt = self._augment(question=question, docs=relevant_docs)
+        prompt = self._augment(question=question, docs=relevant_docs, messages=messages)
         response = self._generate(prompt=prompt)
 
         self.chat_history.store(question, str(response))
@@ -98,27 +98,37 @@ class ChatbotService:
                 )
 
 
-    def _augment(self, question:str, docs:list[Document]):
+    def _augment(self, question:str, docs:list[Document], messages: list[dict[str, str]]):
+        meeting_text = "\n".join([d.page_content for d in docs])
+        history_text = "\n".join(f'{message['role']}: {message['content']}' for message in messages)
         return f"""
 You are an assistant that answers questions about a city council meeting.
 
 You are given:
 - A user question
-- Relevant excerpts from the meeting transcript
+- Relevant excerpts from the meeting
+- Relevant past chat messages
 
 Rules:
-- Answer using ONLY the information in the excerpts
-- Do NOT refer to excerpt numbers, chunk IDs, or any formatting of the input
-- Do NOT mention "excerpt", "chunk", or "transcript" in your answer
-- Write the answer as a natural response, as if explaining what happened in the meeting
-- Do NOT use markdown, bullet points, or special formatting
-- Use plain sentences only
-- Be concise and factual
-- If the excerpts do not contain enough information, say:
+- Answer using ONLY the information in the meeting text
+- Use the chat history only to understand context or resolve references (for example: "that proposal" or "the previous topic")
+- Do NOT use chat history as a source of facts
+- If the meeting text does not contain enough information, say:
   "This was not discussed in the meeting."
 
+Formatting Rules:
+- Do NOT refer to excerpts, chunks, transcripts, or chat history
+- Do NOT mention where the information came from
+- Do NOT use markdown, bullet points, or special symbols
+- Write in plain sentences only
+- Be concise and factual
+- Write naturally, as if explaining what happened in the meeting
+
 Meeting Text:
-{"\n".join([d.page_content for d in docs])}
+{meeting_text}
+
+Chat History:
+{history_text}
 
 User Question:
 {question}
