@@ -1,3 +1,4 @@
+import typing
 from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.vectorstores import VectorStore
 from langchain_ollama import ChatOllama
@@ -5,12 +6,12 @@ from langchain_postgres import PGVectorStore, PGEngine
 from langchain_core.documents import Document
 from langchain_ollama.embeddings import OllamaEmbeddings
 from redis import Redis
-from redisvl.extensions.message_history import BaseMessageHistory
-from redisvl.utils.vectorize import BaseVectorizer, CustomVectorizer
+from redisvl.utils.vectorize import CustomVectorizer
 
 from src.chat_history import ChatHistory
 
 REDIS_URL = 'redis://redis:6379'
+REDIS_TTL = 300 # seconds
 
 class ChatbotException(Exception):
     def __init__(self, message: str, status_code: int):
@@ -58,7 +59,7 @@ class ChatbotService:
         
         vectorizer = CustomVectorizer(embed=embed, embed_many=embed_many)
         redis_client = Redis.from_url(REDIS_URL)
-        chat_history = ChatHistory(name='chat', distance_threshold=0.2, vectorizer=vectorizer, redis_client=redis_client, redis_url=REDIS_URL)
+        chat_history = ChatHistory(name='chat', distance_threshold=0.5, vectorizer=vectorizer, redis_client=redis_client, redis_url=REDIS_URL)
 
         return cls(vstore, llm, chat_history)
 
@@ -71,16 +72,16 @@ class ChatbotService:
             raise ChatbotException("Question is too long", status_code=414)
 
         meeting_session = f'{meeting_id} {session_id}'
-        # cmh = RedisChatMessageHistory(session_id=f'{session_id} {meeting_id}', ttl=60, redis_url=REDIS_URL)
-        messages = self.chat_history.get_relevant(question, top_k=10, session_tag=meeting_session, fall_back=True)
-        print(f'HISTORY: {messages}')
 
+        messages = self.chat_history.get_relevant(question, top_k=10, session_tag=meeting_session, fall_back=True)
+        messages = typing.cast(list[dict[str, str]], messages)
 
         relevant_docs = self._retrieve_docs(question=question, meeting_id=meeting_id)
+
         prompt = self._augment(question=question, docs=relevant_docs, messages=messages)
         response = self._generate(prompt=prompt)
 
-        self.chat_history.store(question, str(response))
+        self.chat_history.store(question, str(response), ttl=REDIS_TTL)
         return response
     
     def _meeting_metadata_func(self, record: dict, metadata: dict) -> dict:
@@ -101,6 +102,7 @@ class ChatbotService:
     def _augment(self, question:str, docs:list[Document], messages: list[dict[str, str]]):
         meeting_text = "\n".join([d.page_content for d in docs])
         history_text = "\n".join(f'{message['role']}: {message['content']}' for message in messages)
+        print(f'HISTORY\n{history_text}')
         return f"""
 You are an assistant that answers questions about a city council meeting.
 

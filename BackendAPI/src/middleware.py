@@ -20,21 +20,25 @@ class SessionIdMiddleware:
         if scope["type"] != "http":
             return await self.app(scope, receive, send)
 
-        async def append_session_cookie():
-            message = await receive()
-            print(message)
-            return message
+        cookies = get_cookies(scope)
+        session_id = cookies.get('session_id')
+        had_session_id = True
 
-        async def send_with_extra_headers(message):
-            if message["type"] == "http.response.start":
+        if session_id is None:
+            had_session_id = False
+            session_id = str(uuid4())
+
+        async def set_session_id_cookie(message):
+            if message["type"] == "http.response.start" and (not had_session_id):
                 response_headers = MutableHeaders(scope=message)
-                
-                cookies = get_cookies(scope)
-                session_id = cookies.get('session_id') or str(uuid4())
+
+                nonlocal session_id
+                assert session_id is not None
+
                 response_headers.append('Set-Cookie', f'session_id={session_id}; Path=/')
-                scope.setdefault('state', {})['session_id'] = session_id
-                scope['session_id'] = session_id
 
             await send(message)
 
-        await self.app(scope, append_session_cookie, send_with_extra_headers)
+        scope['session_id'] = session_id
+
+        await self.app(scope, receive, set_session_id_cookie)

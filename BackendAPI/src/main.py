@@ -110,21 +110,14 @@ def getMeetingInfo(meeting_id: int):
 @app.get("/chat/{meeting_id}", response_model=ChatResponse)
 @env.limiter.limit(env.limit)
 def chat(request: Request, response: Response, meeting_id: int, query: str):
-    # print(request.state)
-    # session_id = request.state.session_id
-    # print(f'session_id: {session_id}')
+    session_id = request.scope.get('session_id')
+    assert type(session_id) is str
 
     try:
-        ans = env.chat_service.answer(query, meeting_id, 'burger')
+        ans = env.chat_service.answer(query, meeting_id, session_id=session_id)
         if not isinstance(ans, str):
             raise Exception("Response in incorrect format")
-        
-        # chat_history.add_messages([
-        #     { "role": "user", "content": query },
-        #     { "role": "llm",  "content": ans }
-        #     ],
-        #     session_tag=f'{session_id} {meeting_id}',
-        # )
+
         return ChatResponse(Response=ans)
 
     except ChatbotException as e:
