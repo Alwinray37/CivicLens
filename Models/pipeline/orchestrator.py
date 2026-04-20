@@ -15,6 +15,7 @@ from pipeline.stages.summary_gen import SummaryGen
 from pipeline.stages.chunk_gen import ChunkGen
 from pipeline.stages.combine_meeting_data import CombineMeetingData
 from pipeline.stages.sql_gen import SqlGen
+from pipeline.stages.db_insert import DbInsert
 
 class PipelineOrchestrator:
     def __init__(self, config: PipelineConfig):
@@ -38,16 +39,16 @@ class PipelineOrchestrator:
                 meeting = matched[0]
             else:
                 meeting = meetings[-1]
-            
+
             agenda_pdf_file = PdfDownloader(self.config).run(meeting)
-            agenda_json_file = PdfParser(self.config).run(agenda_pdf_file)            
+            agenda_json_file = PdfParser(self.config).run(agenda_pdf_file)
 
             m4a_audio_file = VideoDownloader(self.config).run(meeting)
-           
+
             mp3_audio_file = AudioConverter(self.config).run(m4a_audio_file)
 
             transcript_json_file = TranscriptGen(self.config).run(mp3_audio_file)
-            
+
             summary_dict = {
                 "files": [transcript_json_file, agenda_json_file],
                 "chunk_artifact_file": None,
@@ -59,8 +60,8 @@ class PipelineOrchestrator:
             }
 
             chunk_input = {
-                "transcript_file": transcript_json_file,                                       
-                "options": summary_dict["options"],                
+                "transcript_file": transcript_json_file,
+                "options": summary_dict["options"],
             }
 
             chunk_file = ChunkGen(self.config).run(chunk_input)
@@ -77,7 +78,19 @@ class PipelineOrchestrator:
 
             meeting_data_file = CombineMeetingData(self.config).run(meeting_info)
 
+            # Always generate the SQL backup file
             sql_file = SqlGen(self.config).run(meeting_data_file)
+            self.logger.info(f"SQL backup written to {sql_file}")
+
+            # Insert into DB if configured and not skipped
+            if self.config.db_url and not self.config.no_db:
+                meeting_id = DbInsert(self.config).run(meeting_data_file)
+                self.logger.info(f"Inserted into database as MeetingID={meeting_id}")
+            elif not self.config.db_url:
+                self.logger.info("No db_url configured, skipping database insertion")
+            else:
+                self.logger.info("--no-db flag set, skipping database insertion")
 
         except PipelineError as e:
             self.logger.critical(f"Pipeline failed: {e}")
+            raise

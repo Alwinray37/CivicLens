@@ -35,14 +35,13 @@ class TranscriptGen(PipelineStage):
         
         return True
     
-    def execute(self, intput_data):
+    def execute(self, input_data):
         if not torch.cuda.is_available():
-            raise PipelineError(f"Cude not available for meeting transcript generation")
+            raise PipelineError("CUDA not available for meeting transcript generation")
 
-        # Use WhisperX CLI to generate all formats
         cmd = [
             "whisperx",
-            intput_data,
+            input_data,
             "--model", "large-v2",
             "--device", "cuda",
             "--language", "en",
@@ -54,12 +53,9 @@ class TranscriptGen(PipelineStage):
             "--diarize"
         ]
     
-        result = subprocess.run(cmd, check=True)
-        
-        if result.returncode != 0:
-            raise PipelineError(f"WhisperX failed")
+        subprocess.run(cmd, check=True)
 
-        input_path = Path(intput_data)
+        input_path = Path(input_data)
         json_file = Path(self.config.temp_dir) / f"{input_path.stem}.json"
 
         return str(json_file)

@@ -11,7 +11,7 @@ class MeetingFetcher(PipelineStage):
     def validate(self, input_data):
         return hasattr(self.config, 'meeting_year') and self.config.meeting_year > 0
     
-    def execute(self, intput_data):
+    def execute(self, input_data):
         try:
             url = f"{self.CITY_COUNCIL_URL}?year={self.config.meeting_year}"
             response = requests.get(url, timeout=self.config.api_timeout)

@@ -66,8 +66,8 @@ class Chunker:
 
         keyed_chunks = self.chunk_store.get(key)
 
-        if (keyed_chunks is not None) and ((chunks := keyed_chunks.get("semantic")) is not None):
-            print(f"Retrieved {len(chunks)} semantic chunks under key {key}")
+        if (keyed_chunks is not None) and ((chunks := keyed_chunks.get("fixed")) is not None):
+            print(f"Retrieved {len(chunks)} fixed chunks under key {key}")
             return chunks
 
 

@@ -14,14 +14,14 @@ class PdfDownloader(PipelineStage):
         
         return True
     
-    def execute(self, intput_data):
+    def execute(self, input_data):
 
-        agendaInfo = [d for d in intput_data["documentList"] if d["templateName"] == self.AGENDA][0]
+        agendaInfo = [d for d in input_data["documentList"] if d["templateName"] == self.AGENDA][0]
 
         templateId = agendaInfo["templateId"]
         compileOutputType = agendaInfo["compileOutputType"]
 
-        agenda_path = self.config.temp_dir / f"agenda_{intput_data['id']}.pdf"
+        agenda_path = self.config.temp_dir / f"agenda_{input_data['id']}.pdf"
         
         AGENDA_URL = f"https://lacity.primegov.com/Public/CompiledDocument?meetingTemplateId={templateId}&compileOutputType={compileOutputType}"
 

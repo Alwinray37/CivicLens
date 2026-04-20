@@ -40,15 +40,15 @@ class AudioConverter(PipelineStage):
         
         return True
     
-    def execute(self, intput_data):
+    def execute(self, input_data):
         try:
-            self.m4a_file_path = intput_data
-            
-            output_file = intput_data.replace(".m4a", ".mp3")
+            self.m4a_file_path = input_data
+
+            output_file = input_data.replace(".m4a", ".mp3")
 
             command = [
                 "ffmpeg",
-                "-i", intput_data,
+                "-i", input_data,
                 "-c:a", "libmp3lame",
                 "-q:a", "4",
                 output_file
@@ -56,7 +56,7 @@ class AudioConverter(PipelineStage):
             
             subprocess.run(command, check=True)
 
-            self.logger.info(f"Successfully converted {intput_data} to {output_file}")
+            self.logger.info(f"Successfully converted {input_data} to {output_file}")
             return output_file
         except Exception as e:
             raise PipelineError(f"Failed converting M4A file to MP3: {e}")

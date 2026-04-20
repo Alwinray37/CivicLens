@@ -39,12 +39,12 @@ class PdfParser(PipelineStage):
         
         return True
     
-    def execute(self, intput_data):
-        self.pdf_file_path = Path(intput_data)
-        
+    def execute(self, input_data):
+        self.pdf_file_path = Path(input_data)
+
         jsonFile = self.config.temp_dir / f"{self.pdf_file_path.stem}_parsed.json"
         try:
-            pdf_raw_text = PdfExtraction.extract_pdf_raw_text(intput_data)
+            pdf_raw_text = PdfExtraction.extract_pdf_raw_text(input_data)
             result = PdfExtraction.extract_minutes_structured(pdf_raw_text)
             JsonHelper.write_json_data(jsonFile, result)
 

@@ -14,3 +14,8 @@ temp_dir: ".temp"
 # Calendar year used when fetching meetings with --latest.
 # When using --date, the year is derived from the date automatically.
 meeting_year: 2026
+
+# PostgreSQL connection string for direct DB insertion.
+# Can also be set via the DB_CONN environment variable.
+# If not set, the pipeline will only generate SQL files (no DB insert).
+# db_url: "postgresql://postgres:password@localhost:5431/postgres"

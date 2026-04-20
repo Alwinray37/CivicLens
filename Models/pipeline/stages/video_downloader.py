@@ -9,9 +9,9 @@ class VideoDownloader(PipelineStage):
     def validate(self, input_data):
         return "videoUrl" in input_data
     
-    def execute(self, intput_data):
+    def execute(self, input_data):
         try:
-            video_url = intput_data["videoUrl"]
+            video_url = input_data["videoUrl"]
 
             yt = YouTube(video_url, on_progress_callback=on_progress)
             self.logger.info(f"Got YouTube video\nTitle: {yt.title}")

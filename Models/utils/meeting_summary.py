@@ -62,7 +62,7 @@ class MeetingSummary:
 
         self.client = chromadb.Client()
         self.client.get_or_create_collection(name="chunks")
-        self.cur_select_model = chunk_sum_model
+        self.cur_chunk_sum_model = chunk_sum_model
         self.cur_select_model = fin_select_model
         self.cur_emb_model = emb_model
         self.embed_helper = EmbedHelper(embedding_model=emb_model)

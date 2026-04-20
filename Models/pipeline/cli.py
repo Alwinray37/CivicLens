@@ -1,6 +1,10 @@
 import argparse
 import datetime
 import sys
+from importlib import resources
+from pathlib import Path
+
+from sqlalchemy import create_engine, text
 
 from pipeline.config import load_config
 from pipeline.exceptions import PipelineError
@@ -25,6 +29,17 @@ def _parse_args(argv=None):
         metavar="YYYY-MM-DD",
         help="Process the meeting on a specific date.",
     )
+    group.add_argument(
+        "--init-db",
+        action="store_true",
+        help="Initialize the database schema. Requires DB_CONN or db_url in config.",
+    )
+
+    parser.add_argument(
+        "--no-db",
+        action="store_true",
+        help="Skip direct database insertion even if db_url is configured.",
+    )
 
     parser.add_argument(
         "--config",
@@ -36,6 +51,30 @@ def _parse_args(argv=None):
     return parser.parse_args(argv)
 
 
+def _init_db(config):
+    if not config.db_url:
+        print(
+            "Error: db_url is not configured. Set DB_CONN environment variable "
+            "or add db_url to config.yaml.",
+            file=sys.stderr,
+        )
+        sys.exit(1)
+
+    schema_path = Path(__file__).parent / "schema.sql"
+    schema_sql = schema_path.read_text(encoding="utf-8")
+
+    engine = create_engine(config.db_url)
+    try:
+        with engine.begin() as conn:
+            conn.execute(text(schema_sql))
+        print("Database schema initialized successfully.")
+    except Exception as e:
+        print(f"Error initializing database: {e}", file=sys.stderr)
+        sys.exit(1)
+    finally:
+        engine.dispose()
+
+
 def main(argv=None):
     args = _parse_args(argv)
 
@@ -44,6 +83,13 @@ def main(argv=None):
     except FileNotFoundError as e:
         print(f"Error: {e}", file=sys.stderr)
         sys.exit(1)
+
+    if args.init_db:
+        _init_db(config)
+        return
+
+    if args.no_db:
+        config.no_db = True
 
     if args.date:
         try:

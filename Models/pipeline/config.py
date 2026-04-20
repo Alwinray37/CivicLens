@@ -28,6 +28,7 @@ def load_config(config_path: Optional[str] = None) -> "PipelineConfig":
         output_dir=Path(data.get("output_dir", "output")),
         temp_dir=Path(data.get("temp_dir", ".temp")),
         meeting_year=int(data.get("meeting_year", 2026)),
+        db_url=data.get("db_url") or os.getenv("DB_CONN", ""),
     )
 
 
@@ -42,6 +43,8 @@ class PipelineConfig:
     pyannote_token: str = field(default_factory=lambda: os.getenv("PYANNOTE_TOKEN", ""))
     output_dir: Path = field(default_factory=lambda: Path("output"))
     temp_dir: Path = field(default_factory=lambda: Path(".temp"))
+    db_url: str = field(default_factory=lambda: os.getenv("DB_CONN", ""))
+    no_db: bool = False
     target_date: Optional[str] = None  # YYYY-MM-DD; None means use latest
 
     def __post_init__(self):

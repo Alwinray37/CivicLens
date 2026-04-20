@@ -75,9 +75,9 @@ class SummaryGen(PipelineStage):
         
         return True
     
-    def execute(self, intput_data):
+    def execute(self, input_data):
         try:
-            summary_file, agenda_file = intput_data["files"][0], intput_data["files"][1]
+            summary_file, agenda_file = input_data["files"][0], input_data["files"][1]
 
             agenda_dic = JsonHelper.load_json_data(agenda_file)
 
@@ -89,8 +89,8 @@ class SummaryGen(PipelineStage):
             meeting_sum.chunk_opts = {
                 'method': 'semantic',
                 'delim': '\n',
-                'lines_per_chunk': intput_data["options"]["lines_per_chunk"],
-                'overlap': intput_data["options"]["overlap"],
+                'lines_per_chunk': input_data["options"]["lines_per_chunk"],
+                'overlap': input_data["options"]["overlap"],
             }
             
             filter_list = ['Policy', 'Civic', 'Voting']
@@ -98,7 +98,7 @@ class SummaryGen(PipelineStage):
             additional_filters = ['Policy', 'Civic', 'Voting']
             filter_list.extend(additional_filters)
             important_events = meeting_sum.gen_important_events_by_query(filter_list=filter_list, 
-                                                                        max_query=intput_data["options"]["max_query"])
+                                                                        max_query=input_data["options"]["max_query"])
 
             output_file = Path(summary_file)
             temp_name = output_file.stem + "_Summary.json"

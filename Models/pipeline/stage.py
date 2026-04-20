@@ -14,7 +14,7 @@ class PipelineStage(ABC):
         pass
 
     @abstractmethod
-    def execute(self, intput_data: Any) -> Any:
+    def execute(self, input_data: Any) -> Any:
         """Execute this stage. Return output for next stage."""
         pass
 
