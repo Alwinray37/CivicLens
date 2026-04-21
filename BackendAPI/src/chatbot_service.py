@@ -80,11 +80,10 @@ class ChatbotService:
             context_text = "\n".join(f'{message['role']}: {message['content']}' for message in messages)
             question = self._merge_context_and_question(context_text, question)
 
-        print(f'QUESTION: {question}')
-
         relevant_docs = self._retrieve_docs(question=question, meeting_id=meeting_id)
 
         prompt = self._augment(question=question, docs=relevant_docs)
+        print(prompt)
         response = self._generate(prompt=prompt)
 
         self.chat_history.store(question, str(response), ttl=REDIS_TTL)
@@ -139,24 +138,31 @@ Rewritten Question:
 
 
     def _augment(self, question:str, docs:list[Document]):
-        meeting_text = "\n".join([d.page_content for d in docs])
+        meeting_text = "\n".join([f'[Start time: {d.metadata['StartTime']} seconds]\n{d.page_content}'for d in docs])
         return f"""
 You are an assistant that answers questions about a city council meeting.
 
 You are given:
 - A user question
 - Relevant excerpts from the meeting transcript
+- Each excerpt includes a start time in seconds
 
 Rules:
-- Answer using ONLY the information in the excerpts
-- Do NOT refer to excerpt numbers, chunk IDs, or any formatting of the input
-- Do NOT mention "excerpt", "chunk", or "transcript" in your answer
-- Write the answer as a natural response, as if explaining what happened in the meeting
+- Answer using ONLY the information in the meeting text
+- You may use timestamps to indicate when something occurred
+- When including a timestamp, you MUST use this exact format:
+  [TIME: <seconds>]
+- Do NOT modify this format
+- Do NOT convert seconds into minutes or other formats
+- Only include timestamps if they are relevant to the question
+
+Formatting Rules:
+- Do NOT refer to excerpts, chunks, or transcript structure
+- Do NOT mention where the information comes from
 - Do NOT use markdown, bullet points, or special formatting
-- Use plain sentences only
+- Write in plain sentences only
 - Be concise and factual
-- If the excerpts do not contain enough information, say:
-  "This was not discussed in the meeting."
+- Write naturally, as if explaining what happened in the meeting
 
 Meeting Text:
 {meeting_text}
