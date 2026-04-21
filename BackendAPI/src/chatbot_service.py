@@ -73,7 +73,7 @@ class ChatbotService:
 
         meeting_session = f'{meeting_id} {session_id}'
 
-        messages = self.chat_history.get_relevant(question, top_k=10, session_tag=meeting_session, fall_back=True)
+        messages = self.chat_history.get_relevant(question, top_k=3, session_tag=meeting_session, fall_back=True)
         messages = typing.cast(list[dict[str, str]], messages)
         
         if len(messages) > 0:
