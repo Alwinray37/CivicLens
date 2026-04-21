@@ -7,7 +7,7 @@ from langchain_core.documents import Document
 from langchain_ollama.embeddings import OllamaEmbeddings
 from redis import Redis
 from redisvl.query.filter import Tag
-from redisvl.utils.vectorize import CustomVectorizer
+from redisvl.utils.vectorize import CustomVectorizer, EmbeddingsCache
 from redisvl.extensions.cache.llm import SemanticCache
 
 from src.chat_history import ChatHistory
@@ -60,8 +60,16 @@ class ChatbotService:
             return ret
 
         
-        vectorizer = CustomVectorizer(embed=embed, embed_many=embed_many)
         redis_client = Redis.from_url(REDIS_URL)
+
+        embeddings_cache = EmbeddingsCache(
+                name="chatbot-embeddings-cache",
+                redis_client=redis_client,
+                redis_url=REDIS_URL,
+                ttl=REDIS_TTL,
+                )
+
+        vectorizer = CustomVectorizer(embed=embed, embed_many=embed_many, cache=embeddings_cache)
         chat_history = ChatHistory(name='chat', distance_threshold=0.5, vectorizer=vectorizer, redis_client=redis_client, redis_url=REDIS_URL)
 
         llmcache = SemanticCache(
