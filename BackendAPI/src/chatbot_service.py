@@ -80,10 +80,11 @@ class ChatbotService:
             context_text = "\n".join(f'{message['role']}: {message['content']}' for message in messages)
             question = self._merge_context_and_question(context_text, question)
 
+        print(question)
+
         relevant_docs = self._retrieve_docs(question=question, meeting_id=meeting_id)
 
         prompt = self._augment(question=question, docs=relevant_docs)
-        print(prompt)
         response = self._generate(prompt=prompt)
 
         self.chat_history.store(question, str(response), ttl=REDIS_TTL)
@@ -108,6 +109,7 @@ Rules:
 - Do NOT answer the question
 - Do NOT mention chat history or previous messages
 - Output only the rewritten question as a single sentence
+- If the question is already clear and specific, return it unchanged
 
 Chat History:
 {context}
