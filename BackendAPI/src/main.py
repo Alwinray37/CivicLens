@@ -15,12 +15,6 @@ from slowapi.middleware import SlowAPIASGIMiddleware
 from config_env import env
 from middleware import SessionIdMiddleware
 
-# import redis
-# from redisvl.index import SearchIndex
-# from redisvl.query import FilterQuery
-# from redisvl.extensions.message_history import MessageHistory, SemanticMessageHistory
-# from redisvl.utils.vectorize import CustomVectorizer
-
 app = FastAPI()
 
 

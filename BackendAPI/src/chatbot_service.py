@@ -6,7 +6,9 @@ from langchain_postgres import PGVectorStore, PGEngine
 from langchain_core.documents import Document
 from langchain_ollama.embeddings import OllamaEmbeddings
 from redis import Redis
+from redisvl.query.filter import Tag
 from redisvl.utils.vectorize import CustomVectorizer
+from redisvl.extensions.cache.llm import SemanticCache
 
 from src.chat_history import ChatHistory
 
@@ -21,10 +23,11 @@ class ChatbotException(Exception):
 class ChatbotService:
     MAX_QUESTION_LEN = 300
 
-    def __init__(self, vstore:VectorStore, chat_model:BaseChatModel, chat_history: ChatHistory):
+    def __init__(self, vstore:VectorStore, chat_model:BaseChatModel, chat_history: ChatHistory, llmcache: SemanticCache):
         self.vstore = vstore
         self.chat_model = chat_model
         self.chat_history = chat_history
+        self.llmcache = llmcache
 
 
     @classmethod
@@ -61,7 +64,16 @@ class ChatbotService:
         redis_client = Redis.from_url(REDIS_URL)
         chat_history = ChatHistory(name='chat', distance_threshold=0.5, vectorizer=vectorizer, redis_client=redis_client, redis_url=REDIS_URL)
 
-        return cls(vstore, llm, chat_history)
+        llmcache = SemanticCache(
+                name="chatbot-cache",
+                ttl=REDIS_TTL,
+                vectorizer=vectorizer,
+                filterable_fields=[{"name": "meeting_id", "type": "tag"}],
+                redis_client=redis_client,
+                redis_url=REDIS_URL,
+                )
+
+        return cls(vstore, llm, chat_history, llmcache)
 
 
     def answer(self, question:str, meeting_id:int, session_id:str):
@@ -70,6 +82,7 @@ class ChatbotService:
         """
         if(len(question) > self.MAX_QUESTION_LEN):
             raise ChatbotException("Question is too long", status_code=414)
+
 
         meeting_session = f'{meeting_id} {session_id}'
 
@@ -82,12 +95,18 @@ class ChatbotService:
 
         print(question)
 
+        if responses := self.llmcache.check(question, filter_expression=Tag("meeting_id")==str(meeting_id)):
+            print('CACHE HIT')
+            print(responses)
+            return responses[0]['response']
+
         relevant_docs = self._retrieve_docs(question=question, meeting_id=meeting_id)
 
         prompt = self._augment(question=question, docs=relevant_docs)
         response = self._generate(prompt=prompt)
 
         self.chat_history.store(question, str(response), ttl=REDIS_TTL)
+        self.llmcache.store(question, str(response), filters={"meeting_id": str(meeting_id)})
         return response
     
     def _merge_context_and_question(self, context: str, question) -> str:
