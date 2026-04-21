@@ -75,15 +75,54 @@ class ChatbotService:
 
         messages = self.chat_history.get_relevant(question, top_k=10, session_tag=meeting_session, fall_back=True)
         messages = typing.cast(list[dict[str, str]], messages)
+        
+        if len(messages) > 0:
+            context_text = "\n".join(f'{message['role']}: {message['content']}' for message in messages)
+            question = self._merge_context_and_question(context_text, question)
+
+        print(f'QUESTION: {question}')
 
         relevant_docs = self._retrieve_docs(question=question, meeting_id=meeting_id)
 
-        prompt = self._augment(question=question, docs=relevant_docs, messages=messages)
+        prompt = self._augment(question=question, docs=relevant_docs)
         response = self._generate(prompt=prompt)
 
         self.chat_history.store(question, str(response), ttl=REDIS_TTL)
         return response
     
+    def _merge_context_and_question(self, context: str, question) -> str:
+        prompt = f"""
+You are a system that rewrites user questions to be fully self-contained.
+
+You are given:
+- A user question
+- Relevant chat history
+
+Your task:
+Rewrite the question so that it can be understood on its own without the chat history.
+
+Rules:
+- Preserve the original meaning of the question
+- Replace vague references like "it", "they", "that", or "the proposal" with specific details from the chat history
+- Keep the question focused and concise
+- Do NOT add new information that is not present in the chat history
+- Do NOT answer the question
+- Do NOT mention chat history or previous messages
+- Output only the rewritten question as a single sentence
+
+Chat History:
+{context}
+
+User Question:
+{question}
+
+Rewritten Question:
+""".strip()
+        response = self.chat_model.invoke(prompt).content
+        assert isinstance(response, str)
+        return response
+    
+
     def _meeting_metadata_func(self, record: dict, metadata: dict) -> dict:
         metadata["start"] = record.get("start") or 0
         metadata["end"] = record.get("end") or 0
@@ -99,38 +138,28 @@ class ChatbotService:
                 )
 
 
-    def _augment(self, question:str, docs:list[Document], messages: list[dict[str, str]]):
+    def _augment(self, question:str, docs:list[Document]):
         meeting_text = "\n".join([d.page_content for d in docs])
-        history_text = "\n".join(f'{message['role']}: {message['content']}' for message in messages)
-        print(f'HISTORY\n{history_text}')
         return f"""
 You are an assistant that answers questions about a city council meeting.
 
 You are given:
 - A user question
-- Relevant excerpts from the meeting
-- Relevant past chat messages
+- Relevant excerpts from the meeting transcript
 
 Rules:
-- Answer using ONLY the information in the meeting text
-- Use the chat history only to understand context or resolve references (for example: "that proposal" or "the previous topic")
-- Do NOT use chat history as a source of facts
-- If the meeting text does not contain enough information, say:
-  "This was not discussed in the meeting."
-
-Formatting Rules:
-- Do NOT refer to excerpts, chunks, transcripts, or chat history
-- Do NOT mention where the information came from
-- Do NOT use markdown, bullet points, or special symbols
-- Write in plain sentences only
+- Answer using ONLY the information in the excerpts
+- Do NOT refer to excerpt numbers, chunk IDs, or any formatting of the input
+- Do NOT mention "excerpt", "chunk", or "transcript" in your answer
+- Write the answer as a natural response, as if explaining what happened in the meeting
+- Do NOT use markdown, bullet points, or special formatting
+- Use plain sentences only
 - Be concise and factual
-- Write naturally, as if explaining what happened in the meeting
+- If the excerpts do not contain enough information, say:
+  "This was not discussed in the meeting."
 
 Meeting Text:
 {meeting_text}
-
-Chat History:
-{history_text}
 
 User Question:
 {question}
