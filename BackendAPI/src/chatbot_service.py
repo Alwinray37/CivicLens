@@ -1,3 +1,4 @@
+import re
 import typing
 from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.vectorstores import VectorStore
@@ -79,6 +80,7 @@ class ChatbotService:
                 filterable_fields=[{"name": "meeting_id", "type": "tag"}],
                 redis_client=redis_client,
                 redis_url=REDIS_URL,
+                distance_threshold=0.05
                 )
 
         return cls(vstore, llm, chat_history, llmcache)
@@ -98,24 +100,33 @@ class ChatbotService:
         messages = typing.cast(list[dict[str, str]], messages)
         
         if len(messages) > 0:
-            context_text = "\n".join(f'{message['role']}: {message['content']}' for message in messages)
+            context_text = "\n\n".join(f'{message['role']}: {message['content']}' for message in messages)
+            print('RETRIEVED CONTEXT')
             print(context_text)
+            print()
             question = self._merge_context_and_question(context_text, question)
 
+        print('QUESTION')
         print(question)
+        print()
 
         if responses := self.llmcache.check(question, filter_expression=Tag("meeting_id")==str(meeting_id)):
             print('CACHE HIT')
-            print(responses)
+            print(responses[0]['response'])
+            print()
             return responses[0]['response']
 
         relevant_docs = self._retrieve_docs(question=question, meeting_id=meeting_id)
 
-        prompt = self._augment(question=question, docs=relevant_docs)
+        prompt = self._augment(question=question, chunks=relevant_docs)
         response = self._generate(prompt=prompt)
+        
+        print('RESPONSE')
+        print(response)
+        print()
 
-        self.chat_history.store(question, str(response), ttl=REDIS_TTL)
-        self.llmcache.store(question, str(response), filters={"meeting_id": str(meeting_id)})
+        self.chat_history.store(question, response, ttl=REDIS_TTL)
+        self.llmcache.store(question, response, filters={"meeting_id": str(meeting_id)})
         return response
     
     def _merge_context_and_question(self, context: str, question) -> str:
@@ -176,8 +187,17 @@ User Question:
                 )
 
 
-    def _augment(self, question:str, docs:list[Document]):
-        meeting_text = "\n".join([f'[Start time: {d.metadata['StartTime']} seconds]\n{d.page_content}'for d in docs])
+    def _simplify_chunk_content(self, content: str):
+        return re.sub(r"\|\d+\|: ", "\n", content)
+
+    def _chunks_to_text(self, chunks: list[Document]):
+        return "\n\n".join([f'[Start time: {d.metadata['StartTime']} seconds]\n{self._simplify_chunk_content(d.page_content)}'for d in chunks])
+
+    def _augment(self, question:str, chunks:list[Document]):
+        meeting_text = self._chunks_to_text(chunks)
+        print('RETRIEVED CHUNKS')
+        print(meeting_text)
+        print()
         return f"""
 You are an assistant that answers questions about a city council meeting.
 
@@ -215,5 +235,7 @@ Answer:
 
     def _generate(self, prompt:str):
             ch_response = self.chat_model.invoke(prompt)
+            ch_content = ch_response.content
+            assert isinstance(ch_content, str)
 
-            return ch_response.content
+            return ch_content
