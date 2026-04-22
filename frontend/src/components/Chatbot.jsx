@@ -5,6 +5,7 @@ import { useChatbot } from '@/hooks/useChatbot';
 
 export default function Chatbot({
     meetingId,
+    onTimeSelect
 }) {
     const [messageInput, setMessageInput] = useState("");
 
@@ -48,7 +49,10 @@ export default function Chatbot({
                 {
                 messages.length > 0 ?
                     messages.map((m, i) =>
-                        <ChatbotMessage message={m.message} type={m.type} key={i}/>
+                        <ChatbotMessage 
+                            message={m.message} type={m.type} key={i}
+                            onTimeSelect={onTimeSelect}
+                        />
                     )
                 :
                     <div className="h-100 d-flex align-items-center justify-content-center empty-state-text">

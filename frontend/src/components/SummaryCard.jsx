@@ -19,8 +19,8 @@ export default function SummaryCard({
                 <InfoPill
                     title={s.Title}
                     content={s.Summary}
-                    time={s.StartTime}
-                    onTimeClick={() => onItemClick?.(srtTimeStrToSeconds(s.StartTime))}
+                    time={s.StartTime.split(',').at(0)}
+                    onTimeSelect={() => onItemClick?.(srtTimeStrToSeconds(s.StartTime))}
 
                     key={i}
                 />

@@ -52,3 +52,15 @@ export const getTimezoneDate = (date) => {
     return new Date(dateObj.getTime() 
                     + (dateObj.getTimezoneOffset() * 60 * 1000));
 }
+
+export const secondsToHHMMSS = (seconds) => {
+    let secondsInt = Number.parseInt(seconds);
+
+    let hoursStr = String(Math.floor(secondsInt / 3600)).padStart(2, 0);
+    secondsInt = secondsInt % 3600;
+    let minutesStr = String(Math.floor(secondsInt / 60)).padStart(2, 0);
+    secondsInt = secondsInt % 60;
+    let secondsStr = String(secondsInt).padStart(2, 0);
+
+    return `${hoursStr}:${minutesStr}:${secondsStr}`;
+}

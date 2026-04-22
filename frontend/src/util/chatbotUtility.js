@@ -53,4 +53,3 @@ export async function fetchChatbot(query, meetingId) {
 
     return data;
 }
-
