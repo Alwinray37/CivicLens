@@ -169,7 +169,13 @@ User Question:
 """.strip()
         response = self.chat_model.invoke(prompt).content
         assert isinstance(response, str)
-        return response
+
+        re_match = re.match(r"TYPE:.+\sQUESTION:\s(.+)", response)
+        if re_match is None:
+            return response
+        else:
+            extracted_question = re_match.group(1)
+            return extracted_question
     
 
     def _meeting_metadata_func(self, record: dict, metadata: dict) -> dict:
