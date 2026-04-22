@@ -99,6 +99,7 @@ class ChatbotService:
         
         if len(messages) > 0:
             context_text = "\n".join(f'{message['role']}: {message['content']}' for message in messages)
+            print(context_text)
             question = self._merge_context_and_question(context_text, question)
 
         print(question)
@@ -119,32 +120,41 @@ class ChatbotService:
     
     def _merge_context_and_question(self, context: str, question) -> str:
         prompt = f"""
-You are a system that rewrites user questions to be fully self-contained.
+You are a system that prepares user questions for retrieval.
 
 You are given:
 - A user question
 - Relevant chat history
 
 Your task:
-Rewrite the question so that it can be understood on its own without the chat history.
+1. Determine if the question depends on the chat history
+2. Rewrite it only if necessary
 
 Rules:
-- Preserve the original meaning of the question
-- Replace vague references like "it", "they", "that", or "the proposal" with specific details from the chat history
-- Keep the question focused and concise
-- Do NOT add new information that is not present in the chat history
 - Do NOT answer the question
-- Do NOT mention chat history or previous messages
-- Output only the rewritten question as a single sentence
-- If the question is already clear and specific, return it unchanged
+- Do NOT include any explanation
+- Only produce the required output format
+
+Decision Rules:
+- If the question is clear and self-contained, mark it as "standalone"
+- If it depends on prior context (e.g., "it", "they", "that", "anything else"), mark it as "rewrite"
+
+Rewriting Rules:
+- Replace vague references with specific details from the chat history
+- For vague follow-ups like "anything else", include the main topic from the chat history
+- Do NOT add new information
+- Keep it to one sentence
+
+Output Format (must follow exactly):
+
+TYPE: <standalone or rewrite>
+QUESTION: <final question>
 
 Chat History:
 {context}
 
 User Question:
 {question}
-
-Rewritten Question:
 """.strip()
         response = self.chat_model.invoke(prompt).content
         assert isinstance(response, str)
