@@ -27,7 +27,11 @@ import Timestamp from "./Timestamp";
         function parseChatbotMessage(message) {
             console.log('starting');
             let elements = [];
-            let regex = /\[TIME: (\d+\.?\d*).*\]/i;
+
+            // chatbot *should* return [TIME: n] where n is some number
+            // sometimes it leaves artifacts and response as [Start Time: n seconds]
+            // or [Time: n seconds], so wildcards are in place to catch that
+            let regex = /\[.*TIME: (\d+\.?\d*).*\]/i;
             let start = 0;
             while(true) {
                 let execResult = regex.exec(message.slice(start));
