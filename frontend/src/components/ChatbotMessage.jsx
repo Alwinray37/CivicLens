@@ -27,7 +27,7 @@ import Timestamp from "./Timestamp";
         function parseChatbotMessage(message) {
             console.log('starting');
             let elements = [];
-            let regex = /\[TIME: (\d+\.?\d*)\]/i;
+            let regex = /\[TIME: (\d+\.?\d*).*\]/i;
             let start = 0;
             while(true) {
                 let execResult = regex.exec(message.slice(start));
