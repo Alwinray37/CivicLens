@@ -60,7 +60,6 @@ class ChatbotService:
 
         
         if redis_url is not None:
-            print(redis_url)
             redis_client = Redis.from_url(redis_url)
         else:
             redis_client = Redis()

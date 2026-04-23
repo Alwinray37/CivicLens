@@ -20,8 +20,11 @@ db_pgv_conn_str = db_conn_str[0:split_index] + "+asyncpg" + db_conn_str[split_in
 answer_model = os.getenv("ANSWER_MODEL") or "smollm:135m"
 embedding_model = os.getenv("EMBED_MODEL") or "all-minilm:22m"
 
-redis_url = os.getenv("REDIS_CONN") or 'redis://redis:6379'
-redis_ttl = int(os.getenv("REDIS_TTL") or "300") # seconds
+redis_url = os.getenv("REDIS_CONN")
+redis_ttl = os.getenv("REDIS_TTL")
+if redis_ttl is not None:
+    redis_ttl = int(redis_ttl)
+
 chat_service = ChatbotService.create(db_url=db_pgv_conn_str, 
                                    answer_model=answer_model, 
                                    table_name="MeetingChunks", 
