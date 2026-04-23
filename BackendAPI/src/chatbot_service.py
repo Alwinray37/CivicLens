@@ -1,5 +1,5 @@
 import re
-import typing
+from typing import Optional, cast
 from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.vectorstores import VectorStore
 from langchain_ollama import ChatOllama
@@ -13,9 +13,6 @@ from redisvl.extensions.cache.llm import SemanticCache
 
 from src.chat_history import ChatHistory
 
-REDIS_URL = 'redis://redis:6379'
-REDIS_TTL = 300 # seconds
-
 class ChatbotException(Exception):
     def __init__(self, message: str, status_code: int):
         super().__init__(message)
@@ -24,15 +21,16 @@ class ChatbotException(Exception):
 class ChatbotService:
     MAX_QUESTION_LEN = 300
 
-    def __init__(self, vstore:VectorStore, chat_model:BaseChatModel, chat_history: ChatHistory, llmcache: SemanticCache):
+    def __init__(self, vstore:VectorStore, chat_model:BaseChatModel, chat_history: ChatHistory, llmcache: SemanticCache, cache_ttl:Optional[int]):
         self.vstore = vstore
         self.chat_model = chat_model
         self.chat_history = chat_history
         self.llmcache = llmcache
+        self.cache_ttl = cache_ttl
 
 
     @classmethod
-    def create(cls, db_url:str, table_name:str, embedding_model:str, answer_model:str, ollama_url:str|None=None):
+    def create(cls, db_url:str, table_name:str, embedding_model:str, answer_model:str, ollama_url:Optional[str], redis_url:Optional[str], cache_ttl:Optional[int]):
         pgengine = PGEngine.from_connection_string(db_url)
         embeddings = OllamaEmbeddings(model=embedding_model, base_url=ollama_url)
         vstore = PGVectorStore.create_sync(
@@ -61,29 +59,31 @@ class ChatbotService:
             return ret
 
         
-        redis_client = Redis.from_url(REDIS_URL)
+        if redis_url is not None:
+            print(redis_url)
+            redis_client = Redis.from_url(redis_url)
+        else:
+            redis_client = Redis()
 
         embeddings_cache = EmbeddingsCache(
                 name="chatbot-embeddings-cache",
                 redis_client=redis_client,
-                redis_url=REDIS_URL,
-                ttl=REDIS_TTL,
+                ttl=cache_ttl,
                 )
 
         vectorizer = CustomVectorizer(embed=embed, embed_many=embed_many, cache=embeddings_cache)
-        chat_history = ChatHistory(name='chat', distance_threshold=0.5, vectorizer=vectorizer, redis_client=redis_client, redis_url=REDIS_URL)
+        chat_history = ChatHistory(name='chat', distance_threshold=0.5, vectorizer=vectorizer, redis_client=redis_client)
 
         llmcache = SemanticCache(
                 name="chatbot-cache",
-                ttl=REDIS_TTL,
+                ttl=cache_ttl,
                 vectorizer=vectorizer,
                 filterable_fields=[{"name": "meeting_id", "type": "tag"}],
                 redis_client=redis_client,
-                redis_url=REDIS_URL,
                 distance_threshold=0.05
                 )
 
-        return cls(vstore, llm, chat_history, llmcache)
+        return cls(vstore, llm, chat_history, llmcache, cache_ttl)
 
 
     def answer(self, question:str, meeting_id:int, session_id:str):
@@ -97,7 +97,7 @@ class ChatbotService:
         meeting_session = f'{meeting_id} {session_id}'
 
         messages = self.chat_history.get_relevant(question, top_k=3, session_tag=meeting_session, fall_back=True)
-        messages = typing.cast(list[dict[str, str]], messages)
+        messages = cast(list[dict[str, str]], messages)
         
         if len(messages) > 0:
             context_text = "\n\n".join(f'{message['role']}: {message['content']}' for message in messages)
@@ -125,7 +125,7 @@ class ChatbotService:
         print(response)
         print()
 
-        self.chat_history.store(question, response, ttl=REDIS_TTL)
+        self.chat_history.store(question, response, ttl=self.cache_ttl)
         self.llmcache.store(question, response, filters={"meeting_id": str(meeting_id)})
         return response
     
