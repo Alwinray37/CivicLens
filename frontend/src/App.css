@@ -178,7 +178,7 @@ nav a {
 .tag-btn:hover {
   background-color: var(--color-secondary);
   color: #fff8f3;
-  border-color: var(--color-secondary);
+  /* outline: 2px white solid !important;     */
   cursor: pointer;
   transform: translateY(-1px);
 }
