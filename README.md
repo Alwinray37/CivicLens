@@ -103,6 +103,8 @@ EMBED_MODEL=nomic-embed-text:latest
 OLLAMA_CONN=http://host.docker.internal:11434
 ```
 
+On Linux, `host.docker.internal` may require Docker's host-gateway mapping to resolve from containers. `docker-compose.dev.yaml` includes that mapping for the `api` service, but Ollama still needs to be running on your host machine and listening on port `11434`.
+
 ### Starting the stack
 
 **Terminal 1** — run Ollama natively:

@@ -84,9 +84,9 @@ export default function CatalogPage() {
                     filteredList.map((video) => {
                         const videoTags = tagsByMeetingId[video.MeetingID] || [];
                         const videoSummaries = summariesByMeetingId[video.MeetingID] || [];
-                        const detailsHaveResolved = detailStatusByMeetingId[video.MeetingID]?.hasResolved;
-                        const summarySubtitle = detailsHaveResolved ? getSummarySubtitle(videoSummaries) : '';
-                        const summaryPreview = detailsHaveResolved ? getSummaryPreview(videoSummaries) : '';
+                        const detailsLoaded = detailStatusByMeetingId[video.MeetingID]?.isSuccess;
+                        const summarySubtitle = detailsLoaded ? getSummarySubtitle(videoSummaries) : '';
+                        const summaryPreview = detailsLoaded ? getSummaryPreview(videoSummaries) : '';
 
                         return (
                             <div

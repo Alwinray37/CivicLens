@@ -29,7 +29,8 @@ export function useCatalogMeetingDetails(meetings) {
         catalogDetails.summariesByMeetingId[meeting.MeetingID] = sortSummariesByStartTime(detailData?.summaries);
         catalogDetails.detailStatusByMeetingId[meeting.MeetingID] = {
             isPending: detailQuery?.status === 'pending',
-            hasResolved: detailQuery?.status === 'success' || detailQuery?.status === 'error',
+            isSuccess: detailQuery?.status === 'success',
+            isError: detailQuery?.status === 'error',
         };
 
         return catalogDetails;

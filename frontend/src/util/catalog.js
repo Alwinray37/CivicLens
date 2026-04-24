@@ -51,12 +51,7 @@ export function buildThumbnailUrl(videoUrl) {
  */
 export function getFilteredCatalogMeetings(meetings, search, dateOrder, selectedTags = [], tagsByMeetingId = {}) {
     const searchLower = search.trim().toLowerCase();
-    const normalizedSelectedTags = Array.isArray(selectedTags)
-        ? selectedTags
-        : selectedTags
-            ? [selectedTags]
-            : [];
-    const selectedTagSet = new Set(normalizedSelectedTags);
+    const selectedTagSet = new Set(selectedTags);
 
     return meetings
         .filter((video) => {
