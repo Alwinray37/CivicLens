@@ -51,6 +51,12 @@ export function buildThumbnailUrl(videoUrl) {
  */
 export function getFilteredCatalogMeetings(meetings, search, dateOrder, selectedTags = [], tagsByMeetingId = {}) {
     const searchLower = search.trim().toLowerCase();
+    const normalizedSelectedTags = Array.isArray(selectedTags)
+        ? selectedTags
+        : selectedTags
+            ? [selectedTags]
+            : [];
+    const selectedTagSet = new Set(normalizedSelectedTags);
 
     return meetings
         .filter((video) => {
@@ -58,7 +64,7 @@ export function getFilteredCatalogMeetings(meetings, search, dateOrder, selected
 
             const titleMatches = !searchLower || video.Title?.toLowerCase().includes(searchLower);
             const videoTags = tagsByMeetingId[video.MeetingID] || [];
-            const tagMatches = selectedTags.length === 0 || videoTags.some((tag) => selectedTags.includes(tag.id));
+            const tagMatches = selectedTagSet.size === 0 || videoTags.some((tag) => selectedTagSet.has(tag.id));
 
             return titleMatches && tagMatches;
         })

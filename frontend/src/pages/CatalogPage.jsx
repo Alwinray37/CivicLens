@@ -34,7 +34,7 @@ export default function CatalogPage() {
 
     const catalogQuery = useQuery({ queryKey: ['catalog'], queryFn: fetchCatalogData });
     const meetings = catalogQuery.status === 'success' ? getMeetingsFromCatalog(catalogQuery.data) : [];
-    const { tagsByMeetingId, summariesByMeetingId } = useCatalogMeetingDetails(meetings);
+    const { tagsByMeetingId, summariesByMeetingId, detailStatusByMeetingId } = useCatalogMeetingDetails(meetings);
     const filteredList = getFilteredCatalogMeetings(meetings, search, dateOrder, selectedTags, tagsByMeetingId);
 
 
@@ -77,11 +77,13 @@ export default function CatalogPage() {
                     filteredList.map((video) => {
                         const videoTags = tagsByMeetingId[video.MeetingID] || [];
                         const videoSummaries = summariesByMeetingId[video.MeetingID] || [];
-                        const summarySubtitle = getSummarySubtitle(videoSummaries);
-                        const summaryPreview = getSummaryPreview(videoSummaries);
+                        const detailsHaveResolved = detailStatusByMeetingId[video.MeetingID]?.hasResolved;
+                        const summarySubtitle = detailsHaveResolved ? getSummarySubtitle(videoSummaries) : '';
+                        const summaryPreview = detailsHaveResolved ? getSummaryPreview(videoSummaries) : '';
 
                         return (
-                            <div
+                            <button
+                                type="button"
                                 className="video-card catalog-video-card"
                                 key={video.MeetingID}
                                 role="button"
@@ -97,11 +99,13 @@ export default function CatalogPage() {
                                         </span>
                                     </div>
 
-                                    <div className="catalog-summary-preview d-none d-lg-flex">
-                                        <p className="catalog-summary-preview-text mb-0">
-                                            {summaryPreview}
-                                        </p>
-                                    </div>
+                                    {summaryPreview && (
+                                        <div className="catalog-summary-preview d-none d-lg-flex">
+                                            <p className="catalog-summary-preview-text mb-0">
+                                                {summaryPreview}
+                                            </p>
+                                        </div>
+                                    )}
 
                                     <div className="catalog-video-meta text-start d-flex flex-column justify-content-between">
                                         <div>
@@ -131,7 +135,7 @@ export default function CatalogPage() {
                                         </div>
                                     </div>
                                 </div>
-                            </div>
+                            </button>
                         );
                     })
                 ) : (

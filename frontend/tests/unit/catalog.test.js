@@ -92,6 +92,12 @@ describe('getFilteredCatalogMeetings', () => {
         expect(result[0].MeetingID).toBe(1);
     });
 
+    test('filters meetings by any selected tag when multiple tags are active', () => {
+        const result = getFilteredCatalogMeetings(meetings, '', 'desc', ['housing', 'budget'], tagsByMeetingId);
+
+        expect(result.map((meeting) => meeting.MeetingID)).toEqual([1, 2]);
+    });
+
     test('sorts meetings by date descending', () => {
         const result = getFilteredCatalogMeetings(meetings, '', 'desc', [], tagsByMeetingId);
 

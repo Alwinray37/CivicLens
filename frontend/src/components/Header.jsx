@@ -27,7 +27,11 @@ export default function Header({
         <div className="header d-flex flex-column align-items-center gap-3" id={sectionId}>
             <div className="header-controls d-flex flex-wrap justify-content-center gap-2">
                 <div className="search-bar-container">
+                    <label className="visually-hidden" htmlFor="catalog-search-input">
+                        Search meetings by title
+                    </label>
                     <input
+                        id="catalog-search-input"
                         type="text"
                         className="form-control"
                         placeholder="Search title..."

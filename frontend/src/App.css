@@ -294,10 +294,27 @@ nav a {
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 .video-card:hover {
   cursor: pointer;
   transform: translate(-10px);
   box-shadow: 10px 10px 20px 0 var(--color-card-hover-shadow);
+}
+
+.video-card:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--color-secondary) 55%, white);
+  outline-offset: 3px;
 }
 
 .app-panel {
@@ -362,6 +379,9 @@ nav a {
 
 .catalog-video-card {
   overflow: hidden;
+  display: block;
+  width: 100%;
+  text-align: inherit;
 }
 
 .catalog-video-card-layout {
