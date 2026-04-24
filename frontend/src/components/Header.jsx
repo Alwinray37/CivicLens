@@ -28,7 +28,7 @@ export default function Header({
             <div className="header-controls d-flex flex-wrap justify-content-center gap-2">
                 <div className="search-bar-container">
                     <label className="visually-hidden" htmlFor="catalog-search-input">
-                        Search meetings by title
+                        Search meetings by title, tag, or date
                     </label>
                     <input
                         id="catalog-search-input"

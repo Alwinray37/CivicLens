@@ -3,7 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import LoadingSpinner from '@components/icons/LoadingSpinner';
 import { useCatalogMeetingDetails } from '@hooks/useCatalogTags';
-import { fetchCatalogData, getFilteredCatalogMeetings, getMeetingsFromCatalog } from '@util/catalog';
+import {
+    fetchCatalogData,
+    formatCatalogMeetingDate,
+    getFilteredCatalogMeetings,
+    getMeetingsFromCatalog,
+} from '@util/catalog';
 import Header from '@components/Header';
 import IntroSection from '@components/IntroSection';
 
@@ -35,7 +40,14 @@ export default function CatalogPage() {
     const catalogQuery = useQuery({ queryKey: ['catalog'], queryFn: fetchCatalogData });
     const meetings = catalogQuery.status === 'success' ? getMeetingsFromCatalog(catalogQuery.data) : [];
     const { tagsByMeetingId, summariesByMeetingId, detailStatusByMeetingId } = useCatalogMeetingDetails(meetings);
-    const filteredList = getFilteredCatalogMeetings(meetings, search, dateOrder, selectedTags, tagsByMeetingId);
+    const filteredList = getFilteredCatalogMeetings(
+        meetings,
+        search,
+        dateOrder,
+        selectedTags,
+        tagsByMeetingId,
+        summariesByMeetingId
+    );
 
 
     const handleButtonClick = (videoId, videoUrl) => {
@@ -108,12 +120,7 @@ export default function CatalogPage() {
                                                 </p>
                                             )}
                                             <p className="catalog-video-date">
-                                                {video.Date ? new Date(video.Date).toLocaleDateString("en-US", {
-                                                        year: "numeric",
-                                                        month: "long",
-                                                        day: "numeric",
-                                                    }) : 'No date available'
-                                                }
+                                                {formatCatalogMeetingDate(video.Date)}
                                             </p>
                                             {videoTags.length > 0 && (
                                                 <div className="catalog-tag-list d-flex flex-wrap gap-2 mt-3">
