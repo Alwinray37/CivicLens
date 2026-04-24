@@ -3,7 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import LoadingSpinner from '@components/icons/LoadingSpinner';
 import { useCatalogMeetingDetails } from '@hooks/useCatalogTags';
-import { fetchCatalogData, getFilteredCatalogMeetings, getMeetingsFromCatalog } from '@util/catalog';
+import {
+    fetchCatalogData,
+    formatCatalogMeetingDate,
+    getFilteredCatalogMeetings,
+    getMeetingsFromCatalog,
+} from '@util/catalog';
 import Header from '@components/Header';
 import IntroSection from '@components/IntroSection';
 
@@ -13,7 +18,7 @@ function getSummarySubtitle(summaries) {
         .map((summary) => summary?.Title?.trim())
         .filter(Boolean);
 
-    return summaryTitles.length > 0 ? summaryTitles.join(' * ') : '';
+    return summaryTitles.length > 0 ? summaryTitles.join(' • ') : '';
 }
 
 function getSummaryPreview(summaries) {
@@ -34,8 +39,15 @@ export default function CatalogPage() {
 
     const catalogQuery = useQuery({ queryKey: ['catalog'], queryFn: fetchCatalogData });
     const meetings = catalogQuery.status === 'success' ? getMeetingsFromCatalog(catalogQuery.data) : [];
-    const { tagsByMeetingId, summariesByMeetingId } = useCatalogMeetingDetails(meetings);
-    const filteredList = getFilteredCatalogMeetings(meetings, search, dateOrder, selectedTags, tagsByMeetingId);
+    const { tagsByMeetingId, summariesByMeetingId, detailStatusByMeetingId } = useCatalogMeetingDetails(meetings);
+    const filteredList = getFilteredCatalogMeetings(
+        meetings,
+        search,
+        dateOrder,
+        selectedTags,
+        tagsByMeetingId,
+        summariesByMeetingId
+    );
 
 
     const handleButtonClick = (videoId, videoUrl) => {
@@ -77,8 +89,9 @@ export default function CatalogPage() {
                     filteredList.map((video) => {
                         const videoTags = tagsByMeetingId[video.MeetingID] || [];
                         const videoSummaries = summariesByMeetingId[video.MeetingID] || [];
-                        const summarySubtitle = getSummarySubtitle(videoSummaries);
-                        const summaryPreview = getSummaryPreview(videoSummaries);
+                        const detailsLoaded = detailStatusByMeetingId[video.MeetingID]?.isSuccess;
+                        const summarySubtitle = detailsLoaded ? getSummarySubtitle(videoSummaries) : '';
+                        const summaryPreview = detailsLoaded ? getSummaryPreview(videoSummaries) : '';
 
                         return (
                             <div
@@ -90,19 +103,7 @@ export default function CatalogPage() {
                                 onKeyDown={(event) => handleCardKeyDown(event, video.MeetingID, video.VideoURL)}
                             >
                                 <div className="catalog-video-card-layout">
-                                    <div className="catalog-thumbnail" title={video.Title}>
-                                        <img src={video.ThumbnailURL} alt={video.Title} />
-                                        <span className="catalog-play-icon" role="img" aria-label="Play" >
-                                            <i className="fa-solid fa-circle-play"></i>
-                                        </span>
-                                    </div>
-
-                                    <div className="catalog-summary-preview d-none d-lg-flex">
-                                        <p className="catalog-summary-preview-text mb-0">
-                                            {summaryPreview}
-                                        </p>
-                                    </div>
-
+                                    {/* Video card title and info */}
                                     <div className="catalog-video-meta text-start d-flex flex-column justify-content-between">
                                         <div>
                                             <h2 className="title mb-2">{video.Title}</h2>
@@ -112,12 +113,7 @@ export default function CatalogPage() {
                                                 </p>
                                             )}
                                             <p className="catalog-video-date">
-                                                {video.Date ? new Date(video.Date).toLocaleDateString("en-US", {
-                                                        year: "numeric",
-                                                        month: "long",
-                                                        day: "numeric",
-                                                    }) : 'No date available'
-                                                }
+                                                {formatCatalogMeetingDate(video.Date)}
                                             </p>
                                             {videoTags.length > 0 && (
                                                 <div className="catalog-tag-list d-flex flex-wrap gap-2 mt-3">
@@ -129,6 +125,23 @@ export default function CatalogPage() {
                                                 </div>
                                             )}
                                         </div>
+                                    </div>
+
+                                    {/* summary preview */}
+                                    {summaryPreview && (
+                                        <div className="catalog-summary-preview d-none d-lg-flex">
+                                            <p className="catalog-summary-preview-text mb-0">
+                                                {summaryPreview}
+                                            </p>
+                                        </div>
+                                    )}
+
+                                    {/* video thumbnail */}
+                                    <div className="catalog-thumbnail" title={video.Title}>
+                                        <img src={video.ThumbnailURL} alt={video.Title} />
+                                        <span className="catalog-play-icon" role="img" aria-label="Play" >
+                                            <i className="fa-solid fa-circle-play"></i>
+                                        </span>
                                     </div>
                                 </div>
                             </div>

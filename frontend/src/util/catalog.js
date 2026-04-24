@@ -41,26 +41,82 @@ export function buildThumbnailUrl(videoUrl) {
 }
 
 /**
+ * Formats a meeting date for consistent display and search matching.
+ * Handles date-only strings without shifting the day across time zones.
+ * @param {string} dateValue
+ * @returns {string}
+ */
+export function formatCatalogMeetingDate(dateValue) {
+    if (!dateValue) return 'No date available';
+
+    let parsedDate;
+
+    if (/^\d{4}-\d{2}-\d{2}$/.test(dateValue)) {
+        const [year, month, day] = dateValue.split('-').map(Number);
+        parsedDate = new Date(Date.UTC(year, month - 1, day));
+    } else {
+        parsedDate = new Date(dateValue);
+    }
+
+    if (Number.isNaN(parsedDate.getTime())) {
+        return 'No date available';
+    }
+
+    return parsedDate.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        timeZone: 'UTC',
+    });
+}
+
+/**
  * Filters, sorts, and decorates meeting rows for the catalog page.
  * @param {Array} meetings
  * @param {string} search
  * @param {'asc'|'desc'} dateOrder
  * @param {string[]} selectedTags
  * @param {Record<string|number, Array<{id: string, label: string}>>} tagsByMeetingId
+ * @param {Record<string|number, Array<{Title?: string, Summary?: string}>>} summariesByMeetingId
  * @returns {Array}
  */
-export function getFilteredCatalogMeetings(meetings, search, dateOrder, selectedTags = [], tagsByMeetingId = {}) {
+export function getFilteredCatalogMeetings(
+    meetings,
+    search,
+    dateOrder,
+    selectedTags = [],
+    tagsByMeetingId = {},
+    summariesByMeetingId = {}
+) {
     const searchLower = search.trim().toLowerCase();
+    const selectedTagSet = new Set(selectedTags);
 
     return meetings
         .filter((video) => {
             if (!video?.VideoURL) return false;
 
-            const titleMatches = !searchLower || video.Title?.toLowerCase().includes(searchLower);
             const videoTags = tagsByMeetingId[video.MeetingID] || [];
-            const tagMatches = selectedTags.length === 0 || videoTags.some((tag) => selectedTags.includes(tag.id));
+            const videoSummaries = summariesByMeetingId[video.MeetingID] || [];
+            const formattedDate = video.Date ? formatCatalogMeetingDate(video.Date).toLowerCase() : '';
+            const searchableSubtitle = videoSummaries
+                .map((summary) => summary?.Title?.trim())
+                .filter(Boolean)
+                .join(' ')
+                .toLowerCase();
+            const searchableTags = videoTags
+                .map((tag) => `${tag.id} ${tag.label}`.trim())
+                .join(' ')
+                .toLowerCase();
+            const searchableTitle = video.Title?.toLowerCase() || '';
+            const searchMatches = !searchLower || [
+                searchableTitle,
+                searchableSubtitle,
+                searchableTags,
+                formattedDate,
+            ].some((value) => value.includes(searchLower));
+            const tagMatches = selectedTagSet.size === 0 || videoTags.some((tag) => selectedTagSet.has(tag.id));
 
-            return titleMatches && tagMatches;
+            return searchMatches && tagMatches;
         })
         .sort((a, b) => {
             if (!a.Date || !b.Date) return 0;

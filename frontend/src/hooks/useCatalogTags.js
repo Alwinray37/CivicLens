@@ -20,15 +20,22 @@ export function useCatalogMeetingDetails(meetings) {
     });
 
     return meetings.reduce((catalogDetails, meeting, index) => {
-        const detailData = detailQueries[index]?.data;
+        const detailQuery = detailQueries[index];
+        const detailData = detailQuery?.data;
 
         catalogDetails.tagsByMeetingId[meeting.MeetingID] = detailData
             ? inferTagsFromMeetingDetails(detailData)
             : [];
         catalogDetails.summariesByMeetingId[meeting.MeetingID] = sortSummariesByStartTime(detailData?.summaries);
+        catalogDetails.detailStatusByMeetingId[meeting.MeetingID] = {
+            isPending: detailQuery?.status === 'pending',
+            isSuccess: detailQuery?.status === 'success',
+            isError: detailQuery?.status === 'error',
+        };
 
         return catalogDetails;
     }, {
+        detailStatusByMeetingId: {},
         tagsByMeetingId: {},
         summariesByMeetingId: {},
     });
