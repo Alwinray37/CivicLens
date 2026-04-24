@@ -65,13 +65,6 @@ export default function CatalogPage() {
         document.getElementById('meeting-filters')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     };
 
-    const handleCardKeyDown = (event, videoId, videoUrl) => {
-        if (event.key === 'Enter' || event.key === ' ') {
-            event.preventDefault();
-            handleButtonClick(videoId, videoUrl);
-        }
-    };
-
     return (
         <div className="container" id="video-list-page">
             <IntroSection onBrowseMeetings={scrollToFilters} />
