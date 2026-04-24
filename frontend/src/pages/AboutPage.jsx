@@ -1,8 +1,8 @@
 const teamMembers = [
-    'Alwin Ray Roble',
     'Alexander Leontiev',
     'Thomas Scott',
     'Nikita Ulianov',
+    'Alwin Ray Roble'
 ];
 
 const projectHighlights = [

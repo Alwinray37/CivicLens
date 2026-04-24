@@ -14,20 +14,11 @@ import IntroSection from '@components/IntroSection';
 
 function getSummarySubtitle(summaries) {
     const summaryTitles = summaries
-        .slice(0, 3)
+        .slice(0, 2)
         .map((summary) => summary?.Title?.trim())
         .filter(Boolean);
 
     return summaryTitles.length > 0 ? summaryTitles.join(' • ') : '';
-}
-
-function getSummaryPreview(summaries) {
-    const summaryBodies = summaries
-        .slice(0, 3)
-        .map((summary) => summary?.Summary?.trim())
-        .filter(Boolean);
-
-    return summaryBodies.length > 0 ? summaryBodies.join(' ') : 'No summary available';
 }
 
 export default function CatalogPage() {
@@ -90,8 +81,11 @@ export default function CatalogPage() {
                         const videoTags = tagsByMeetingId[video.MeetingID] || [];
                         const videoSummaries = summariesByMeetingId[video.MeetingID] || [];
                         const detailsLoaded = detailStatusByMeetingId[video.MeetingID]?.isSuccess;
-                        const summarySubtitle = detailsLoaded ? getSummarySubtitle(videoSummaries) : '';
-                        const summaryPreview = detailsLoaded ? getSummaryPreview(videoSummaries) : '';
+                        const summarySubtitle = detailsLoaded
+                            ? getSummarySubtitle(videoSummaries) || 'No summary available'
+                            : '';
+                        const visibleTags = videoTags.slice(0, 3);
+                        const hiddenTagCount = Math.max(videoTags.length - visibleTags.length, 0);
 
                         return (
                             <div
@@ -103,45 +97,53 @@ export default function CatalogPage() {
                                 onKeyDown={(event) => handleCardKeyDown(event, video.MeetingID, video.VideoURL)}
                             >
                                 <div className="catalog-video-card-layout">
-                                    {/* Video card title and info */}
-                                    <div className="catalog-video-meta text-start d-flex flex-column justify-content-between">
-                                        <div>
-                                            <h2 className="title mb-2">{video.Title}</h2>
-                                            {summarySubtitle && (
-                                                <p className="catalog-video-subtitle d-none d-lg-block">
-                                                    {summarySubtitle}
-                                                </p>
-                                            )}
+                                    <div className="catalog-thumbnail" title={video.Title}>
+                                        {video.ThumbnailURL ? (
+                                            <img src={video.ThumbnailURL} alt={video.Title} />
+                                        ) : (
+                                            <div className="catalog-thumbnail-fallback" aria-hidden="true">
+                                                No preview
+                                            </div>
+                                        )}
+                                        <span className="catalog-play-icon" role="img" aria-label="Play" >
+                                            <i className="fa-solid fa-circle-play"></i>
+                                        </span>
+                                    </div>
+
+                                    <div className="catalog-video-meta text-start">
+                                        <div className="catalog-video-copy">
                                             <p className="catalog-video-date">
                                                 {formatCatalogMeetingDate(video.Date)}
                                             </p>
-                                            {videoTags.length > 0 && (
-                                                <div className="catalog-tag-list d-flex flex-wrap gap-2 mt-3">
-                                                    {videoTags.map((tag) => (
+                                            <h2 className="title catalog-video-title mb-0">{video.Title}</h2>
+                                            {summarySubtitle && (
+                                                <p className="catalog-video-subtitle mb-0">
+                                                    {summarySubtitle}
+                                                </p>
+                                            )}
+                                        </div>
+
+                                        <div className="catalog-card-footer">
+                                            {visibleTags.length > 0 && (
+                                                <div className="catalog-tag-list d-flex flex-wrap gap-2">
+                                                    {visibleTags.map((tag) => (
                                                         <span key={tag.id} className="catalog-tag">
                                                             {tag.label}
                                                         </span>
                                                     ))}
+                                                    {hiddenTagCount > 0 && (
+                                                        <span className="catalog-tag catalog-tag-overflow">
+                                                            +{hiddenTagCount}
+                                                        </span>
+                                                    )}
                                                 </div>
                                             )}
-                                        </div>
-                                    </div>
 
-                                    {/* summary preview */}
-                                    {summaryPreview && (
-                                        <div className="catalog-summary-preview d-none d-lg-flex">
-                                            <p className="catalog-summary-preview-text mb-0">
-                                                {summaryPreview}
-                                            </p>
+                                            <span className="catalog-watch-cue">
+                                                <i className="fa-solid fa-circle-play" aria-hidden="true"></i>
+                                                Watch meeting
+                                            </span>
                                         </div>
-                                    )}
-
-                                    {/* video thumbnail */}
-                                    <div className="catalog-thumbnail" title={video.Title}>
-                                        <img src={video.ThumbnailURL} alt={video.Title} />
-                                        <span className="catalog-play-icon" role="img" aria-label="Play" >
-                                            <i className="fa-solid fa-circle-play"></i>
-                                        </span>
                                     </div>
                                 </div>
                             </div>
