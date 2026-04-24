@@ -7,6 +7,7 @@ import LoadingSpinner from '@components/icons/LoadingSpinner';
 import { useCatalogMeetingDetails } from '@hooks/useCatalogTags';
 import { fetchCatalogData, getFilteredCatalogMeetings, getMeetingsFromCatalog } from '@util/catalog';
 import Header from '@components/Header';
+import IntoSection from '@components/IntoSection';
 
 function getSummarySubtitle(summaries) {
     const summaryTitles = summaries
@@ -43,11 +44,18 @@ export default function CatalogPage() {
     // navigates to /watch/:id route with videoId as param
     const handleButtonClick = (videoId, videoUrl) => {
         navigate (`/watch/${videoId}`, { state: { videoId, videoUrl } });
-    }
+    };
+
+    const scrollToFilters = () => {
+        document.getElementById('meeting-filters')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    };
 
     return (
         <div className="container" id="video-list-page">
+            <IntoSection onBrowseMeetings={scrollToFilters} />
+
             <Header
+                sectionId="meeting-filters"
                 search={search}
                 setSearch={setSearch}
                 dateOrder={dateOrder}
@@ -59,7 +67,7 @@ export default function CatalogPage() {
                 <h1>Civic Meetings</h1>
             </div>
 
-            <div className="video-card-list container">
+            <div className="video-card-list container" id="meeting-results">
                 {catalogQuery.isLoading ? (
                     <LoadingSpinner />
                 ) : filteredList.length > 0 ? (

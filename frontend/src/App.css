@@ -96,6 +96,110 @@ nav a {
   padding: 10px;
 }
 
+.catalog-intro {
+  position: relative;
+  overflow: hidden;
+  margin: 0 auto 1.5rem;
+  padding: 1.5rem;
+  border-radius: 24px;
+  background:
+    radial-gradient(circle at top right, color-mix(in srgb, var(--color-secondary) 24%, transparent), transparent 35%),
+    linear-gradient(135deg, color-mix(in srgb, var(--color-surface) 92%, var(--color-secondary) 8%), var(--color-surface));
+}
+
+.catalog-intro::before {
+  content: '';
+  position: absolute;
+  inset: auto -3rem -3rem auto;
+  width: 12rem;
+  height: 12rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--color-secondary) 14%, transparent);
+  filter: blur(8px);
+  pointer-events: none;
+}
+
+.catalog-intro > * {
+  position: relative;
+  z-index: 1;
+}
+
+.catalog-intro-copy {
+  max-width: 760px;
+  margin-bottom: 1.5rem;
+}
+
+.catalog-intro-eyebrow {
+  color: var(--color-secondary);
+  font-size: 0.85rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.catalog-intro-title {
+  margin-bottom: 0.75rem;
+  font-size: clamp(2rem, 4vw, 3.4rem);
+  line-height: 1;
+}
+
+.catalog-intro-text {
+  max-width: 62ch;
+  color: var(--color-text-soft);
+  font-size: 1.05rem;
+}
+
+.catalog-intro-steps {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.catalog-intro-step {
+  height: 100%;
+  padding: 1.1rem;
+  border-radius: 18px;
+}
+
+.catalog-intro-step-number {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  margin-bottom: 0.85rem;
+  border-radius: 999px;
+  background-color: var(--color-secondary);
+  color: #fff8f3;
+  font-weight: 800;
+}
+
+.catalog-intro-step-title {
+  margin-bottom: 0.45rem;
+  font-size: 1.1rem;
+}
+
+.catalog-intro-step-text {
+  color: var(--color-text-soft);
+}
+
+.catalog-intro-actions {
+  align-items: center;
+  justify-content: space-between;
+}
+
+.catalog-intro-cta {
+  padding: 0.75rem 1.25rem;
+  font-weight: 700;
+  box-shadow: 0 14px 26px color-mix(in srgb, var(--color-secondary) 25%, transparent);
+}
+
+.catalog-intro-note {
+  color: var(--color-text-soft);
+  font-size: 0.95rem;
+}
+
 .video-card {
   border-radius: 10px;
   padding: 1rem;
@@ -300,6 +404,35 @@ nav a {
 
 .info-pill-time {
   color: var(--color-text-soft);
+}
+
+@media (max-width: 767px) {
+  .catalog-intro {
+    display: flex;
+    flex-direction: column;
+    padding: 1.25rem;
+  }
+
+  .catalog-intro-copy {
+    order: 1;
+    margin-bottom: 1rem;
+  }
+
+  .catalog-intro-actions {
+    order: 2;
+    margin-bottom: 1.25rem;
+    align-items: stretch;
+    justify-content: flex-start;
+  }
+
+  .catalog-intro-steps {
+    order: 3;
+    margin-bottom: 0;
+  }
+
+  .catalog-intro-cta {
+    width: 100%;
+  }
 }
 
 @media (min-width: 992px) {

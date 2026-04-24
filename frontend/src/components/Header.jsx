@@ -1,6 +1,7 @@
 import { TAG_DEFINITIONS } from '@util/tagDefinitions';
 
 export default function Header({
+    sectionId,
     search,
     setSearch,
     dateOrder,
@@ -23,7 +24,7 @@ export default function Header({
     };
 
     return (
-        <div className="header d-flex flex-column align-items-center gap-3">
+        <div className="header d-flex flex-column align-items-center gap-3" id={sectionId}>
             <div className="header-controls d-flex flex-wrap justify-content-center gap-2">
                 <div className="search-bar-container">
                     <input
