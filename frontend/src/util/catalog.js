@@ -45,11 +45,11 @@ export function buildThumbnailUrl(videoUrl) {
  * @param {Array} meetings
  * @param {string} search
  * @param {'asc'|'desc'} dateOrder
- * @param {string} selectedTag
+ * @param {string[]} selectedTags
  * @param {Record<string|number, Array<{id: string, label: string}>>} tagsByMeetingId
  * @returns {Array}
  */
-export function getFilteredCatalogMeetings(meetings, search, dateOrder, selectedTag = '', tagsByMeetingId = {}) {
+export function getFilteredCatalogMeetings(meetings, search, dateOrder, selectedTags = [], tagsByMeetingId = {}) {
     const searchLower = search.trim().toLowerCase();
 
     return meetings
@@ -58,7 +58,7 @@ export function getFilteredCatalogMeetings(meetings, search, dateOrder, selected
 
             const titleMatches = !searchLower || video.Title?.toLowerCase().includes(searchLower);
             const videoTags = tagsByMeetingId[video.MeetingID] || [];
-            const tagMatches = !selectedTag || videoTags.some((tag) => tag.id === selectedTag);
+            const tagMatches = selectedTags.length === 0 || videoTags.some((tag) => selectedTags.includes(tag.id));
 
             return titleMatches && tagMatches;
         })

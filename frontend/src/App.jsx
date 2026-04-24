@@ -1,6 +1,7 @@
 import './App.css'
 import CatalogPage from '@pages/CatalogPage';
 import VideoPage from '@pages/VideoPage';
+import AboutPage from '@pages/AboutPage';
 import Navbar from '@components/Navbar';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 
@@ -19,6 +20,7 @@ function App() {
                     
                     <Routes>
                         <Route path="/" element={<CatalogPage />} />
+                        <Route path="/about" element={<AboutPage />} />
                         <Route path="/watch/:id" element={<VideoPage />} />
                     </Routes>
                 </div>
