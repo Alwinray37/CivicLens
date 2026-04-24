@@ -149,12 +149,16 @@ nav a {
 .catalog-thumbnail {
   position: relative;
   padding: 0;
+  flex: 0 0 100%;
+  max-width: 100%;
 }
 
 .catalog-thumbnail img {
+  display: block;
+  width: 100%;
   max-width: 100%;
-  border-radius: inherit;
   border-radius: 10px;
+  object-fit: cover;
 }
 
 .catalog-play-icon {
@@ -165,6 +169,46 @@ nav a {
   inset: 0;
   font-size: 3rem;
   color: white;
+}
+
+.catalog-video-card {
+  overflow: hidden;
+}
+
+.catalog-video-card-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.catalog-video-meta {
+  min-width: 0;
+}
+
+.catalog-video-date {
+  margin-bottom: 0;
+}
+
+.catalog-video-subtitle {
+  color: var(--color-text-soft);
+  font-size: 0.95rem;
+  line-height: 1.4;
+  margin-bottom: 0.75rem;
+}
+
+.catalog-summary-preview {
+  min-width: 0;
+  align-items: center;
+}
+
+.catalog-summary-preview-text {
+  color: var(--color-text-soft);
+  display: -webkit-box;
+  -webkit-line-clamp: 6;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.5;
 }
 
 .header-controls {
@@ -256,6 +300,29 @@ nav a {
 
 .info-pill-time {
   color: var(--color-text-soft);
+}
+
+@media (min-width: 992px) {
+  .catalog-video-card-layout {
+    display: grid;
+    grid-template-columns: minmax(260px, 1.2fr) minmax(0, 1fr) minmax(260px, 1fr);
+    align-items: stretch;
+    gap: 1.25rem;
+  }
+
+  .catalog-thumbnail {
+    height: 100%;
+  }
+
+  .catalog-thumbnail img {
+    height: 100%;
+    min-height: 180px;
+  }
+
+  .catalog-summary-preview {
+    padding: 0.25rem 0;
+    overflow: hidden;
+  }
 }
 
 .info-pill-time:hover {

@@ -2,8 +2,14 @@ import { useQueries } from '@tanstack/react-query';
 import { fetchVideoData } from '@util/videoPageUtility';
 import { inferTagsFromMeetingDetails } from '@util/tags';
 
-export function useCatalogTags(meetings) {
-    const tagQueries = useQueries({
+function sortSummariesByStartTime(summaries) {
+    return Array.isArray(summaries)
+        ? [...summaries].sort((a, b) => (a?.StartTime || '').localeCompare(b?.StartTime || ''))
+        : [];
+}
+
+export function useCatalogMeetingDetails(meetings) {
+    const detailQueries = useQueries({
         queries: meetings.map((meeting) => ({
             queryKey: ['videos', meeting.MeetingID],
             queryFn: () => fetchVideoData(meeting.MeetingID),
@@ -13,9 +19,21 @@ export function useCatalogTags(meetings) {
         })),
     });
 
-    return meetings.reduce((tagMap, meeting, index) => {
-        const detailData = tagQueries[index]?.data;
-        tagMap[meeting.MeetingID] = detailData ? inferTagsFromMeetingDetails(detailData) : [];
-        return tagMap;
-    }, {});
+    return meetings.reduce((catalogDetails, meeting, index) => {
+        const detailData = detailQueries[index]?.data;
+
+        catalogDetails.tagsByMeetingId[meeting.MeetingID] = detailData
+            ? inferTagsFromMeetingDetails(detailData)
+            : [];
+        catalogDetails.summariesByMeetingId[meeting.MeetingID] = sortSummariesByStartTime(detailData?.summaries);
+
+        return catalogDetails;
+    }, {
+        tagsByMeetingId: {},
+        summariesByMeetingId: {},
+    });
+}
+
+export function useCatalogTags(meetings) {
+    return useCatalogMeetingDetails(meetings).tagsByMeetingId;
 }

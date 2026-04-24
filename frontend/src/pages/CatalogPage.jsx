@@ -4,9 +4,27 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import LoadingSpinner from '@components/icons/LoadingSpinner';
-import { useCatalogTags } from '@hooks/useCatalogTags';
+import { useCatalogMeetingDetails } from '@hooks/useCatalogTags';
 import { fetchCatalogData, getFilteredCatalogMeetings, getMeetingsFromCatalog } from '@util/catalog';
 import Header from '@components/Header';
+
+function getSummarySubtitle(summaries) {
+    const summaryTitles = summaries
+        .slice(0, 3)
+        .map((summary) => summary?.Title?.trim())
+        .filter(Boolean);
+
+    return summaryTitles.length > 0 ? summaryTitles.join(' * ') : '';
+}
+
+function getSummaryPreview(summaries) {
+    const summaryBodies = summaries
+        .slice(0, 3)
+        .map((summary) => summary?.Summary?.trim())
+        .filter(Boolean);
+
+    return summaryBodies.length > 0 ? summaryBodies.join(' ') : 'No summary available';
+}
 
 export default function CatalogPage() {
     const [dateOrder, setDateOrder] = useState('desc');
@@ -17,7 +35,7 @@ export default function CatalogPage() {
 
     const catalogQuery = useQuery({ queryKey: ['catalog'], queryFn: fetchCatalogData });
     const meetings = catalogQuery.status === 'success' ? getMeetingsFromCatalog(catalogQuery.data) : [];
-    const tagsByMeetingId = useCatalogTags(meetings);
+    const { tagsByMeetingId, summariesByMeetingId } = useCatalogMeetingDetails(meetings);
     const filteredList = getFilteredCatalogMeetings(meetings, search, dateOrder, selectedTags, tagsByMeetingId);
 
 
@@ -45,41 +63,63 @@ export default function CatalogPage() {
                 {catalogQuery.isLoading ? (
                     <LoadingSpinner />
                 ) : filteredList.length > 0 ? (
-                    filteredList.map((video) => (
-                        // video card component - displays video thumbnail, title, date, and tags
-                        <div className="video-card d-flex flex-row-reverse " 
-                            key={video.MeetingID}
-                            onClick={() => handleButtonClick(video.MeetingID, video.VideoURL)}
-                        >
-                            <div className="col-4 catalog-thumbnail" title={video.title}>
-                                <img src={video.ThumbnailURL} />
-                                <span className="catalog-play-icon" role="img" aria-label="Play" >
-                                    <i className="fa-solid fa-circle-play"></i>
-                                </span>
-                            </div>
-                            <div className='col text-start d-flex flex-column justify-content-between'>
-                                <div>
-                                    <h2 className="title">{video.Title}</h2>
-                                    <p>{video.Date ? new Date(video.Date).toLocaleDateString("en-US", {
-                                            year: "numeric",
-                                            month: "long",
-                                            day: "numeric",
-                                            }) : 'No date available'
-                                }
-                                    </p>
-                                    {tagsByMeetingId[video.MeetingID]?.length > 0 && (
-                                        <div className="catalog-tag-list d-flex flex-wrap gap-2 mt-3">
-                                            {tagsByMeetingId[video.MeetingID].map((tag) => (
-                                                <span key={tag.id} className="catalog-tag">
-                                                    {tag.label}
-                                                </span>
-                                            ))}
+                    filteredList.map((video) => {
+                        const videoTags = tagsByMeetingId[video.MeetingID] || [];
+                        const videoSummaries = summariesByMeetingId[video.MeetingID] || [];
+                        const summarySubtitle = getSummarySubtitle(videoSummaries);
+                        const summaryPreview = getSummaryPreview(videoSummaries);
+
+                        return (
+                            <div
+                                className="video-card catalog-video-card"
+                                key={video.MeetingID}
+                                onClick={() => handleButtonClick(video.MeetingID, video.VideoURL)}
+                            >
+                                <div className="catalog-video-card-layout">
+                                    <div className="catalog-thumbnail" title={video.Title}>
+                                        <img src={video.ThumbnailURL} alt={video.Title} />
+                                        <span className="catalog-play-icon" role="img" aria-label="Play" >
+                                            <i className="fa-solid fa-circle-play"></i>
+                                        </span>
+                                    </div>
+
+                                    <div className="catalog-summary-preview d-none d-lg-flex">
+                                        <p className="catalog-summary-preview-text mb-0">
+                                            {summaryPreview}
+                                        </p>
+                                    </div>
+
+                                    <div className="catalog-video-meta text-start d-flex flex-column justify-content-between">
+                                        <div>
+                                            <h2 className="title mb-2">{video.Title}</h2>
+                                            {summarySubtitle && (
+                                                <p className="catalog-video-subtitle d-none d-lg-block">
+                                                    {summarySubtitle}
+                                                </p>
+                                            )}
+                                            <p className="catalog-video-date">
+                                                {video.Date ? new Date(video.Date).toLocaleDateString("en-US", {
+                                                        year: "numeric",
+                                                        month: "long",
+                                                        day: "numeric",
+                                                    }) : 'No date available'
+                                                }
+                                            </p>
+                                            {videoTags.length > 0 && (
+                                                <div className="catalog-tag-list d-flex flex-wrap gap-2 mt-3">
+                                                    {videoTags.map((tag) => (
+                                                        <span key={tag.id} className="catalog-tag">
+                                                            {tag.label}
+                                                        </span>
+                                                    ))}
+                                                </div>
+                                            )}
                                         </div>
-                                    )}
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    ))
+                        );
+                    })
                 ) : (
                     <h2>No meetings available</h2>
                 )}
