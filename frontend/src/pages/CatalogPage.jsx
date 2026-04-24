@@ -13,7 +13,7 @@ function getSummarySubtitle(summaries) {
         .map((summary) => summary?.Title?.trim())
         .filter(Boolean);
 
-    return summaryTitles.length > 0 ? summaryTitles.join(' * ') : '';
+    return summaryTitles.length > 0 ? summaryTitles.join(' • ') : '';
 }
 
 function getSummaryPreview(summaries) {
@@ -53,6 +53,13 @@ export default function CatalogPage() {
         document.getElementById('meeting-filters')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     };
 
+    const handleCardKeyDown = (event, videoId, videoUrl) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            handleButtonClick(videoId, videoUrl);
+        }
+    };
+
     return (
         <div className="container" id="video-list-page">
             <IntroSection onBrowseMeetings={scrollToFilters} />
@@ -82,8 +89,7 @@ export default function CatalogPage() {
                         const summaryPreview = detailsHaveResolved ? getSummaryPreview(videoSummaries) : '';
 
                         return (
-                            <button
-                                type="button"
+                            <div
                                 className="video-card catalog-video-card"
                                 key={video.MeetingID}
                                 role="button"
@@ -92,21 +98,7 @@ export default function CatalogPage() {
                                 onKeyDown={(event) => handleCardKeyDown(event, video.MeetingID, video.VideoURL)}
                             >
                                 <div className="catalog-video-card-layout">
-                                    <div className="catalog-thumbnail" title={video.Title}>
-                                        <img src={video.ThumbnailURL} alt={video.Title} />
-                                        <span className="catalog-play-icon" role="img" aria-label="Play" >
-                                            <i className="fa-solid fa-circle-play"></i>
-                                        </span>
-                                    </div>
-
-                                    {summaryPreview && (
-                                        <div className="catalog-summary-preview d-none d-lg-flex">
-                                            <p className="catalog-summary-preview-text mb-0">
-                                                {summaryPreview}
-                                            </p>
-                                        </div>
-                                    )}
-
+                                    {/* Video card title and info */}
                                     <div className="catalog-video-meta text-start d-flex flex-column justify-content-between">
                                         <div>
                                             <h2 className="title mb-2">{video.Title}</h2>
@@ -134,8 +126,25 @@ export default function CatalogPage() {
                                             )}
                                         </div>
                                     </div>
+
+                                    {/* summary preview */}
+                                    {summaryPreview && (
+                                        <div className="catalog-summary-preview d-none d-lg-flex">
+                                            <p className="catalog-summary-preview-text mb-0">
+                                                {summaryPreview}
+                                            </p>
+                                        </div>
+                                    )}
+
+                                    {/* video thumbnail */}
+                                    <div className="catalog-thumbnail" title={video.Title}>
+                                        <img src={video.ThumbnailURL} alt={video.Title} />
+                                        <span className="catalog-play-icon" role="img" aria-label="Play" >
+                                            <i className="fa-solid fa-circle-play"></i>
+                                        </span>
+                                    </div>
                                 </div>
-                            </button>
+                            </div>
                         );
                     })
                 ) : (
