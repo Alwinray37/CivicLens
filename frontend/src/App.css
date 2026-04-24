@@ -167,6 +167,20 @@ nav a {
   color: white;
 }
 
+.header-controls {
+  width: 100%;
+  align-items: center;
+}
+
+.search-bar-container {
+  flex: 1 1 320px;
+  max-width: 640px;
+}
+
+.header-sort-select {
+  flex: 0 0 150px;
+}
+
 .tag-btn{
   appearance: none;
   padding: 0.25rem 0.5rem;

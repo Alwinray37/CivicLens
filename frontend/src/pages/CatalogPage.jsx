@@ -32,27 +32,13 @@ export default function CatalogPage() {
             <Header
                 search={search}
                 setSearch={setSearch}
+                dateOrder={dateOrder}
+                setDateOrder={setDateOrder}
                 selectedTags={selectedTags}
                 setSelectedTags={setSelectedTags}
             />
-            <div className="heading d-flex align-items-center justify-content-between">
+            <div className="heading d-flex align-items-center justify-content-center p-4">
                 <h1>Civic Meetings</h1>
-
-                {/* search and filter component */}
-                <div className="filter d-flex gap-2">
-                    {/* might change this to a toggle button */}
-                    <select
-                        className="form-select"
-                        value={dateOrder}
-                        onChange={e => setDateOrder(e.target.value)}
-                        style={{ maxWidth: '140px' }}
-                    >
-                        <option value="desc">Newest First</option>
-                        <option value="asc">Oldest First</option>
-                    </select>
-                    {/* tags */}
-                    <button className="btn btn-secondary" onClick={() => { setSearch(''); setDateOrder('desc'); setSelectedTags([]); }}>Clear</button>
-                </div>
             </div>
 
             <div className="video-card-list container">

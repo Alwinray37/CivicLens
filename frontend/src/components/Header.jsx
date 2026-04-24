@@ -1,6 +1,13 @@
 import { TAG_DEFINITIONS } from '@util/tagDefinitions';
 
-export default function Header({ search, setSearch, selectedTags, setSelectedTags }) {
+export default function Header({
+    search,
+    setSearch,
+    dateOrder,
+    setDateOrder,
+    selectedTags,
+    setSelectedTags,
+}) {
     const toggleTag = (tagId) => {
         setSelectedTags((currentTags) =>
             currentTags.includes(tagId)
@@ -9,20 +16,40 @@ export default function Header({ search, setSearch, selectedTags, setSelectedTag
         );
     };
 
+    const clearFilters = () => {
+        setSearch('');
+        setDateOrder('desc');
+        setSelectedTags([]);
+    };
+
     return (
         <div className="header d-flex flex-column align-items-center gap-3">
-            {/* search bar */}
-            <div className="search-bar-container">
-                <input
-                    type="text"
-                    className="form-control"
-                    placeholder="Search title..."
-                    value={search}
-                    onChange={e => setSearch(e.target.value)}
-                />
+            <div className="header-controls d-flex flex-wrap justify-content-center gap-2">
+                <div className="search-bar-container">
+                    <input
+                        type="text"
+                        className="form-control"
+                        placeholder="Search title..."
+                        value={search}
+                        onChange={e => setSearch(e.target.value)}
+                    />
+                </div>
+
+                <select
+                    className="form-select header-sort-select"
+                    value={dateOrder}
+                    onChange={e => setDateOrder(e.target.value)}
+                    aria-label="Sort meetings by date"
+                >
+                    <option value="desc">Newest First</option>
+                    <option value="asc">Oldest First</option>
+                </select>
+
+                <button type="button" className="btn btn-secondary" onClick={clearFilters}>
+                    Clear
+                </button>
             </div>
 
-            {/* tags inline bar */}
             <div className="tags-container d-flex gap-2 flex-wrap justify-content-center">
                 {TAG_DEFINITIONS.map((tag) => {
                     const isActive = selectedTags.includes(tag.id);
