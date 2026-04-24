@@ -66,6 +66,28 @@ nav a {
   gap: 0.5rem;
 }
 
+.navbar-actions {
+  margin-left: auto;
+}
+
+.navbar-links {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.navbar-page-link {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--color-text-soft);
+  transition: color 0.2s ease;
+}
+
+.navbar-page-link.active,
+.navbar-page-link:hover,
+.navbar-page-link:focus-visible {
+  color: var(--color-secondary);
+}
+
 .navbar-logo {
   height: 30px;
   border-radius: 5px;
@@ -198,6 +220,71 @@ nav a {
 .catalog-intro-note {
   color: var(--color-text-soft);
   font-size: 0.95rem;
+}
+
+.about-page {
+  max-width: 1120px;
+  padding-bottom: 2rem;
+}
+
+.about-hero,
+.about-card {
+  border-radius: 24px;
+}
+
+.about-hero {
+  margin-bottom: 1.5rem;
+  padding: 1.75rem;
+  background:
+    radial-gradient(circle at top right, color-mix(in srgb, var(--color-secondary) 22%, transparent), transparent 38%),
+    linear-gradient(135deg, color-mix(in srgb, var(--color-surface) 94%, var(--color-secondary) 6%), var(--color-surface));
+}
+
+.about-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.about-card {
+  padding: 1.35rem;
+}
+
+.about-card-wide {
+  grid-column: 1 / -1;
+}
+
+.about-eyebrow {
+  color: var(--color-secondary);
+  font-size: 0.85rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.about-title {
+  margin-bottom: 0.9rem;
+  font-size: clamp(2rem, 4vw, 3.2rem);
+  line-height: 1.05;
+}
+
+.about-lead,
+.about-body,
+.about-list {
+  color: var(--color-text-soft);
+}
+
+.about-card-title {
+  margin-bottom: 0.8rem;
+  font-size: 1.2rem;
+}
+
+.about-list {
+  padding-left: 1.2rem;
+}
+
+.about-list li + li {
+  margin-top: 0.55rem;
 }
 
 .video-card {
@@ -407,6 +494,26 @@ nav a {
 }
 
 @media (max-width: 767px) {
+  nav {
+    padding: 0.75rem 1rem;
+  }
+
+  .navbar-actions {
+    gap: 0.75rem !important;
+  }
+
+  .navbar-brand-link span {
+    font-size: 1.4rem;
+  }
+
+  .navbar-links {
+    gap: 0.75rem !important;
+  }
+
+  .navbar-page-link {
+    font-size: 0.95rem;
+  }
+
   .catalog-intro {
     display: flex;
     flex-direction: column;
@@ -432,6 +539,10 @@ nav a {
 
   .catalog-intro-cta {
     width: 100%;
+  }
+
+  .about-grid {
+    grid-template-columns: 1fr;
   }
 }
 

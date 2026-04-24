@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, NavLink } from 'react-router-dom';
 import logo from '@assets/images/logo lrg.png';
 
 import DarkModeIcon from './icons/DarkModeIcon';
@@ -23,12 +23,26 @@ const Navbar = () => {
 
     return (
         <nav>
-            <div className="d-flex gap-3 logo align-items-center">
-                <div>
-                    <Link to="/" className="navbar-brand-link">
-                        <img src={logo} alt="CivicLens Logo" className="navbar-logo" />
-                        <span>CivicLens</span>
-                    </Link>
+            <Link to="/" className="navbar-brand-link">
+                <img src={logo} alt="CivicLens Logo" className="navbar-logo" />
+                <span>CivicLens</span>
+            </Link>
+
+            <div className="navbar-actions d-flex align-items-center gap-3">
+                <div className="navbar-links d-flex align-items-center gap-3">
+                    <NavLink
+                        to="/"
+                        end
+                        className={({ isActive }) => `navbar-page-link ${isActive ? 'active' : ''}`}
+                    >
+                        Home
+                    </NavLink>
+                    <NavLink
+                        to="/about"
+                        className={({ isActive }) => `navbar-page-link ${isActive ? 'active' : ''}`}
+                    >
+                        About
+                    </NavLink>
                 </div>
                 {theme === 'light' ? (
                 <button 
