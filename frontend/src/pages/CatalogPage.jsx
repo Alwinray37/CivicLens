@@ -1,5 +1,3 @@
-// Catalog Page Component
-// Lists available meeting recordings and routes users to the watch page.
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
@@ -7,7 +5,7 @@ import LoadingSpinner from '@components/icons/LoadingSpinner';
 import { useCatalogMeetingDetails } from '@hooks/useCatalogTags';
 import { fetchCatalogData, getFilteredCatalogMeetings, getMeetingsFromCatalog } from '@util/catalog';
 import Header from '@components/Header';
-import IntoSection from '@components/IntoSection';
+import IntroSection from '@components/IntroSection';
 
 function getSummarySubtitle(summaries) {
     const summaryTitles = summaries
@@ -40,10 +38,15 @@ export default function CatalogPage() {
     const filteredList = getFilteredCatalogMeetings(meetings, search, dateOrder, selectedTags, tagsByMeetingId);
 
 
-    // handle button click to open video page 
-    // navigates to /watch/:id route with videoId as param
     const handleButtonClick = (videoId, videoUrl) => {
         navigate (`/watch/${videoId}`, { state: { videoId, videoUrl } });
+    };
+
+    const handleCardKeyDown = (event, videoId, videoUrl) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            handleButtonClick(videoId, videoUrl);
+        }
     };
 
     const scrollToFilters = () => {
@@ -52,7 +55,7 @@ export default function CatalogPage() {
 
     return (
         <div className="container" id="video-list-page">
-            <IntoSection onBrowseMeetings={scrollToFilters} />
+            <IntroSection onBrowseMeetings={scrollToFilters} />
 
             <Header
                 sectionId="meeting-filters"
@@ -81,7 +84,10 @@ export default function CatalogPage() {
                             <div
                                 className="video-card catalog-video-card"
                                 key={video.MeetingID}
+                                role="button"
+                                tabIndex={0}
                                 onClick={() => handleButtonClick(video.MeetingID, video.VideoURL)}
+                                onKeyDown={(event) => handleCardKeyDown(event, video.MeetingID, video.VideoURL)}
                             >
                                 <div className="catalog-video-card-layout">
                                     <div className="catalog-thumbnail" title={video.Title}>

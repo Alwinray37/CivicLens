@@ -1,4 +1,4 @@
-export default function IntoSection({ onBrowseMeetings }) {
+export default function IntroSection({ onBrowseMeetings }) {
     return (
         <section className="catalog-intro app-panel">
             <div className="catalog-intro-copy text-start">

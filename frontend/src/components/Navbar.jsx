@@ -8,7 +8,7 @@ import LightModeIcon from './icons/LightModeIcon';
 const Navbar = () => {
     const [theme, setTheme] = useState(() => localStorage.getItem('theme') || 'light');
 
-    // on theme change, update data attributes on html element and localStorage
+    // Keep the selected theme in sync with the document and persisted user preference.
     useEffect(() => {
         const htmlEl = document.documentElement;
         htmlEl.setAttribute('data-bs-theme', theme);
@@ -16,7 +16,6 @@ const Navbar = () => {
         localStorage.setItem('theme', theme);
     }, [theme]);
 
-    // toggle between light and dark themes, also updates localStorage and data attributes on html element
     const toggleTheme = () => {
         setTheme((currentTheme) => currentTheme === 'light' ? 'dark' : 'light');
     };

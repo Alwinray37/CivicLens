@@ -39,7 +39,6 @@ nav {
 
   background-color: var(--color-bg);
   color: var(--color-nav-text);
-  /* box-shadow: 2px 2px 5px rgba(0,0,0,0.1); */
   border-bottom: 1px solid var(--color-border);
 
   padding: 1rem 2rem;
@@ -114,7 +113,6 @@ nav a {
   display: flex;
   flex-direction: column;
   gap: 10px;
-  /* border: blue 1px solid;  */
   padding: 10px;
 }
 
@@ -427,7 +425,6 @@ nav a {
 .tag-btn:hover {
   background-color: var(--color-secondary);
   color: #fff8f3;
-  /* outline: 2px white solid !important;     */
   cursor: pointer;
   transform: translateY(-1px);
 }
@@ -592,9 +589,7 @@ nav a {
 
 @media (min-width: 992px) {
     .chatbot-wrapper {
-        /* aspect ratio enforces max height based on video player aspect ratio (for scrolling) */
-        /* video takes up 2/3 of width space and is 16/9 ratio, */
-        /* so chatbot should be half that width at 8/9 */
+        /* Match the player height closely enough to avoid excessive empty space or scrolling. */
         aspect-ratio: 8 / 9;
     }
 }

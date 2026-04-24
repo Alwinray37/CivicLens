@@ -24,7 +24,10 @@ const meetings = [
 ];
 
 const tagsByMeetingId = {
-    1: [{ id: 'budget', label: 'Budget' }],
+    1: [
+        { id: 'budget', label: 'Budget' },
+        { id: 'transportation', label: 'Transportation' },
+    ],
     2: [{ id: 'housing', label: 'Housing' }],
     3: [],
 };
@@ -57,39 +60,52 @@ describe('buildThumbnailUrl', () => {
 
 describe('getFilteredCatalogMeetings', () => {
     test('filters out meetings without a video url', () => {
-        const result = getFilteredCatalogMeetings(meetings, '', 'desc', '', tagsByMeetingId);
+        const result = getFilteredCatalogMeetings(meetings, '', 'desc', [], tagsByMeetingId);
 
         expect(result.map((meeting) => meeting.MeetingID)).toEqual([1, 2]);
     });
 
     test('filters meetings by search text', () => {
-        const result = getFilteredCatalogMeetings(meetings, 'special', 'desc', '', tagsByMeetingId);
+        const result = getFilteredCatalogMeetings(meetings, 'special', 'desc', [], tagsByMeetingId);
 
         expect(result).toHaveLength(1);
         expect(result[0].MeetingID).toBe(2);
     });
 
-    test('filters meetings by selected tag', () => {
-        const result = getFilteredCatalogMeetings(meetings, '', 'desc', 'budget', tagsByMeetingId);
+    test('filters meetings by a single selected tag', () => {
+        const result = getFilteredCatalogMeetings(meetings, '', 'desc', ['budget'], tagsByMeetingId);
+
+        expect(result).toHaveLength(1);
+        expect(result[0].MeetingID).toBe(1);
+    });
+
+    test('returns meetings matching any selected tag when multiple tags are chosen', () => {
+        const result = getFilteredCatalogMeetings(meetings, '', 'desc', ['budget', 'housing'], tagsByMeetingId);
+
+        expect(result.map((meeting) => meeting.MeetingID)).toEqual([1, 2]);
+    });
+
+    test('keeps meetings that match one of multiple selected tags on the same meeting', () => {
+        const result = getFilteredCatalogMeetings(meetings, '', 'desc', ['transportation'], tagsByMeetingId);
 
         expect(result).toHaveLength(1);
         expect(result[0].MeetingID).toBe(1);
     });
 
     test('sorts meetings by date descending', () => {
-        const result = getFilteredCatalogMeetings(meetings, '', 'desc', '', tagsByMeetingId);
+        const result = getFilteredCatalogMeetings(meetings, '', 'desc', [], tagsByMeetingId);
 
         expect(result.map((meeting) => meeting.MeetingID)).toEqual([1, 2]);
     });
 
     test('sorts meetings by date ascending', () => {
-        const result = getFilteredCatalogMeetings(meetings, '', 'asc', '', tagsByMeetingId);
+        const result = getFilteredCatalogMeetings(meetings, '', 'asc', [], tagsByMeetingId);
 
         expect(result.map((meeting) => meeting.MeetingID)).toEqual([2, 1]);
     });
 
     test('adds thumbnail urls to filtered meetings', () => {
-        const result = getFilteredCatalogMeetings(meetings, '', 'desc', '', tagsByMeetingId);
+        const result = getFilteredCatalogMeetings(meetings, '', 'desc', [], tagsByMeetingId);
 
         expect(result[0].ThumbnailURL).toBe('https://i.ytimg.com/vi/abc123/hq720.jpg');
     });
