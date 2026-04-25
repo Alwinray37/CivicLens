@@ -1,6 +1,14 @@
 from pydantic import BaseModel, Field, ConfigDict
 from datetime import datetime
-from typing import List, Optional
+from typing import List, Literal, Optional
+
+type ChatRole = Literal['outgoing'] | Literal['incoming'] | Literal['error'] | Literal['pending']
+
+class ChatResponse(BaseModel):
+    model_config = ConfigDict(populate_by_name=True)
+    
+    type: ChatRole = Field(alias="Type")
+    response: str = Field(alias="Response")
 
 class MeetingData(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
@@ -40,8 +48,4 @@ class MeetingInfo(BaseModel):
     meeting: MeetingData
     documents: Optional[str] = None
     summaries: List[MeetingSummary]
-
-class ChatResponse(BaseModel):
-    model_config = ConfigDict(populate_by_name=True)
-
-    response: str = Field(alias="Response")
+    chat_history: list[ChatResponse] = Field(alias="ChatHistory")

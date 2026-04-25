@@ -97,35 +97,37 @@ class ChatbotService:
 
         messages = self.chat_history.get_relevant(question, top_k=3, session_tag=meeting_session, fall_back=True)
         messages = cast(list[dict[str, str]], messages)
-        
+
+        transformed_question = question
         if len(messages) > 0:
+            print(messages)
             context_text = "\n\n".join(f'{message['role']}: {message['content']}' for message in messages)
-            print('RETRIEVED CONTEXT')
-            print(context_text)
-            print()
-            question = self._merge_context_and_question(context_text, question)
+            # print('RETRIEVED CONTEXT')
+            # print(context_text)
+            # print()
+            transformed_question = self._merge_context_and_question(context_text, question)
 
-        print('QUESTION')
-        print(question)
-        print()
+        # print('QUESTION')
+        # print(question)
+        # print()
 
-        if responses := self.llmcache.check(question, filter_expression=Tag("meeting_id")==str(meeting_id)):
-            print('CACHE HIT')
-            print(responses[0]['response'])
-            print()
+        if responses := self.llmcache.check(transformed_question, filter_expression=Tag("meeting_id")==str(meeting_id)):
+            # print('CACHE HIT')
+            # print(responses[0]['response'])
+            # print()
             return responses[0]['response']
 
-        relevant_docs = self._retrieve_docs(question=question, meeting_id=meeting_id)
+        relevant_docs = self._retrieve_docs(question=transformed_question, meeting_id=meeting_id)
 
-        prompt = self._augment(question=question, chunks=relevant_docs)
+        prompt = self._augment(question=transformed_question, chunks=relevant_docs)
         response = self._generate(prompt=prompt)
-        
-        print('RESPONSE')
-        print(response)
-        print()
+        #
+        # print('RESPONSE')
+        # print(response)
+        # print()
 
-        self.chat_history.store(question, response, ttl=self.cache_ttl)
-        self.llmcache.store(question, response, filters={"meeting_id": str(meeting_id)})
+        self.chat_history.store(transformed_question, response, session_tag=meeting_session, ttl=self.cache_ttl, original_prompt=question)
+        self.llmcache.store(transformed_question, response, filters={"meeting_id": str(meeting_id)})
         return response
     
     def _merge_context_and_question(self, context: str, question) -> str:
@@ -200,9 +202,9 @@ User Question:
 
     def _augment(self, question:str, chunks:list[Document]):
         meeting_text = self._chunks_to_text(chunks)
-        print('RETRIEVED CHUNKS')
-        print(meeting_text)
-        print()
+        # print('RETRIEVED CHUNKS')
+        # print(meeting_text)
+        # print()
         return f"""
 You are an assistant that answers questions about a city council meeting.
 

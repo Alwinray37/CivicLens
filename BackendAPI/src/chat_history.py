@@ -1,8 +1,12 @@
 from typing import Any, Dict, List, Optional, override
-from redisvl.extensions.constants import CONTENT_FIELD_NAME, ID_FIELD_NAME, MESSAGE_VECTOR_FIELD_NAME, METADATA_FIELD_NAME, ROLE_FIELD_NAME, TOOL_FIELD_NAME
+from redisvl.extensions.constants import CONTENT_FIELD_NAME, ID_FIELD_NAME, MESSAGE_VECTOR_FIELD_NAME, METADATA_FIELD_NAME, ROLE_FIELD_NAME, SESSION_FIELD_NAME, TIMESTAMP_FIELD_NAME, TOOL_FIELD_NAME
 from redisvl.extensions.message_history import ChatRole, SemanticMessageHistory
 from redisvl.extensions.message_history.schema import ChatMessage
+from redisvl.query import FilterQuery
+from redisvl.query.filter import Tag
 from redisvl.utils.utils import serialize, validate_vector_dims
+
+from src.models.meeting_models import ChatResponse
 
 # slight modification to redisvl SemanticMessageHistory that allows you to specify ttl
 class ChatHistory(SemanticMessageHistory):
@@ -11,11 +15,17 @@ class ChatHistory(SemanticMessageHistory):
         self, prompt: str, 
         response: str, 
         session_tag: Optional[str] = None,
-        ttl: Optional[int] = None
+        ttl: Optional[int] = None,
+        original_prompt: Optional[str] = None,
     ) -> None:
+        user_message = {ROLE_FIELD_NAME: "user", CONTENT_FIELD_NAME: prompt}
+
+        if original_prompt is not None:
+            user_message[METADATA_FIELD_NAME] = original_prompt
+
         self.add_messages(
             [
-                {ROLE_FIELD_NAME: "user", CONTENT_FIELD_NAME: prompt},
+                user_message,
                 {ROLE_FIELD_NAME: "llm", CONTENT_FIELD_NAME: response},
             ],
             session_tag,
@@ -63,3 +73,48 @@ class ChatHistory(SemanticMessageHistory):
         ttl: Optional[int] = None
     ) -> None:
         self.add_messages([message], session_tag, ttl)
+
+    def get_meeting_session_messages(self, meeting_id:int, session_id:str):
+        meeting_session = f'{meeting_id} {session_id}'
+
+        return_fields = [
+            ID_FIELD_NAME,
+            SESSION_FIELD_NAME,
+            ROLE_FIELD_NAME,
+            CONTENT_FIELD_NAME,
+            TIMESTAMP_FIELD_NAME,
+            TOOL_FIELD_NAME,
+            METADATA_FIELD_NAME,
+        ]
+
+        query = FilterQuery(
+            filter_expression=Tag(SESSION_FIELD_NAME) == meeting_session,
+            return_fields=return_fields,
+        )
+        query.sort_by(TIMESTAMP_FIELD_NAME, asc=True)
+        messages = self._index.query(query)
+
+        return self._format_context(messages, as_text=False)
+
+def cached_messages_to_responses(chat_messages: list[dict[str, str]]) -> list[ChatResponse]:
+    responses = []
+    for chat_message in chat_messages:
+        cm_role = chat_message.get('role')
+        assert cm_role is not None, "chat_message has 'role' field"
+
+        # 'metadata' contains the original non-transformed user prompts
+        # prefer these when getting message, but look for 'content' also to get
+        # llm message data which is never transformed
+        message_text = chat_message.get('metadata') or chat_message.get('content')
+        assert message_text is not None, "chat_message has 'metadata' field"
+
+        match cm_role:
+            case ChatRole.USER:
+                chat_type = "outgoing"
+            case "llm":
+                chat_type = "incoming"
+            case _:
+                assert False, "Chat messages in cache are only user or llm type"
+
+        responses.append(ChatResponse(Response=message_text, Type=chat_type))
+    return responses

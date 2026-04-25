@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useMutation } from '@tanstack/react-query';
 import { createMessage, fetchChatbot } from "@/util/chatbotUtility";
 
-export function useChatbot(meetingId, clearInputFunc) {
+export function useChatbot(meetingId, clearInputFunc, chatHistory) {
     /* 
         * messages: {
             * type: "outgoing" | "incoming" | "error" | "pending"
@@ -10,7 +10,7 @@ export function useChatbot(meetingId, clearInputFunc) {
             * message: string
         * }[]
     */
-    const [messages, setMessages] = useState([]);
+    const [messages, setMessages] = useState(chatHistory);
 
     const chatQuery = useMutation({
         mutationKey: [meetingId],

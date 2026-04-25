@@ -36,6 +36,8 @@ export default function VideoPage() {
     }
 
     const { meeting } = videoQuery.data;
+    const chatHistory = videoQuery.data.ChatHistory.map(cr => ({ type: cr.Type, message: cr.Response }));
+    console.log(chatHistory);
     const timezoneDateObj = getTimezoneDate(new Date(meeting.Date));
 
     /**
@@ -75,6 +77,7 @@ export default function VideoPage() {
                     <Chatbot 
                         meetingId={id}
                         onTimeSelect={handleTimeSelect}
+                        chatHistory={chatHistory}
                     />
                 </div>
             </div>

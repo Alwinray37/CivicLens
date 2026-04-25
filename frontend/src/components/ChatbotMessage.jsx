@@ -25,7 +25,6 @@ import Timestamp from "./Timestamp";
         const [parsedMessage, setParsedMessage] = useState(message);
 
         function parseChatbotMessage(message) {
-            console.log('starting');
             let elements = [];
 
             // chatbot *should* return [TIME: n] where n is some number

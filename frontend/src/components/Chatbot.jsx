@@ -5,11 +5,12 @@ import { useChatbot } from '@/hooks/useChatbot';
 
 export default function Chatbot({
     meetingId,
-    onTimeSelect
+    onTimeSelect,
+    chatHistory,
 }) {
     const [messageInput, setMessageInput] = useState("");
 
-    const [messages, sendMessage] = useChatbot(meetingId, () => setMessageInput(""));
+    const [messages, sendMessage] = useChatbot(meetingId, () => setMessageInput(""), chatHistory);
 
     // ref of the div the contains the messages
     const messageContainerRef = useRef(null);
