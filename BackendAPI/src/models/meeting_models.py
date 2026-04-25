@@ -48,4 +48,8 @@ class MeetingInfo(BaseModel):
     meeting: MeetingData
     documents: Optional[str] = None
     summaries: List[MeetingSummary]
+
+class ChatHistoryResponse(BaseModel):
+    model_config = ConfigDict(populate_by_name=True)
+
     chat_history: list[ChatResponse] = Field(alias="ChatHistory")

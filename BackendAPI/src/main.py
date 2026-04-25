@@ -10,7 +10,7 @@ from starlette.types import HTTPExceptionHandler
 from src.chat_history import cached_messages_to_responses
 from src.chatbot_service import ChatbotException
 from src.models import MeetingsData, MeetingInfo
-from src.models.meeting_models import ChatResponse
+from src.models.meeting_models import ChatHistoryResponse, ChatResponse
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.middleware import SlowAPIASGIMiddleware
 
@@ -74,13 +74,8 @@ def get_meetings():
 
 
 @app.get("/getMeetingInfo/{meeting_id}", response_model=MeetingInfo, response_model_by_alias=True)
-def getMeetingInfo(request: Request, meeting_id: int):
+def getMeetingInfo(meeting_id: int):
     try:
-        session_id = request.scope.get('session_id')
-        assert type(session_id) is str
-        chat_messages = env.chat_service.chat_history.get_meeting_session_messages(meeting_id, session_id)
-        chat_messages = cast(list[dict[str, str]], chat_messages)
-        chat_messages = cached_messages_to_responses(chat_messages)
         with psycopg.connect(env.db_conn) as conn:
             with conn.cursor() as cur:
                 cur.execute("""
@@ -102,10 +97,7 @@ def getMeetingInfo(request: Request, meeting_id: int):
     if res is None:
         raise HTTPException(status_code=404, detail="No meetings found")  
 
-    return {
-            **res[0],
-            'chat_history': chat_messages,
-            }
+    return res[0]
 
 
 # request param is needed for slowapi limiter
@@ -124,6 +116,21 @@ def chat(request: Request, meeting_id: int, query: str):
 
     except ChatbotException as e:
         raise HTTPException(status_code=e.status_code, detail=e)
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Unexpected error: {str(e)}")
+
+
+@app.get("/getChatHistory/{meeting_id}", response_model=ChatHistoryResponse, response_model_by_alias=True)
+def getChatHistory(request: Request, meeting_id: int):
+    try:
+        session_id = request.scope.get('session_id')
+        assert type(session_id) is str
+        chat_messages = env.chat_service.chat_history.get_meeting_session_messages(meeting_id, session_id)
+        chat_messages = cast(list[dict[str, str]], chat_messages)
+        chat_messages = cached_messages_to_responses(chat_messages)
+
+        return ChatHistoryResponse(ChatHistory=chat_messages)
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Unexpected error: {str(e)}")
