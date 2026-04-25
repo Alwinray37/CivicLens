@@ -1,4 +1,7 @@
-const CHAT_ENDPOINT = `${import.meta.env.BASE_URL}api/chat`
+import { fetchJson } from "./api";
+
+const CHAT_ENDPOINT = `${import.meta.env.BASE_URL}api/chat`;
+const HISTORY_ENDPOINT = `${import.meta.env.BASE_URL}api/getChatHistory`;
 const TOO_MANY_REQUESTS = 429;
 
 const QUESTION_TOO_LONG = 414;
@@ -50,6 +53,12 @@ export async function fetchChatbot(query, meetingId) {
     if (!data) {
         throw new Error("Meeting does not have chat enabled");
     }
+
+    return data;
+}
+
+export async function fetchChatHistory(meetingId) {
+    const data = await fetchJson(`${HISTORY_ENDPOINT}/${meetingId}`);
 
     return data;
 }
