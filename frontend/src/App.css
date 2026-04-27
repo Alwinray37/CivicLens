@@ -523,10 +523,6 @@ nav a {
   white-space: nowrap;
 }
 
-.catalog-tag-overflow {
-  color: var(--color-secondary);
-}
-
 .agenda-card,
 .bookmark-card,
 .summary-card {

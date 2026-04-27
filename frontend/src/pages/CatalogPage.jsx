@@ -21,6 +21,86 @@ function getSummarySubtitle(summaries) {
     return summaryTitles.length > 0 ? summaryTitles.join(' • ') : '';
 }
 
+function getCatalogTopicLine(summaries, detailsLoaded) {
+    if (!detailsLoaded) return '';
+    if (summaries.length === 0) return 'No summary available';
+
+    return getSummarySubtitle(summaries);
+}
+
+export function CatalogMeetingCard({
+    video,
+    videoTags = [],
+    videoSummaries = [],
+    detailsLoaded = false,
+    onOpen,
+}) {
+    const summarySubtitle = getCatalogTopicLine(videoSummaries, detailsLoaded);
+
+    const handleKeyDown = (event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            onOpen(video.MeetingID, video.VideoURL);
+        }
+    };
+
+    return (
+        <div
+            className="video-card catalog-video-card"
+            role="button"
+            tabIndex={0}
+            onClick={() => onOpen(video.MeetingID, video.VideoURL)}
+            onKeyDown={handleKeyDown}
+        >
+            <div className="catalog-video-card-layout">
+                <div className="catalog-thumbnail" title={video.Title}>
+                    {video.ThumbnailURL ? (
+                        <img src={video.ThumbnailURL} alt={video.Title} />
+                    ) : (
+                        <div className="catalog-thumbnail-fallback" aria-hidden="true">
+                            No preview
+                        </div>
+                    )}
+                    <span className="catalog-play-icon" aria-hidden="true">
+                        <i className="fa-solid fa-circle-play"></i>
+                    </span>
+                </div>
+
+                <div className="catalog-video-meta text-start">
+                    <div className="catalog-video-copy">
+                        <p className="catalog-video-date">
+                            {formatCatalogMeetingDate(video.Date)}
+                        </p>
+                        <h2 className="title catalog-video-title mb-0">{video.Title}</h2>
+                        {summarySubtitle && (
+                            <p className="catalog-video-subtitle mb-0">
+                                {summarySubtitle}
+                            </p>
+                        )}
+                    </div>
+
+                    <div className="catalog-card-footer">
+                        {videoTags.length > 0 && (
+                            <div className="catalog-tag-list d-flex flex-wrap gap-2">
+                                {videoTags.map((tag) => (
+                                    <span key={tag.id} className="catalog-tag">
+                                        {tag.label}
+                                    </span>
+                                ))}
+                            </div>
+                        )}
+
+                        <span className="catalog-watch-cue">
+                            <i className="fa-solid fa-circle-play" aria-hidden="true"></i>
+                            Watch meeting
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+}
+
 export default function CatalogPage() {
     const [dateOrder, setDateOrder] = useState('desc');
     const [search, setSearch] = useState('');
@@ -43,13 +123,6 @@ export default function CatalogPage() {
 
     const handleButtonClick = (videoId, videoUrl) => {
         navigate (`/watch/${videoId}`, { state: { videoId, videoUrl } });
-    };
-
-    const handleCardKeyDown = (event, videoId, videoUrl) => {
-        if (event.key === 'Enter' || event.key === ' ') {
-            event.preventDefault();
-            handleButtonClick(videoId, videoUrl);
-        }
     };
 
     const scrollToFilters = () => {
@@ -81,72 +154,16 @@ export default function CatalogPage() {
                         const videoTags = tagsByMeetingId[video.MeetingID] || [];
                         const videoSummaries = summariesByMeetingId[video.MeetingID] || [];
                         const detailsLoaded = detailStatusByMeetingId[video.MeetingID]?.isSuccess;
-                        const summarySubtitle = detailsLoaded
-                            ? getSummarySubtitle(videoSummaries) || 'No summary available'
-                            : '';
-                        const visibleTags = videoTags.slice(0, 3);
-                        const hiddenTagCount = Math.max(videoTags.length - visibleTags.length, 0);
 
                         return (
-                            <div
-                                className="video-card catalog-video-card"
+                            <CatalogMeetingCard
                                 key={video.MeetingID}
-                                role="button"
-                                tabIndex={0}
-                                onClick={() => handleButtonClick(video.MeetingID, video.VideoURL)}
-                                onKeyDown={(event) => handleCardKeyDown(event, video.MeetingID, video.VideoURL)}
-                            >
-                                <div className="catalog-video-card-layout">
-                                    <div className="catalog-thumbnail" title={video.Title}>
-                                        {video.ThumbnailURL ? (
-                                            <img src={video.ThumbnailURL} alt={video.Title} />
-                                        ) : (
-                                            <div className="catalog-thumbnail-fallback" aria-hidden="true">
-                                                No preview
-                                            </div>
-                                        )}
-                                        <span className="catalog-play-icon" role="img" aria-label="Play" >
-                                            <i className="fa-solid fa-circle-play"></i>
-                                        </span>
-                                    </div>
-
-                                    <div className="catalog-video-meta text-start">
-                                        <div className="catalog-video-copy">
-                                            <p className="catalog-video-date">
-                                                {formatCatalogMeetingDate(video.Date)}
-                                            </p>
-                                            <h2 className="title catalog-video-title mb-0">{video.Title}</h2>
-                                            {summarySubtitle && (
-                                                <p className="catalog-video-subtitle mb-0">
-                                                    {summarySubtitle}
-                                                </p>
-                                            )}
-                                        </div>
-
-                                        <div className="catalog-card-footer">
-                                            {visibleTags.length > 0 && (
-                                                <div className="catalog-tag-list d-flex flex-wrap gap-2">
-                                                    {visibleTags.map((tag) => (
-                                                        <span key={tag.id} className="catalog-tag">
-                                                            {tag.label}
-                                                        </span>
-                                                    ))}
-                                                    {hiddenTagCount > 0 && (
-                                                        <span className="catalog-tag catalog-tag-overflow">
-                                                            +{hiddenTagCount}
-                                                        </span>
-                                                    )}
-                                                </div>
-                                            )}
-
-                                            <span className="catalog-watch-cue">
-                                                <i className="fa-solid fa-circle-play" aria-hidden="true"></i>
-                                                Watch meeting
-                                            </span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+                                video={video}
+                                videoTags={videoTags}
+                                videoSummaries={videoSummaries}
+                                detailsLoaded={detailsLoaded}
+                                onOpen={handleButtonClick}
+                            />
                         );
                     })
                 ) : (
