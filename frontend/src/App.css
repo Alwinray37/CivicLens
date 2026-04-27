@@ -289,7 +289,7 @@ nav a {
   border-radius: 10px;
   padding: 1rem;
   background-color: var(--color-card-bg);
-  border: 2px solid var(--color-secondary);
+  border: 1px solid var(--color-border);
   box-shadow: 0 16px 32px rgba(0, 0, 0, 0.08);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
@@ -308,8 +308,8 @@ nav a {
 
 .video-card:hover {
   cursor: pointer;
-  transform: translate(-10px);
-  box-shadow: 10px 10px 20px 0 var(--color-card-hover-shadow);
+  transform: translateY(-2px);
+  box-shadow: 0 18px 32px var(--color-card-hover-shadow);
 }
 
 .video-card:focus-visible {
@@ -357,14 +357,28 @@ nav a {
   padding: 0;
   flex: 0 0 100%;
   max-width: 100%;
+  overflow: hidden;
+  border-radius: 10px;
+  background-color: var(--color-surface-muted);
 }
 
 .catalog-thumbnail img {
   display: block;
   width: 100%;
   max-width: 100%;
-  border-radius: 10px;
+  aspect-ratio: 16 / 9;
+  border-radius: inherit;
   object-fit: cover;
+}
+
+.catalog-thumbnail-fallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  color: var(--color-text-soft);
+  font-weight: 700;
 }
 
 .catalog-play-icon {
@@ -375,6 +389,8 @@ nav a {
   inset: 0;
   font-size: 3rem;
   color: white;
+  background: linear-gradient(180deg, transparent 30%, rgba(0, 0, 0, 0.24));
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
 }
 
 .catalog-video-card {
@@ -391,33 +407,62 @@ nav a {
 }
 
 .catalog-video-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  justify-content: space-between;
   min-width: 0;
 }
 
 .catalog-video-date {
-  margin-bottom: 0;
+  margin-bottom: 0.35rem;
+  color: var(--color-secondary);
+  font-size: 0.82rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.catalog-video-title {
+  display: -webkit-box;
+  overflow: hidden;
+  color: var(--color-text);
+  font-size: clamp(1.25rem, 2vw, 1.75rem);
+  line-height: 1.15;
+  text-overflow: ellipsis;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
 }
 
 .catalog-video-subtitle {
   color: var(--color-text-soft);
   font-size: 0.95rem;
   line-height: 1.4;
-  margin-bottom: 0.75rem;
-}
-
-.catalog-summary-preview {
-  min-width: 0;
-  align-items: center;
-}
-
-.catalog-summary-preview-text {
-  color: var(--color-text-soft);
   display: -webkit-box;
-  -webkit-line-clamp: 6;
-  -webkit-box-orient: vertical;
+  margin-top: 0.65rem;
   overflow: hidden;
   text-overflow: ellipsis;
-  line-height: 1.5;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 1;
+}
+
+.catalog-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.9rem;
+  min-width: 0;
+}
+
+.catalog-watch-cue {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 0.4rem;
+  color: var(--color-secondary);
+  font-size: 0.9rem;
+  font-weight: 800;
+  white-space: nowrap;
 }
 
 .header-controls {
@@ -457,20 +502,25 @@ nav a {
 
 .catalog-tag-list {
   align-items: center;
+  min-width: 0;
 }
 
 .catalog-tag {
   display: inline-flex;
   align-items: center;
-  padding: 0.35rem 0.7rem;
+  max-width: 10rem;
+  padding: 0.3rem 0.6rem;
   border-radius: 999px;
   background-color: color-mix(in srgb, var(--color-secondary) 18%, var(--color-surface));
   border: 1px solid color-mix(in srgb, var(--color-secondary) 28%, var(--color-border));
   color: var(--color-text);
+  overflow: hidden;
   font-size: 0.72rem;
   font-weight: 700;
   letter-spacing: 0.03em;
+  text-overflow: ellipsis;
   text-transform: uppercase;
+  white-space: nowrap;
 }
 
 .agenda-card,
@@ -566,7 +616,7 @@ nav a {
 @media (min-width: 992px) {
   .catalog-video-card-layout {
     display: grid;
-    grid-template-columns: minmax(260px, 1.2fr) minmax(0, 1fr) minmax(260px, 1fr);
+    grid-template-columns: minmax(220px, 0.38fr) minmax(0, 1fr);
     align-items: stretch;
     gap: 1.25rem;
   }
@@ -577,12 +627,12 @@ nav a {
 
   .catalog-thumbnail img {
     height: 100%;
-    min-height: 180px;
+    min-height: 150px;
   }
 
-  .catalog-summary-preview {
-    padding: 0.25rem 0;
-    overflow: hidden;
+  .catalog-thumbnail-fallback {
+    height: 100%;
+    min-height: 150px;
   }
 }
 
