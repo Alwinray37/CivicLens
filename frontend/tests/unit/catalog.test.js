@@ -1,0 +1,145 @@
+import { describe, expect, test } from 'vitest';
+
+import { buildThumbnailUrl, getFilteredCatalogMeetings, getMeetingsFromCatalog } from '../../src/util/catalog';
+
+const meetings = [
+    {
+        MeetingID: 1,
+        Title: 'Regular Meeting',
+        Date: '2025-01-02',
+        VideoURL: 'https://www.youtube.com/watch?v=abc123',
+    },
+    {
+        MeetingID: 2,
+        Title: 'Special Session',
+        Date: '2025-01-01',
+        VideoURL: 'https://www.youtube.com/watch?v=xyz789',
+    },
+    {
+        MeetingID: 3,
+        Title: 'Closed Session',
+        Date: '2025-01-03',
+        VideoURL: null,
+    },
+];
+
+const tagsByMeetingId = {
+    1: [
+        { id: 'budget', label: 'Budget' },
+        { id: 'transportation', label: 'Transportation' },
+    ],
+    2: [{ id: 'housing', label: 'Housing' }],
+    3: [],
+};
+
+const summariesByMeetingId = {
+    1: [{ Title: 'Fiscal Outlook', Summary: 'Budget overview for the quarter.' }],
+    2: [{ Title: 'Affordable Housing Update', Summary: 'Housing production and permits.' }],
+    3: [],
+};
+
+describe('getMeetingsFromCatalog', () => {
+    test('returns wrapped meetings arrays', () => {
+        expect(getMeetingsFromCatalog({ meetings })).toEqual(meetings);
+    });
+
+    test('returns raw arrays unchanged', () => {
+        expect(getMeetingsFromCatalog(meetings)).toEqual(meetings);
+    });
+
+    test('returns an empty array for invalid input', () => {
+        expect(getMeetingsFromCatalog({ meetings: null })).toEqual([]);
+        expect(getMeetingsFromCatalog(null)).toEqual([]);
+    });
+});
+
+describe('buildThumbnailUrl', () => {
+    test('returns a thumbnail url for valid YouTube links', () => {
+        expect(buildThumbnailUrl('https://www.youtube.com/watch?v=abc123')).toBe('https://i.ytimg.com/vi/abc123/hq720.jpg');
+    });
+
+    test('returns null for invalid video urls', () => {
+        expect(buildThumbnailUrl('not-a-url')).toBeNull();
+        expect(buildThumbnailUrl('https://www.youtube.com/watch')).toBeNull();
+    });
+});
+
+describe('getFilteredCatalogMeetings', () => {
+    test('filters out meetings without a video url', () => {
+        const result = getFilteredCatalogMeetings(meetings, '', 'desc', [], tagsByMeetingId);
+
+        expect(result.map((meeting) => meeting.MeetingID)).toEqual([1, 2]);
+    });
+
+    test('filters meetings by search text', () => {
+        const result = getFilteredCatalogMeetings(meetings, 'special', 'desc', [], tagsByMeetingId, summariesByMeetingId);
+
+        expect(result).toHaveLength(1);
+        expect(result[0].MeetingID).toBe(2);
+    });
+
+    test('filters meetings by subtitle text', () => {
+        const result = getFilteredCatalogMeetings(meetings, 'fiscal', 'desc', [], tagsByMeetingId, summariesByMeetingId);
+
+        expect(result).toHaveLength(1);
+        expect(result[0].MeetingID).toBe(1);
+    });
+
+    test('filters meetings by tag label text', () => {
+        const result = getFilteredCatalogMeetings(meetings, 'housing', 'desc', [], tagsByMeetingId, summariesByMeetingId);
+
+        expect(result).toHaveLength(1);
+        expect(result[0].MeetingID).toBe(2);
+    });
+
+    test('filters meetings by formatted date text', () => {
+        const result = getFilteredCatalogMeetings(meetings, 'january 2, 2025', 'desc', [], tagsByMeetingId, summariesByMeetingId);
+
+        expect(result).toHaveLength(1);
+        expect(result[0].MeetingID).toBe(1);
+    });
+
+    test('filters meetings by a single selected tag', () => {
+        const result = getFilteredCatalogMeetings(meetings, '', 'desc', ['budget'], tagsByMeetingId, summariesByMeetingId);
+
+        expect(result).toHaveLength(1);
+        expect(result[0].MeetingID).toBe(1);
+    });
+
+    test('returns meetings matching any selected tag when multiple tags are chosen', () => {
+        const result = getFilteredCatalogMeetings(meetings, '', 'desc', ['budget', 'housing'], tagsByMeetingId, summariesByMeetingId);
+
+        expect(result.map((meeting) => meeting.MeetingID)).toEqual([1, 2]);
+    });
+
+    test('keeps meetings that match one of multiple selected tags on the same meeting', () => {
+        const result = getFilteredCatalogMeetings(meetings, '', 'desc', ['transportation'], tagsByMeetingId, summariesByMeetingId);
+
+        expect(result).toHaveLength(1);
+        expect(result[0].MeetingID).toBe(1);
+    });
+
+    test('filters meetings by any selected tag when multiple tags are active', () => {
+        const result = getFilteredCatalogMeetings(meetings, '', 'desc', ['housing', 'budget'], tagsByMeetingId, summariesByMeetingId);
+
+        expect(result.map((meeting) => meeting.MeetingID)).toEqual([1, 2]);
+    });
+
+    test('sorts meetings by date descending', () => {
+        const result = getFilteredCatalogMeetings(meetings, '', 'desc', [], tagsByMeetingId, summariesByMeetingId);
+
+        expect(result.map((meeting) => meeting.MeetingID)).toEqual([1, 2]);
+    });
+
+    test('sorts meetings by date ascending', () => {
+        const result = getFilteredCatalogMeetings(meetings, '', 'asc', [], tagsByMeetingId, summariesByMeetingId);
+
+        expect(result.map((meeting) => meeting.MeetingID)).toEqual([2, 1]);
+    });
+
+    test('adds thumbnail urls to filtered meetings', () => {
+        const result = getFilteredCatalogMeetings(meetings, '', 'desc', [], tagsByMeetingId, summariesByMeetingId);
+
+        expect(result[0].ThumbnailURL).toBe('https://i.ytimg.com/vi/abc123/hq720.jpg');
+    });
+});

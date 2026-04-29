@@ -1,5 +1,3 @@
-import styles from './AgendaCard.module.css';
-
 import { timeStrToSeconds } from '@util/time';
 import InfoPill from '@components/InfoPill';
 
@@ -26,8 +24,7 @@ export default function AgendaCard({
     onItemClick,
 }) {
     return (
-        <div className={"container p-0 d-flex flex-column bg-body-secondary "
-                        + styles.agendaCard}>
+        <div className="container p-0 d-flex flex-column app-panel agenda-card">
             <div className="overflow-y-scroll py-2 d-flex flex-column gap-2 flex-grow-1 min-scrollbar">
                 {events.map((e, i) =>
                 <InfoPill

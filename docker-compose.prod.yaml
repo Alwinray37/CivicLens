@@ -1,0 +1,8 @@
+# Production-only override: adopt the pre-existing civiclens_pgdata volume
+# so a redeploy doesn't wipe the live database. Merged on top of
+# docker-compose.yaml via `-f docker-compose.yaml -f docker-compose.prod.yaml`
+# in the main-branch deploy path.
+volumes:
+  pgdata:
+    name: civiclens_pgdata
+    external: true

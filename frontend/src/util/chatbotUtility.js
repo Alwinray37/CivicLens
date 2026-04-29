@@ -1,4 +1,4 @@
-const CHAT_ENDPOINT = '/api/chat'
+const CHAT_ENDPOINT = `${import.meta.env.BASE_URL}api/chat`
 const TOO_MANY_REQUESTS = 429;
 
 const QUESTION_TOO_LONG = 414;
@@ -20,9 +20,12 @@ export function createMessage(type, messageText) {
 }
 
 export async function fetchChatbot(query, meetingId) {
-    if(query.length === 0) return;
+    const trimmedQuery = query.trim();
+    if(trimmedQuery.length === 0) {
+        throw new Error("Question cannot be empty.");
+    }
 
-    const res = await fetch(`${CHAT_ENDPOINT}/${meetingId}?query=${query}`);
+    const res = await fetch(`${CHAT_ENDPOINT}/${meetingId}?query=${encodeURIComponent(trimmedQuery)}`);
 
     if(res.status === TOO_MANY_REQUESTS) {
         throw new Error("Chatbot is currently overloaded, try asking again in a minute.");
