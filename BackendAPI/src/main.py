@@ -12,7 +12,7 @@ from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.middleware import SlowAPIASGIMiddleware
 from slowapi.util import get_remote_address
 
-from config_env import env
+from src.config_env import env
 
 
 app = FastAPI()
