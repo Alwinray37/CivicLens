@@ -95,7 +95,7 @@ class ChatbotService:
 
         meeting_session = f'{meeting_id} {session_id}'
 
-        messages = self.chat_history.get_relevant(question, top_k=3, session_tag=meeting_session, fall_back=True)
+        messages = self.chat_history.get_relevant(question, top_k=5, session_tag=meeting_session, fall_back=True)
         messages = cast(list[dict[str, str]], messages)
 
         transformed_question = question
@@ -107,9 +107,9 @@ class ChatbotService:
             # print()
             transformed_question = self._merge_context_and_question(context_text, question)
 
-        # print('QUESTION')
-        # print(question)
-        # print()
+        print('QUESTION')
+        print(transformed_question)
+        print()
 
         if responses := self.llmcache.check(transformed_question, filter_expression=Tag("meeting_id")==str(meeting_id)):
             # print('CACHE HIT')
@@ -155,7 +155,13 @@ Rewriting Rules:
 - Replace vague references with specific details from the chat history
 - For vague follow-ups like "anything else", include the main topic from the chat history
 - Do NOT add new information
+- Do NOT include timestamps or any numeric markers (e.g., [TIME: 123], seconds, or time references)
 - Keep it to one sentence
+
+Failure Condition:
+- If the meeting text does not clearly answer the question, say:
+  "This was not discussed in the meeting."
+- Do not use loosely related information to form an answer
 
 Output Format (must follow exactly):
 
@@ -187,10 +193,12 @@ User Question:
         return metadata
 
     def _retrieve_docs(self, question:str, meeting_id:int):
-        return self.vstore.similarity_search(
+        return self.vstore.max_marginal_relevance_search(
                 query=question,
                 filter={"meeting_id": { "$eq": meeting_id }},
                 k=10,
+                fetch_k=20,
+                lambda_mult=0.6
                 )
 
 
@@ -198,7 +206,7 @@ User Question:
         return re.sub(r"\|\d+\|: ", "\n", content)
 
     def _chunks_to_text(self, chunks: list[Document]):
-        return "\n\n".join([f'[Start time: {d.metadata['StartTime']} seconds]\n{self._simplify_chunk_content(d.page_content)}'for d in chunks])
+        return "\n\n".join([f'[Start time: {d.metadata['StartTime']} seconds]{self._simplify_chunk_content(d.page_content)}'for d in chunks])
 
     def _augment(self, question:str, chunks:list[Document]):
         meeting_text = self._chunks_to_text(chunks)
@@ -214,7 +222,12 @@ You are given:
 - Each excerpt includes a start time in seconds
 
 Rules:
-- Answer using ONLY the information in the meeting text
+- Use only information from the meeting text
+- Only include details that directly answer the question
+- Ignore any parts of the meeting text that are not clearly relevant
+- Rewrite the information in your own words
+- Do NOT add outside knowledge or assumptions
+- Do NOT copy sentences directly from the meeting text
 - You may use timestamps to indicate when something occurred
 - When including a timestamp, you MUST use this exact format:
   [TIME: <seconds>]
