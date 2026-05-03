@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, NavLink } from 'react-router-dom';
 import logo from '@assets/images/logo lrg.png';
 
 import DarkModeIcon from './icons/DarkModeIcon';
@@ -8,7 +8,7 @@ import LightModeIcon from './icons/LightModeIcon';
 const Navbar = () => {
     const [theme, setTheme] = useState(() => localStorage.getItem('theme') || 'light');
 
-    // on theme change, update data attributes on html element and localStorage
+    // Keep the selected theme in sync with the document and persisted user preference.
     useEffect(() => {
         const htmlEl = document.documentElement;
         htmlEl.setAttribute('data-bs-theme', theme);
@@ -16,19 +16,32 @@ const Navbar = () => {
         localStorage.setItem('theme', theme);
     }, [theme]);
 
-    // toggle between light and dark themes, also updates localStorage and data attributes on html element
     const toggleTheme = () => {
         setTheme((currentTheme) => currentTheme === 'light' ? 'dark' : 'light');
     };
 
     return (
         <nav>
-            <div className="d-flex gap-3 logo align-items-center">
-                <div>
-                    <Link to="/" className="navbar-brand-link">
-                        <img src={logo} alt="CivicLens Logo" className="navbar-logo" />
-                        <span>CivicLens</span>
-                    </Link>
+            <Link to="/" className="navbar-brand-link">
+                <img src={logo} alt="CivicLens Logo" className="navbar-logo" />
+                <span>CivicLens</span>
+            </Link>
+
+            <div className="navbar-actions d-flex align-items-center gap-3">
+                <div className="navbar-links d-flex align-items-center gap-3">
+                    <NavLink
+                        to="/"
+                        end
+                        className={({ isActive }) => `navbar-page-link ${isActive ? 'active' : ''}`}
+                    >
+                        Home
+                    </NavLink>
+                    <NavLink
+                        to="/about"
+                        className={({ isActive }) => `navbar-page-link ${isActive ? 'active' : ''}`}
+                    >
+                        About
+                    </NavLink>
                 </div>
                 {theme === 'light' ? (
                 <button 

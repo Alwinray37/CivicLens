@@ -1,0 +1,74 @@
+# Local dev compose for machines without an NVIDIA GPU.
+# Runs db, api, and frontend only — Ollama runs natively on the host.
+#
+# Prerequisites (one-time):
+#   brew install ollama
+#   ollama pull smollm:135m
+#   ollama pull nomic-embed-text:latest
+#
+# Usage (two terminals):
+#   Terminal 1: ollama serve
+#   Terminal 2: docker compose -f docker-compose.dev.yaml up
+
+services:
+  db:
+    build:
+      context: ./DB
+    restart: unless-stopped
+    environment:
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - backend
+
+  api:
+    build:
+      context: ./BackendAPI
+    restart: unless-stopped
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    environment:
+      DB_CONN: ${DB_CONN:-}
+      DB_PASSWORD: ${DB_PASSWORD}
+      OLLAMA_CONN: ${OLLAMA_CONN:-http://host.docker.internal:11434}
+      ANSWER_MODEL: ${ANSWER_MODEL:-smollm:135m}
+      EMBED_MODEL: ${EMBED_MODEL:-nomic-embed-text:latest}
+      CHATBOT_LIMIT_STRAT: ${CHATBOT_LIMIT_STRAT:-IP}
+      CHATBOT_LIMIT: ${CHATBOT_LIMIT:-5/minute}
+      PYTHONPATH: /app
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    networks:
+      - backend
+    develop:
+      watch:
+        - action: sync
+          path: ./BackendAPI/src
+          target: /app/src
+          initial_sync: true
+        - action: rebuild
+          path: ./BackendAPI/requirements.txt
+          target: /app/requirements.txt
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_BASE_PATH: ${VITE_BASE_PATH:-/}
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    depends_on:
+      - api
+    networks:
+      - backend
+
+volumes:
+  pgdata:
+
+networks:
+  backend:

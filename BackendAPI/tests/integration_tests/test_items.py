@@ -1,6 +1,5 @@
 from fastapi.testclient import TestClient
-from main import app
-import os
+from src.main import app
 
 from src.models import MeetingsData, MeetingInfo
 

@@ -57,6 +57,8 @@ COMP490/
 
 ## Quick Start (from repo root)
 
+> **No NVIDIA GPU?** See [Local Dev Without GPU](#local-dev-without-gpu) below.
+
 ### 1) Install frontend dependencies
 ```bash
 cd frontend
@@ -76,6 +78,47 @@ npm run dev
 ```
 
 The frontend will run locally and connect to backend services started via Docker Compose.
+
+## Local Dev Without GPU
+
+The default `docker-compose.yaml` requires an NVIDIA GPU for Ollama. If you're on a Mac or a machine without one, use `docker-compose.dev.yaml` instead — it skips the Docker Ollama container and routes the API to a native Ollama process on your machine.
+
+### One-time setup
+
+Install Ollama and pull the small local-dev models (~370 MB total):
+
+```bash
+brew install ollama
+ollama pull smollm:135m
+ollama pull nomic-embed-text:latest
+```
+
+Create a `.env` file in the repo root (gitignored, never commit it):
+
+```
+DB_PASSWORD=postgres
+DB_CONN="postgresql://postgres:postgres@db:5432"
+ANSWER_MODEL=smollm:135m
+EMBED_MODEL=nomic-embed-text:latest
+OLLAMA_CONN=http://host.docker.internal:11434
+```
+
+On Linux, `host.docker.internal` may require Docker's host-gateway mapping to resolve from containers. `docker-compose.dev.yaml` includes that mapping for the `api` service, but Ollama still needs to be running on your host machine and listening on port `11434`.
+
+### Starting the stack
+
+**Terminal 1** — run Ollama natively:
+```bash
+ollama serve
+```
+
+**Terminal 2** — start the rest of the stack:
+```bash
+docker compose -f docker-compose.dev.yaml up
+```
+
+- Frontend: http://localhost:80
+- API: http://localhost:8000
 
 ## Frontend Commands
 
@@ -115,6 +158,11 @@ npm run build
 - If data is not loading, remove containers and restart from repo root:
 
 ```bash
+# GPU setup
 docker compose down -v
 docker compose up --watch
+
+# No-GPU setup
+docker compose -f docker-compose.dev.yaml down -v
+docker compose -f docker-compose.dev.yaml up
 ```

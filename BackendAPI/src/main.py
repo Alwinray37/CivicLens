@@ -3,7 +3,6 @@ from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 import psycopg
 
-from redisvl.extensions.message_history.schema import ChatMessage
 from slowapi.errors import RateLimitExceeded
 from starlette.types import HTTPExceptionHandler
 
@@ -14,8 +13,8 @@ from src.models.meeting_models import ChatHistoryResponse, ChatResponse
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.middleware import SlowAPIASGIMiddleware
 
-from config_env import env
-from middleware import SessionIdMiddleware
+from src.config_env import env
+from src.middleware import SessionIdMiddleware
 
 app = FastAPI()
 
