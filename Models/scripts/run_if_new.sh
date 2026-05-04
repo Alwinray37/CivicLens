@@ -68,6 +68,10 @@ set +a
     exit 3
 }
 
+# council-pipeline shells out to `whisperx` without an absolute path, so the
+# venv's bin/ has to be on PATH for the subprocess.
+export PATH="$COUNCIL_PIPELINE_VENV/bin:$PATH"
+
 # DB_CONN in the env file uses the compose-internal hostname `db`, which the
 # host can't resolve. Rewrite to the container's current bridge IP. Container
 # IPs are stable across runs unless the network is recreated.

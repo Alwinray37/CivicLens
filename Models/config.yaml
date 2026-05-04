@@ -19,3 +19,8 @@ meeting_year: 2026
 # Can also be set via the DB_CONN environment variable.
 # If not set, the pipeline will only generate SQL files (no DB insert).
 # db_url: "postgresql://postgres:password@localhost:5431/postgres"
+
+# Whisperx compute type. Use "float16" on Turing+ (Volta, Turing, Ampere,
+# Hopper). On Pascal (e.g. Tesla P40), use "int8" — FP16 isn't efficient
+# below sm_70 and ctranslate2 will refuse it.
+compute_type: "int8"
