@@ -1,6 +1,6 @@
 import InfoPill from '@components/InfoPill';
 
-import { srtTimeStrToSeconds } from "@util/time";
+import { getSrtOrDirectSeconds, HHMMSStoSeconds, secondsToHHMMSS } from "@util/time";
 
 export default function SummaryCard({
     summaries,
@@ -19,8 +19,8 @@ export default function SummaryCard({
                 <InfoPill
                     title={s.Title}
                     content={s.Summary}
-                    time={s.StartTime}
-                    onTimeClick={() => onItemClick?.(srtTimeStrToSeconds(s.StartTime))}
+                    time={secondsToHHMMSS(getSrtOrDirectSeconds(s.StartTime))}
+                    onTimeClick={(time) => onItemClick?.(HHMMSStoSeconds(time))}
 
                     key={i}
                 />
