@@ -29,6 +29,8 @@ def load_config(config_path: Optional[str] = None) -> "PipelineConfig":
         temp_dir=Path(data.get("temp_dir", ".temp")),
         meeting_year=int(data.get("meeting_year", 2026)),
         db_url=data.get("db_url") or os.getenv("DB_CONN", ""),
+        compute_type=data.get("compute_type", "float16"),
+        batch_size=str(data.get("batch_size", "16")),
     )
 
 

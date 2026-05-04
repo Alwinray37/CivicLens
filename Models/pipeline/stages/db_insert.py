@@ -102,7 +102,7 @@ class DbInsert(PipelineStage):
                             text(
                                 'INSERT INTO public."MeetingChunks" '
                                 '("meeting_id", "ChunkNum", "StartTime", "EndTime", "Content", "Embedding") '
-                                "VALUES (:meeting_id, :chunk_num, :start_time, :end_time, :content, :embedding::vector)"
+                                "VALUES (:meeting_id, :chunk_num, :start_time, :end_time, :content, CAST(:embedding AS vector))"
                             ),
                             {
                                 "meeting_id": meeting_id,

@@ -19,6 +19,24 @@ export const timeStrToSeconds = (timeStr) => {
     return convMin * 60 + convSec;
 }
 
+export const HHMMSStoSeconds = (timeStr) => {
+    if(typeof timeStr !== 'string') return -1;
+
+    const split = timeStr.split(":");
+    if(split.length !== 3) return -1;
+
+    const convHours = Number.parseInt(split[0]);
+    if(Number.isNaN(convHours)) return -1;
+
+    const convMin = Number.parseInt(split[1]);
+    if(Number.isNaN(convMin)) return -1;
+
+    const convSec = Number.parseInt(split[2]);
+    if(Number.isNaN(convSec)) return -1;
+
+    return convHours * 3600 + convMin * 60 + convSec;
+}
+
 
 /* takes a time string like "01:42:16,715" (SRT FORMAT) and
     * converts it to a number in seconds (155)
@@ -63,4 +81,12 @@ export const secondsToHHMMSS = (seconds) => {
     let secondsStr = String(secondsInt).padStart(2, 0);
 
     return `${hoursStr}:${minutesStr}:${secondsStr}`;
+}
+
+export const getSrtOrDirectSeconds = (timeStr) => {
+    if(typeof timeStr === 'string' && timeStr.includes(',')) {
+        return srtTimeStrToSeconds(timeStr);
+    }
+
+    return Number.parseInt(timeStr);
 }
