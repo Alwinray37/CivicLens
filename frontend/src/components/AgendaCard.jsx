@@ -31,7 +31,7 @@ export default function AgendaCard({
                     title={`NO. (${e.itemNum}) - ${e.fileNum}`}
                     content={e.content}
                     time={e.timespan}
-                    onTimeClick={() => onItemClick?.(timeStrToSeconds(e.timespan?.split('-')[0]))}
+                    onTimeSelect={() => onItemClick?.(timeStrToSeconds(e.timespan?.split('-')[0]))}
 
                     key={i}
                 />

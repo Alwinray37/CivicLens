@@ -1,21 +1,26 @@
+from typing import cast
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 import psycopg
-import os
 
 from slowapi.errors import RateLimitExceeded
+from starlette.types import HTTPExceptionHandler
 
-from src.chatbot_service import ChatbotException, ChatbotService
+from src.chat_history import cached_messages_to_responses
+from src.chatbot_service import ChatbotException
 from src.models import MeetingsData, MeetingInfo
-from src.models.meeting_models import ChatResponse
-from slowapi import Limiter, _rate_limit_exceeded_handler
+from src.models.meeting_models import ChatHistoryResponse, ChatResponse
+from slowapi import _rate_limit_exceeded_handler
 from slowapi.middleware import SlowAPIASGIMiddleware
-from slowapi.util import get_remote_address
 
 from src.config_env import env
-
+from src.middleware import SessionIdMiddleware
 
 app = FastAPI()
+
+
+app.add_middleware(SessionIdMiddleware)
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -25,7 +30,8 @@ app.add_middleware(
 )
 
 app.state.limiter = env.limiter
-app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+limit_exceeded_handler = cast(HTTPExceptionHandler, _rate_limit_exceeded_handler)
+app.add_exception_handler(RateLimitExceeded, limit_exceeded_handler)
 app.add_middleware(SlowAPIASGIMiddleware)
 
 
@@ -97,14 +103,33 @@ def getMeetingInfo(meeting_id: int):
 @app.get("/chat/{meeting_id}", response_model=ChatResponse)
 @env.limiter.limit(env.limit)
 def chat(request: Request, meeting_id: int, query: str):
+    session_id = request.scope.get('session_id')
+    assert type(session_id) is str
+
     try:
-        ans = env.chat_service.answer(query, meeting_id)
+        ans = env.chat_service.answer(query, meeting_id, session_id=session_id)
         if not isinstance(ans, str):
             raise Exception("Response in incorrect format")
-        return ChatResponse(Response=ans)
+
+        return ChatResponse(Response=ans, Type="incoming")
 
     except ChatbotException as e:
         raise HTTPException(status_code=e.status_code, detail=e)
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Unexpected error: {str(e)}")
+
+
+@app.get("/getChatHistory/{meeting_id}", response_model=ChatHistoryResponse, response_model_by_alias=True)
+def getChatHistory(request: Request, meeting_id: int):
+    try:
+        session_id = request.scope.get('session_id')
+        assert type(session_id) is str
+        chat_messages = env.chat_service.chat_history.get_meeting_session_messages(meeting_id, session_id)
+        chat_messages = cast(list[dict[str, str]], chat_messages)
+        chat_messages = cached_messages_to_responses(chat_messages)
+
+        return ChatHistoryResponse(ChatHistory=chat_messages)
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Unexpected error: {str(e)}")

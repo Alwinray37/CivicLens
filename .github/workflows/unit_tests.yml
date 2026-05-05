@@ -39,6 +39,10 @@ jobs:
         image: ollama/ollama:0.16.0
         ports:
           - 11434:11434
+      redis:
+        image: redis:8.4.2-alpine
+        ports:
+          - 6379:6379
         
         
 
@@ -66,7 +70,8 @@ jobs:
       - name: Install Ollama Model
         working-directory: BackendAPI
         run: |
-          curl http://localhost:11434/api/pull -d '{ "model": "smollm:135m" }'
+          curl http://localhost:11434/api/pull -d '{ "model": "smollm:135m" }' &&
+          curl http://localhost:11434/api/pull -d '{ "model": "all-minilm:22m" }'
 
       - name: Run API Tests
         working-directory: BackendAPI
@@ -74,6 +79,7 @@ jobs:
           DB_CONN: postgresql://test_user:test_password@localhost:5432/test_db
           PYTHONPATH: ${{ github.workspace }}/BackendAPI
           OLLAMA_CONN: http://localhost:11434
+          REDIS_CONN: redis://localhost:6379
         run: pytest tests/ -v
 
   frontend-test:

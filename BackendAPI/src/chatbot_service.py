@@ -1,9 +1,17 @@
+import re
+from typing import Optional, cast
 from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.vectorstores import VectorStore
 from langchain_ollama import ChatOllama
 from langchain_postgres import PGVectorStore, PGEngine
 from langchain_core.documents import Document
 from langchain_ollama.embeddings import OllamaEmbeddings
+from redis import Redis
+from redisvl.query.filter import Tag
+from redisvl.utils.vectorize import CustomVectorizer, EmbeddingsCache
+from redisvl.extensions.cache.llm import SemanticCache
+
+from src.chat_history import ChatHistory
 
 class ChatbotException(Exception):
     def __init__(self, message: str, status_code: int):
@@ -13,18 +21,22 @@ class ChatbotException(Exception):
 class ChatbotService:
     MAX_QUESTION_LEN = 300
 
-    def __init__(self, vstore:VectorStore, chat_model:BaseChatModel):
+    def __init__(self, vstore:VectorStore, chat_model:BaseChatModel, chat_history: ChatHistory, llmcache: SemanticCache, cache_ttl:Optional[int]):
         self.vstore = vstore
         self.chat_model = chat_model
+        self.chat_history = chat_history
+        self.llmcache = llmcache
+        self.cache_ttl = cache_ttl
 
 
     @classmethod
-    def create(cls, db_url:str, table_name:str, embedding_model:str, answer_model:str, ollama_url:str|None=None):
+    def create(cls, db_url:str, table_name:str, embedding_model:str, answer_model:str, ollama_url:Optional[str], redis_url:Optional[str], cache_ttl:Optional[int]):
         pgengine = PGEngine.from_connection_string(db_url)
+        embeddings = OllamaEmbeddings(model=embedding_model, base_url=ollama_url)
         vstore = PGVectorStore.create_sync(
                 engine=pgengine,
                 table_name=table_name,
-                embedding_service= OllamaEmbeddings(model=embedding_model, base_url=ollama_url),
+                embedding_service= embeddings,
                 id_column="ChunkID",
                 metadata_columns=["meeting_id", "ChunkNum", "StartTime", "EndTime", "Content"],
                 embedding_column="Embedding",
@@ -37,21 +49,142 @@ class ChatbotService:
                 base_url=ollama_url,
                 temperature=0,
                 )
+
+        def embed(text: str):
+            return embeddings.embed_query(text)
+        def embed_many(texts: list[str]):
+            ret = []
+            for text in texts:
+                ret.append(embed(text))
+            return ret
+
         
-        return cls(vstore, llm)
+        if redis_url is not None:
+            redis_client = Redis.from_url(redis_url)
+        else:
+            redis_client = Redis()
+
+        embeddings_cache = EmbeddingsCache(
+                name="chatbot-embeddings-cache",
+                redis_client=redis_client,
+                ttl=cache_ttl,
+                )
+
+        vectorizer = CustomVectorizer(embed=embed, embed_many=embed_many, cache=embeddings_cache)
+        chat_history = ChatHistory(name='chat', distance_threshold=0.5, vectorizer=vectorizer, redis_client=redis_client)
+
+        llmcache = SemanticCache(
+                name="chatbot-cache",
+                ttl=cache_ttl,
+                vectorizer=vectorizer,
+                filterable_fields=[{"name": "meeting_id", "type": "tag"}],
+                redis_client=redis_client,
+                distance_threshold=0.05
+                )
+
+        return cls(vstore, llm, chat_history, llmcache, cache_ttl)
 
 
-    def answer(self, question:str, meeting_id:int):
+    def answer(self, question:str, meeting_id:int, session_id:str):
         """
         Answer a question for a specific meeting
         """
         if(len(question) > self.MAX_QUESTION_LEN):
             raise ChatbotException("Question is too long", status_code=414)
 
-        relevant_docs = self._retrieve_docs(question=question, meeting_id=meeting_id)
-        prompt = self._augment(question=question, docs=relevant_docs)
-        return self._generate(prompt=prompt)
+
+        meeting_session = f'{meeting_id} {session_id}'
+
+        messages = self.chat_history.get_relevant(question, top_k=5, session_tag=meeting_session, fall_back=True)
+        messages = cast(list[dict[str, str]], messages)
+
+        transformed_question = question
+        if len(messages) > 0:
+            print(messages)
+            context_text = "\n\n".join(f'{message['role']}: {message['content']}' for message in messages)
+            # print('RETRIEVED CONTEXT')
+            # print(context_text)
+            # print()
+            transformed_question = self._merge_context_and_question(context_text, question)
+
+        print('QUESTION')
+        print(transformed_question)
+        print()
+
+        if responses := self.llmcache.check(transformed_question, filter_expression=Tag("meeting_id")==str(meeting_id)):
+            # print('CACHE HIT')
+            # print(responses[0]['response'])
+            # print()
+            return responses[0]['response']
+
+        relevant_docs = self._retrieve_docs(question=transformed_question, meeting_id=meeting_id)
+
+        prompt = self._augment(question=transformed_question, chunks=relevant_docs)
+        response = self._generate(prompt=prompt)
+        #
+        # print('RESPONSE')
+        # print(response)
+        # print()
+
+        self.chat_history.store(transformed_question, response, session_tag=meeting_session, ttl=self.cache_ttl, original_prompt=question)
+        self.llmcache.store(transformed_question, response, filters={"meeting_id": str(meeting_id)})
+        return response
     
+    def _merge_context_and_question(self, context: str, question) -> str:
+        prompt = f"""
+You are a system that prepares user questions for retrieval.
+
+You are given:
+- A user question
+- Relevant chat history
+
+Your task:
+1. Determine if the question depends on the chat history
+2. Rewrite it only if necessary
+
+Rules:
+- Do NOT answer the question
+- Do NOT include any explanation
+- Only produce the required output format
+
+Decision Rules:
+- If the question is clear and self-contained, mark it as "standalone"
+- If it depends on prior context (e.g., "it", "they", "that", "anything else"), mark it as "rewrite"
+
+Rewriting Rules:
+- Replace vague references with specific details from the chat history
+- For vague follow-ups like "anything else", include the main topic from the chat history
+- Do NOT add new information
+- Do NOT include timestamps or any numeric markers (e.g., [TIME: 123], seconds, or time references)
+- Keep it to one sentence
+
+Failure Condition:
+- If the meeting text does not clearly answer the question, say:
+  "This was not discussed in the meeting."
+- Do not use loosely related information to form an answer
+
+Output Format (must follow exactly):
+
+TYPE: <standalone or rewrite>
+QUESTION: <final question>
+
+Chat History:
+{context}
+
+User Question:
+{question}
+""".strip()
+        response = self.chat_model.invoke(prompt).content
+        assert isinstance(response, str)
+
+        re_match = re.match(r"TYPE:.+\sQUESTION:\s(.+)", response)
+        if re_match is None:
+            return response
+        else:
+            extracted_question = re_match.group(1)
+            return extracted_question
+    
+
     def _meeting_metadata_func(self, record: dict, metadata: dict) -> dict:
         metadata["start"] = record.get("start") or 0
         metadata["end"] = record.get("end") or 0
@@ -60,34 +193,58 @@ class ChatbotService:
         return metadata
 
     def _retrieve_docs(self, question:str, meeting_id:int):
-        return self.vstore.similarity_search(
+        return self.vstore.max_marginal_relevance_search(
                 query=question,
                 filter={"meeting_id": { "$eq": meeting_id }},
                 k=10,
+                fetch_k=20,
+                lambda_mult=0.6
                 )
 
 
-    def _augment(self, question:str, docs:list[Document]):
+    def _simplify_chunk_content(self, content: str):
+        return re.sub(r"\|\d+\|: ", "\n", content)
+
+    def _chunks_to_text(self, chunks: list[Document]):
+        return "\n\n".join([f'[Start time: {d.metadata['StartTime']} seconds]{self._simplify_chunk_content(d.page_content)}'for d in chunks])
+
+    def _augment(self, question:str, chunks:list[Document]):
+        meeting_text = self._chunks_to_text(chunks)
+        # print('RETRIEVED CHUNKS')
+        # print(meeting_text)
+        # print()
         return f"""
 You are an assistant that answers questions about a city council meeting.
 
 You are given:
 - A user question
 - Relevant excerpts from the meeting transcript
+- Each excerpt includes a start time in seconds
 
 Rules:
-- Answer using ONLY the information in the excerpts
-- Do NOT refer to excerpt numbers, chunk IDs, or any formatting of the input
-- Do NOT mention "excerpt", "chunk", or "transcript" in your answer
-- Write the answer as a natural response, as if explaining what happened in the meeting
+- Use only information from the meeting text
+- Only include details that directly answer the question
+- Ignore any parts of the meeting text that are not clearly relevant
+- Rewrite the information in your own words
+- Do NOT add outside knowledge or assumptions
+- Do NOT copy sentences directly from the meeting text
+- You may use timestamps to indicate when something occurred
+- When including a timestamp, you MUST use this exact format:
+  [TIME: <seconds>]
+- Do NOT modify this format
+- Do NOT convert seconds into minutes or other formats
+- Only include timestamps if they are relevant to the question
+
+Formatting Rules:
+- Do NOT refer to excerpts, chunks, or transcript structure
+- Do NOT mention where the information comes from
 - Do NOT use markdown, bullet points, or special formatting
-- Use plain sentences only
+- Write in plain sentences only
 - Be concise and factual
-- If the excerpts do not contain enough information, say:
-  "This was not discussed in the meeting."
+- Write naturally, as if explaining what happened in the meeting
 
 Meeting Text:
-{"\n".join([d.page_content for d in docs])}
+{meeting_text}
 
 User Question:
 {question}
@@ -98,5 +255,7 @@ Answer:
 
     def _generate(self, prompt:str):
             ch_response = self.chat_model.invoke(prompt)
+            ch_content = ch_response.content
+            assert isinstance(ch_content, str)
 
-            return ch_response.content
+            return ch_content

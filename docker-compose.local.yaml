@@ -8,3 +8,6 @@ services:
   frontend:
     ports:
       - 80:80
+  redis:
+    ports:
+      - 6379:6379
