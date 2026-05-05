@@ -24,3 +24,9 @@ meeting_year: 2026
 # Hopper). On Pascal (e.g. Tesla P40), use "int8" — FP16 isn't efficient
 # below sm_70 and ctranslate2 will refuse it.
 compute_type: "int8"
+
+# Whisperx parallel-chunk batch size. 16 fits a 24GB GPU on its own, but
+# the dev/prod Ollama containers each pin ~4GB for qwen3-embedding under
+# the 24h keep-alive — so we drop to 8 to leave headroom and avoid OOM
+# when the pipeline's summary stage also loads llama3.1:8b mid-run.
+batch_size: "8"
