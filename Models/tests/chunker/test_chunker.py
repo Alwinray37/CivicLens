@@ -1,5 +1,5 @@
 import json
-from chunker import Chunker
+from utils.chunker import Chunker
 
 
 with open("tests/chunker/example-text.txt") as file:

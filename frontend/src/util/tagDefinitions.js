@@ -1,0 +1,98 @@
+export const TAG_DEFINITIONS = [
+    {
+        id: 'budget',
+        label: 'Budget',
+        keywords: ['budget', 'fiscal', 'appropriation', 'revenue', 'funding', 'finance'],
+        phrases: ['capital improvement plan', 'fiscal year'],
+    },
+    {
+        id: 'housing',
+        label: 'Housing',
+        keywords: ['housing', 'residential', 'tenant', 'homelessness'],
+        phrases: ['affordable housing', 'housing element'],
+    },
+    {
+        id: 'zoning',
+        label: 'Zoning',
+        keywords: ['zoning', 'rezone', 'variance', 'parcel'],
+        phrases: ['land use', 'zoning code'],
+    },
+    {
+        id: 'transportation',
+        label: 'Transportation',
+        keywords: ['traffic', 'transit', 'mobility', 'street', 'roadway', 'bike'],
+        phrases: ['traffic calming', 'public transit', 'transportation plan'],
+    },
+    {
+        id: 'public-safety',
+        label: 'Public Safety',
+        keywords: ['safety', 'emergency', 'crime', 'preparedness'],
+        phrases: ['public safety', 'emergency response'],
+    },
+    {
+        id: 'police',
+        label: 'Police',
+        keywords: ['police', 'officer', 'patrol', 'law enforcement'],
+        phrases: ['police department'],
+    },
+    {
+        id: 'fire',
+        label: 'Fire',
+        keywords: ['fire', 'wildfire', 'prevention'],
+        phrases: ['fire department', 'fire station'],
+    },
+    {
+        id: 'parks',
+        label: 'Parks & Rec',
+        keywords: ['park', 'trail', 'playground', 'recreation'],
+        phrases: ['parks and recreation', 'community center'],
+    },
+    {
+        id: 'public-works',
+        label: 'Public Works',
+        keywords: ['maintenance', 'sewer', 'stormwater', 'sidewalk', 'infrastructure'],
+        phrases: ['public works', 'water main'],
+    },
+    {
+        id: 'utilities',
+        label: 'Utilities',
+        keywords: ['utility', 'utilities', 'electric', 'power', 'water'],
+        phrases: ['utility rate', 'water service'],
+    },
+    {
+        id: 'education',
+        label: 'Education',
+        keywords: ['school', 'student', 'education', 'curriculum'],
+        phrases: ['school district'],
+    },
+    {
+        id: 'procurement',
+        label: 'Procurement',
+        keywords: ['contract', 'vendor', 'bid', 'proposal', 'procurement'],
+        phrases: ['request for proposals', 'purchase agreement'],
+    },
+    {
+        id: 'ordinance',
+        label: 'Ordinance',
+        keywords: ['ordinance'],
+        phrases: ['first reading', 'second reading'],
+    },
+    {
+        id: 'resolution',
+        label: 'Resolution',
+        keywords: ['resolution'],
+        phrases: ['city resolution'],
+    },
+    {
+        id: 'environment',
+        label: 'Environment',
+        keywords: ['climate', 'emissions', 'sustainability', 'habitat'],
+        phrases: ['environmental review', 'climate action'],
+    },
+    {
+        id: 'economic-development',
+        label: 'Economic Dev',
+        keywords: ['business', 'jobs', 'tourism', 'downtown'],
+        phrases: ['economic development'],
+    },
+];

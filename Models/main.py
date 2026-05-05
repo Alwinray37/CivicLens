@@ -2,7 +2,7 @@ import torch
 import torchaudio
 import ffmpeg
 
-from json_helper import JsonHelper
+from utils.json_helper import JsonHelper
 from asr_extraction import AsrExtraction
 
 import numpy as np
@@ -21,8 +21,8 @@ from huggingface_hub import login
 
 from tqdm import tqdm
 
-from meeting_summary import MeetingSummary
-from pdf_extraction import PdfExtraction
+from utils.meeting_summary import MeetingSummary
+from utils.pdf_extraction import PdfExtraction
 
 JSON_INFO = 'info.json'
 JSON_RAW_OUTPUT = 'output.json'
