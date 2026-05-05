@@ -73,7 +73,7 @@ services:
       OLLAMA_CONTEXT_LENGTH: ${OLLAMA_CONTEXT_LENGTH:-8192}
 
       # -1 or 24h will keep models loaded in vram indefinitely
-      OLLAMA_KEEP_ALIVE: ${OLLAMA_KEEP_ALIVE:-5m}
+      OLLAMA_KEEP_ALIVE: ${OLLAMA_KEEP_ALIVE:-24h}
     volumes:
       - ollamadata:/root/.ollama
     restart: always
