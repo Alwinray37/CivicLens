@@ -32,8 +32,14 @@
 #       /home/overseer/civiclens-pipeline/.venv/bin/council-pipeline --init-db
 #
 # ─── Cron entry (after bring-up) ──────────────────────────────────────────
+# Chain dev + prod sequentially in one entry. The wrapper's flock means
+# back-to-back invocations against the same lock file run in series; the `;`
+# (rather than `&&`) ensures prod still runs if dev fails.
+#
 #   0 */2 * * * /home/overseer/test/CivicLens/Models/scripts/run_if_new.sh \
-#       /home/overseer/config/civiclens-dev.env
+#       /home/overseer/config/civiclens-dev.env; \
+#     /home/overseer/test/CivicLens/Models/scripts/run_if_new.sh \
+#       /home/overseer/config/civiclens-prod.env
 
 set -euo pipefail
 
