@@ -153,6 +153,41 @@ npm run lint
 npm run build
 ```
 
+## Validation
+
+Run frontend checks from the `frontend/` directory:
+
+```bash
+npm run test -- --run
+npm run lint
+npm run build
+```
+
+Run backend API tests from the repo root:
+
+```bash
+cd BackendAPI
+pip install -r requirements.txt
+pytest
+cd ..
+```
+
+Run model/pipeline tests from the repo root:
+
+```bash
+cd Models
+pip install -r requirements.txt
+pytest
+cd ..
+```
+
+## Branching and Versioning Model
+
+- `main`: stable branch for production-oriented releases.
+- `development`: integration branch for active project work before release.
+- Feature, task, and fix branches: used for focused changes before merging into `development`.
+- Release versions are tracked through Git commit history, branch names, and pull request merges.
+
 ## Troubleshooting
 - Make sure Docker is running before starting backend services.
 - If data is not loading, remove containers and restart from repo root:
